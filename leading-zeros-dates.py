@@ -1,5 +1,7 @@
 import pandas as pd
 
+# TODO: test formatted as general for dates. Use Rev War Records for testing
+
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
 file_path = '1800_Revolutionary_War_Records_for_script.xlsx'
 
