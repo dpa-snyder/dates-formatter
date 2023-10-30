@@ -1,5 +1,4 @@
 import pandas as pd
-import re
 
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
 file_path = '1800_Revolutionary_War_Records_for_script.xlsx'
@@ -17,12 +16,12 @@ new_column_name = 'FormattedDate'
 def format_date(date_str):
     # Check if the date string contains a range
     if '-' in date_str:
-        start_date, end_date = map(str.strip, date_str.split('-'))
-        formatted_start_date = format_single_date(start_date)
-        formatted_end_date = format_single_date(end_date)
-        return f"{formatted_start_date} - {formatted_end_date}"
+        # Split by hyphen and format each part
+        parts = date_str.split('-')
+        formatted_parts = [format_single_date(part.strip()) for part in parts]
+        return ' - '.join(formatted_parts)
     else:
-        return format_single_date(date_str)
+        return format_single_date(date_str.strip())
 
 # Function to format a single date string with leading zeros
 def format_single_date(date_str):
