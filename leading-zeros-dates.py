@@ -1,9 +1,9 @@
 import pandas as pd
 
-# TODO: test formatted as general for dates. Use Rev War Records for testing
+# TODO: make table and column seletions a user choice
 
 # Replace 'your_excel_file.xlsx' with the path to your Excel file
-file_path = '1800_Revolutionary_War_Records_for_script.xlsx'
+file_path = '1500_000_061_Wilmington_Death_Registers_test.xlsx'
 
 # Load the Excel file into a pandas DataFrame
 df = pd.read_excel(file_path)
@@ -12,7 +12,7 @@ df = pd.read_excel(file_path)
 column_to_format = 'FullDate'
 
 # Create a new column to store the formatted dates
-new_column_name = 'FormattedDate'
+new_column_name = 'FormattedFullDate'
 
 # Function to format a date string with leading zeros
 def format_date(date_str):
