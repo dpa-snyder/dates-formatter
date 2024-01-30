@@ -1,12 +1,16 @@
 import pandas as pd
 import tkinter as tk
+from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilename
+
+def update_progress_bar(progress_bar, value):
+    progress_bar['value'] = value
+    root.update_idletasks()
 
 # todo: make file choice with tkinter
 # todo: make executable with PyInstaller
 # todo: handle 28, 29 (leap years), 30, and 31 dates
 # todo: make table and column seletions a user choice, but how?
-
 
 # Initialize Tkinter
 root = tk.Tk()
@@ -17,6 +21,14 @@ file_types = [("Excel files", "*.xlsx;*.xls"), ("CSV files", "*.csv")]
 
 # Open file dialog and get the file path
 file_path = askopenfilename(filetypes=file_types)
+
+# Progress Window
+progress_win = tk.Toplevel(root)
+progress_win.title("Processing File")
+ttk.Label(progress_win, text="Progress:").pack()
+progress_bar = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate')
+progress_bar.pack()
+progress_win.update()
 
 # Function to format a date string with leading zeros
 def format_date(date_str):
@@ -41,6 +53,9 @@ if file_path.endswith('.csv'):
 else:
     df = pd.read_excel(file_path)
 
+# Update progress bar after reading the file
+update_progress_bar(progress_bar, 33)
+
 # Specify the name of the column to format
 column_to_format = 'FullDate'
 
@@ -55,8 +70,18 @@ if column_to_format not in df.columns:
 # Create a new column with the formatted dates
 df[new_column_name] = df[column_to_format].apply(lambda cell: format_date(str(cell)) if pd.notna(cell) else '')
 
+# Update progress bar after processing (date formatting)
+update_progress_bar(progress_bar, 66)
+
 # Save the DataFrame back to the file
 if file_path.endswith('.csv'):
     df.to_csv(file_path, index=False)
 else:
     df.to_excel(file_path, index=False)
+
+# Update progress bar after writing back to the file
+update_progress_bar(progress_bar, 100)
+
+# Show completion message
+messagebox.showinfo("Completion", "Job completed successfully!")
+progress_win.destroy()
