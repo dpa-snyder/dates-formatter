@@ -1,18 +1,22 @@
 import pandas as pd
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
 
-# TODO: make table and column seletions a user choice
+# todo: make file choice with tkinter
+# todo: make executable with PyInstaller
+# todo: handle 28, 29 (leap years), 30, and 31 dates
+# todo: make table and column seletions a user choice, but how?
 
-# Replace 'your_excel_file.xlsx' with the path to your Excel file
-file_path = '1500_000_061_Wilmington_Death_Registers_test.xlsx'
 
-# Load the Excel file into a pandas DataFrame
-df = pd.read_excel(file_path)
+# Initialize Tkinter
+root = tk.Tk()
+root.withdraw()  # Hide the main window
 
-# Specify the name of the column to format
-column_to_format = 'FullDate'
+# File types options for the dialog
+file_types = [("Excel files", "*.xlsx;*.xls"), ("CSV files", "*.csv")]
 
-# Create a new column to store the formatted dates
-new_column_name = 'FormattedFullDate'
+# Open file dialog and get the file path
+file_path = askopenfilename(filetypes=file_types)
 
 # Function to format a date string with leading zeros
 def format_date(date_str):
@@ -31,8 +35,28 @@ def format_single_date(date_str):
     formatted_parts = [part.zfill(2) for part in parts]
     return '/'.join(formatted_parts)
 
+# Determine the file extension and load the file accordingly
+if file_path.endswith('.csv'):
+    df = pd.read_csv(file_path)
+else:
+    df = pd.read_excel(file_path)
+
+# Specify the name of the column to format
+column_to_format = 'FullDate'
+
+# Create a new column to store the formatted dates
+new_column_name = 'FormattedFullDate'
+
+# Check if the specified column exists
+if column_to_format not in df.columns:
+    print(f"The column '{column_to_format}' does not exist in the file.")
+    exit()
+
 # Create a new column with the formatted dates
 df[new_column_name] = df[column_to_format].apply(lambda cell: format_date(str(cell)) if pd.notna(cell) else '')
 
-# Replace the existing Excel file with the updated DataFrame
-df.to_excel(file_path, index=False)
+# Save the DataFrame back to the file
+if file_path.endswith('.csv'):
+    df.to_csv(file_path, index=False)
+else:
+    df.to_excel(file_path, index=False)
