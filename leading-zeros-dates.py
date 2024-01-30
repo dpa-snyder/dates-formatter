@@ -2,10 +2,12 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilename
+import time
 
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
     root.update_idletasks()
+    time.sleep(0.5)
 
 # todo: make file choice with tkinter
 # todo: make executable with PyInstaller
@@ -26,7 +28,7 @@ file_path = askopenfilename(filetypes=file_types)
 progress_win = tk.Toplevel(root)
 progress_win.title("Processing File")
 ttk.Label(progress_win, text="Progress:").pack()
-progress_bar = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate')
+progress_bar = ttk.Progressbar(progress_win, orient='horizontal', length=500, mode='determinate')
 progress_bar.pack()
 progress_win.update()
 
