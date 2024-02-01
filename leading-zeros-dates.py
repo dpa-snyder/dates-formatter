@@ -9,10 +9,12 @@ def update_progress_bar(progress_bar, value):
     root.update_idletasks()
     time.sleep(0.5)
 
-# todo: make file choice with tkinter
-# todo: make executable with PyInstaller
+# done: make file choice with tkinter
+# done: make executable with PyInstaller
+    
+# todo: python exe has a terminal window, can we disable with pyinstalled?
 # todo: handle 28, 29 (leap years), 30, and 31 dates
-# todo: make table and column seletions a user choice, but how?
+# todo: make table and column seletions a user choice, but how... even needed??
 
 # Initialize Tkinter
 root = tk.Tk()
