@@ -61,28 +61,36 @@ def get_last_day_of_month(year, month):
 
 # Function to format a date string with leading zeros
 def custom_format_date(date_str):
-    # Check if the date_str represents a range
-    if ' - ' in date_str:  # Ensure to check for ' - ' (with spaces as used in split)
-        # Split the range into start and end dates only if ' - ' is present
+    # Split date ranges, accounting for special handling of '??'
+    if ' - ' in date_str:
         start_date, end_date = date_str.split(' - ')
-        # Process each date in the range individually to ensure MM/DD/YYYY format
         try:
-            start_date_formatted = datetime.strptime(start_date, '%m/%d/%Y').strftime('%m/%d/%Y')
-            end_date_formatted = datetime.strptime(end_date, '%m/%d/%Y').strftime('%m/%d/%Y')
-            # Combine back into a range string
+            # Check if either part of the date range contains '??
+            if '??' in start_date or '??' in end_date or '00' in start_date or '00' in end_date:
+                # Extract month and year for start and end dates
+                month_start, _, year_start = start_date.split('/')
+                month_end, _, year_end = end_date.split('/')
+                
+                # Handle '2/??/1999' format to '02/01/1999 - 02/28(or 29)/1999'
+                if month_start.isdigit() and year_start.isdigit():
+                    last_day_start = get_last_day_of_month(int(year_start), int(month_start))
+                    start_date_formatted = f'{int(month_start):02d}/01/{year_start}'
+                    end_date_formatted = f'{int(month_end):02d}/{last_day_start}/{year_end}'
+                else:
+                    return date_str  # Return original if not properly formatted
+            else:
+                start_date_formatted = datetime.strptime(start_date, '%m/%d/%Y').strftime('%m/%d/%Y')
+                end_date_formatted = datetime.strptime(end_date, '%m/%d/%Y').strftime('%m/%d/%Y')
+            
             return f'{start_date_formatted} - {end_date_formatted}'
         except ValueError:
             # If there's an error in parsing, return the original string
             return date_str
     else:
-        # For single dates or strings without ' - ', try to format with leading zeros
         try:
-            # This will correctly format single dates
             return datetime.strptime(date_str, '%m/%d/%Y').strftime('%m/%d/%Y')
         except ValueError:
-            # If parsing the single date fails, it might not be a simple date.
-            # No change is made, and further handling could be applied below if needed.
-            pass
+            pass 
 
     # Handling circa dates
     circa_regex = r'(circa|cir\.?|ca\.?|approx\.?)\s*(\d{4})'
