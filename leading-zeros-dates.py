@@ -6,21 +6,6 @@ import time
 import re
 from datetime import datetime
 
-# Todos:
-
-# todo: if FullDate has circa, cir, cir., ca, ca., approx, approx. followed by a year, that should copy over to formatted date with circa and the year. E.g.: circa 1765 = circa 1765; cir 1700 = circa 1700; ca 1890 = circa 1890; approx 1999 = circa 1999 
-
-# todo: timestamp style values in FullDate should be converted to MM/DD/YYYY. E.g.: 1908-12-15  12:00:00 AM = 12/15/1908
-
-# todo: dates and date ranges in FullDate should be converted like so: 1900 = 01/01/1900 - 12/31/1999; 1900s = 01/01/1900 - 12/31/1999; 1901-1902 - 01/01/1901 - 12/31/1902; some dates may have question marks and they should be converted like so: 10/??/1901 = 10/01/1901 - 10/31/1901; ??/1900 = 01/01/1900 - 12/31/1900; 10/01/19?? = 10/01/1901 - 10/01/1999
-
-# todo: script should complete date ranges with the correct days of the month. e.g.: 01/01/2000 - 01/31/2000; 02/01/1999 - 02/28/1999; 03/01/2001 - 03/31/2001; 04/01/2002 - 04/30/2002
-    
-# todo: script should complete date ranges with the correct days for Feburary in leap years. e.g.: 02/01/1999 - 02/28/1999; 02/01/2000 - 02/29/2000; 02/01/2001 - 02/28/2001; 02/01/2024 - 02/29/2024
-
-# todo: anything not matching the above todos should be copied to FormattedDate as is, including blanks
-
-
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
@@ -61,6 +46,41 @@ def get_last_day_of_month(year, month):
 
 # Function to format a date string with leading zeros
 def custom_format_date(date_str):
+    # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
+    range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
+    match = re.match(range_zero_day_regex, date_str)
+    if match:
+        month_start, year_start, month_end, year_end = match.groups()
+        # Assuming that the start and end months are the same for this specific transformation
+        # Ensure months are formatted as two digits
+        month_formatted = f"{int(month_start):02d}"
+        # Calculate the last day of the month, considering leap years
+        last_day = get_last_day_of_month(int(year_start), int(month_start))
+        # Construct the full date range
+        start_date = f'{month_formatted}/01/{year_start}'
+        end_date = f'{month_formatted}/{last_day}/{year_start}'  # Using start year as range is within the same month and year
+        return f'{start_date} - {end_date}'
+    
+    # Handle 'MM/0/YYYY' format
+    single_zero_dd_regex = r'(\d{1,2})/0/(\d{4})'
+    match = re.match(single_zero_dd_regex, date_str)
+    if match:
+        month, year = match.groups()
+        last_day = get_last_day_of_month(int(year), int(month))
+        start_date = f'{int(month):02d}/01/{year}'
+        end_date = f'{int(month):02d}/{last_day}/{year}'
+        return f'{start_date} - {end_date}'
+    
+    # Handling dates in the 'MM//YYYY' format
+    blank_dd_regex = r'(\d{1,2})//(\d{4})'
+    match = re.match(blank_dd_regex, date_str)
+    if match:
+        month, year = match.groups()
+        last_day = get_last_day_of_month(int(year), int(month))
+        start_date = f'{int(month):02d}/01/{year}'
+        end_date = f'{int(month):02d}/{last_day}/{year}'
+        return f'{start_date} - {end_date}'
+
     # Split date ranges, accounting for special handling of '??'
     if ' - ' in date_str:
         start_date, end_date = date_str.split(' - ')
