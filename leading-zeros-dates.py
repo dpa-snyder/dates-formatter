@@ -67,6 +67,7 @@ def custom_format_date(date_str):
         try:
             # Check if either part of the date range contains '??
             if '??' in start_date or '??' in end_date or '00' in start_date or '00' in end_date:
+
                 # Extract month and year for start and end dates
                 month_start, _, year_start = start_date.split('/')
                 month_end, _, year_end = end_date.split('/')
