@@ -62,6 +62,10 @@ def get_last_day_of_month(year, month):
 
 # Function to format a date string with leading zeros
 def custom_format_date(date_str):
+    # Check if the date string is empty or consists only of whitespace
+    #if not date_str.strip():
+    #   return "undated"
+    
     # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
     range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
     match = re.match(range_zero_day_regex, date_str)
@@ -236,10 +240,50 @@ if column_to_format not in df.columns:
     exit()
 
 # Modify the lambda function to use the new custom format function
-df[new_column_name] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else '')
+df[new_column_name] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else 'undated')
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
+
+def ensure_chronological_order(date_str):
+    fix_chrono_range_pattern = r'(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})'
+    match = re.match(fix_chrono_range_pattern, date_str)
+    if match:
+        # Extract dates and ensure month and day are two digits
+        start_month, start_day, start_year, end_month, end_day, end_year = [
+            part.zfill(2) for part in match.groups()
+        ]
+        
+        # Form date strings
+        start_date_str = f'{start_month}/{start_day}/{start_year}'
+        end_date_str = f'{end_month}/{end_day}/{end_year}'
+
+        try:
+            # Parse date strings
+            start_date = datetime.strptime(start_date_str, '%m/%d/%Y')
+            end_date = datetime.strptime(end_date_str, '%m/%d/%Y')
+
+            # Swap dates if the start date is later than the end date
+            if start_date > end_date:
+                start_date, end_date = end_date, start_date
+
+            # Format dates back into strings
+            formatted_start_date = start_date.strftime('%m/%d/%Y')
+            formatted_end_date = end_date.strftime('%m/%d/%Y')
+
+            return f'{formatted_start_date} - {formatted_end_date}'
+
+        except ValueError:
+            # Skip over dates that can't be parsed
+            pass
+
+    # Return the original string if no match or if parsing failed
+    return date_str
+
+# Apply the function to the DataFrame
+df['FormattedFullDate'] = df['FormattedFullDate'].apply(ensure_chronological_order)
+
+
 
 # Save the DataFrame back to the file
 if file_path.endswith('.csv'):
