@@ -32,8 +32,18 @@ progress_win.update()
 
 # Mapping month names and abbreviations to numbers
 month_map = {
-    "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
-    "Jul": "07", "Aug": "08", "Sep": "09", "Sept": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+    "Jan": "01", "January": "01",
+    "Feb": "02", "February": "02",
+    "Mar": "03", "March": "03",
+    "Apr": "04", "April": "04",
+    "May": "05",
+    "Jun": "06", "June": "06",
+    "Jul": "07", "July": "07",
+    "Aug": "08", "August": "08",
+    "Sep": "09", "Sept": "09", "September": "09",
+    "Oct": "10", "October": "10",
+    "Nov": "11", "November": "11",
+    "Dec": "12", "December": "12"
 }
 
 # Function to check leap year
@@ -159,6 +169,48 @@ def custom_format_date(date_str):
             start_year = f'{year_prefix}00'
             end_year = f'{year_prefix}99'
             return f'{month}/{day}/{start_year} - {month}/{day}/{end_year}'
+
+
+
+    # Match full and abbreviated month names, optionally with '.' and day/year formats
+    date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
+    match = re.match(date_pattern, date_str, re.IGNORECASE)
+    if match:
+        month, day, year = match.groups()
+        return f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}'
+
+    # Handling for full month names and years, converting to range
+    month_range_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})'
+    match = re.match(month_range_pattern, date_str, re.IGNORECASE)
+    if match:
+        month, year = match.groups()
+        last_day = get_last_day_of_month(int(year), int(month_map[month.capitalize()[:3]]))
+        return f'{month_map[month.capitalize()[:3]]}/01/{year} - {month_map[month.capitalize()[:3]]}/{last_day}/{year}'
+
+    # Handling for year-only formats with month abbreviations (e.g., Nov-86)
+    abbreviated_year_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[-.]\s*(\d{2})'
+    match = re.match(abbreviated_year_pattern, date_str, re.IGNORECASE)
+    if match:
+        month, year = match.groups()
+        # Assuming any year '86' is 1986 (adapt as necessary)
+        year = f'19{year}' if int(year) < 50 else f'20{year}'
+        last_day = get_last_day_of_month(int(year), int(month_map[month.capitalize()[:3]]))
+        return f'{month_map[month.capitalize()[:3]]}/01/{year} - {month_map[month.capitalize()[:3]]}/{last_day}/{year}'
+
+    # Handling Named Months with Ranges
+    named_month_range_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\s+(?:-|)\s*(?:\1\s+)?(\d{1,2})\s+(\d{4})'
+    match = re.match(named_month_range_pattern, date_str, re.IGNORECASE)
+    if match:
+        start_month_name, start_day, end_day, year = match.groups()
+
+        # Normalize the month name to its numeric representation using the month_map
+        month_number = month_map[start_month_name.capitalize()]
+
+        # Format the start and end dates into the desired MM/DD/YYYY format
+        formatted_start_date = f'{month_number}/{start_day.zfill(2)}/{year}'
+        formatted_end_date = f'{month_number}/{end_day.zfill(2)}/{year}'
+
+        return f'{formatted_start_date} - {formatted_end_date}'
 
     # Default case: Copy as is
     return date_str
