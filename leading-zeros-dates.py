@@ -6,6 +6,9 @@ import time
 import re
 from datetime import datetime
 
+# todo: add exception handling for closing script without choosing file
+
+
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
