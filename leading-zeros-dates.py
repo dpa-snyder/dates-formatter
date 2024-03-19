@@ -239,6 +239,43 @@ def custom_format_date(date_str):
     # Default case: Copy as is
     return date_str
 
+def convert_strange_named_ranges(date_str):
+    # Enhanced regex to handle both full and abbreviated month names, and optional end month and year
+    matches = re.search(r'(\b[A-Za-z]+) (\d{1,2})( \d{4})? - (\b[A-Za-z]*\b)? ?(\d{1,2})( \d{4})?', date_str)
+    if not matches:
+        return f"Error: Could not process date range: {date_str}"
+
+    start_month, start_day, start_year_optional, end_month_optional, end_day, end_year_optional = matches.groups()
+
+    start_year = start_year_optional if start_year_optional else end_year_optional
+    end_month = end_month_optional if end_month_optional else start_month
+
+    start_date_str = f"{start_month} {start_day} {start_year}"
+    end_date_str = f"{end_month} {end_day} {end_year_optional}"
+
+    for date_format in ("%B %d %Y", "%b %d %Y"):
+        try:
+            start_date = datetime.strptime(start_date_str, date_format)
+            break
+        except ValueError:
+            continue
+    else:
+        return f"Error: Could not parse start date: {start_date_str}"
+
+    for date_format in ("%B %d %Y", "%b %d %Y"):
+        try:
+            end_date = datetime.strptime(end_date_str, date_format)
+            break
+        except ValueError:
+            continue
+    else:
+        return f"Error: Could not parse end date: {end_date_str}"
+
+    converted_start_date = start_date.strftime("%m/%d/%Y")
+    converted_end_date = end_date.strftime("%m/%d/%Y")
+
+    return f"{converted_start_date} - {converted_end_date}"
+
 # Determine the file extension and load the file accordingly
 if file_path.endswith('.csv'):
     df = pd.read_csv(file_path)
@@ -261,6 +298,9 @@ if column_to_format not in df.columns:
 
 # Modify the lambda function to use the new custom format function
 df[new_column_name] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else 'undated')
+
+# Apply convert_strange_named_ranges to the FormattedFullDate column
+df['FormattedFullDate'] = df['FormattedFullDate'].apply(convert_strange_named_ranges)
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
@@ -302,8 +342,6 @@ def ensure_chronological_order(date_str):
 
 # Apply the function to the DataFrame
 df['FormattedFullDate'] = df['FormattedFullDate'].apply(ensure_chronological_order)
-
-
 
 # Save the DataFrame back to the file
 if file_path.endswith('.csv'):
