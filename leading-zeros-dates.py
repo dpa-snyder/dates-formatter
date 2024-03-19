@@ -77,10 +77,10 @@ def custom_format_date(date_str):
     
     # Handle question marked date ranges
     question_mark_date_ranges = [
-        (r'^\?? - (\d{1,2})/(\d{1,2})/(\d{4})$', lambda year, month, day: f'before {int(month):02d}/{int(day):02d}/{year}'),
-        (r'^\?? - (\d{4})$', lambda year: f'before {year}'),
-        (r'(\d{1,2})/(\d{1,2})/(\d{4}) - \??$', lambda year, month, day: f'after {int(month):02d}/{int(day):02d}/{year}'),
-    ]
+    (r'^\?{1,2} - (\d{1,2})/(\d{1,2})/(\d{4})$', lambda month, day, year: f'before {int(month):02d}/{int(day):02d}/{year}'),
+    (r'^\?{1,2} - (\d{4})$', lambda year: f'before {year}'),
+    (r'(\d{1,2})/(\d{1,2})/(\d{4}) - \?{1,2}$', lambda month, day, year: f'after {int(month):02d}/{int(day):02d}/{year}'),
+]
 
     for pattern, action in question_mark_date_ranges:
         match = re.match(pattern, date_str)
