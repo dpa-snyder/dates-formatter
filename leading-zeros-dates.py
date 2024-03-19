@@ -243,7 +243,7 @@ def convert_strange_named_ranges(date_str):
     # Enhanced regex to handle both full and abbreviated month names, and optional end month and year
     matches = re.search(r'(\b[A-Za-z]+) (\d{1,2})( \d{4})? - (\b[A-Za-z]*\b)? ?(\d{1,2})( \d{4})?', date_str)
     if not matches:
-        return f"Error: Could not process date range: {date_str}"
+        return date_str  # Return the original string if regex does not match
 
     start_month, start_day, start_year_optional, end_month_optional, end_day, end_year_optional = matches.groups()
 
@@ -260,7 +260,7 @@ def convert_strange_named_ranges(date_str):
         except ValueError:
             continue
     else:
-        return f"Error: Could not parse start date: {start_date_str}"
+        return date_str  # Return the original string if start date cannot be parsed
 
     for date_format in ("%B %d %Y", "%b %d %Y"):
         try:
@@ -269,7 +269,7 @@ def convert_strange_named_ranges(date_str):
         except ValueError:
             continue
     else:
-        return f"Error: Could not parse end date: {end_date_str}"
+        return date_str  # Return the original string if end date cannot be parsed
 
     converted_start_date = start_date.strftime("%m/%d/%Y")
     converted_end_date = end_date.strftime("%m/%d/%Y")
