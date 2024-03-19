@@ -60,12 +60,21 @@ def get_last_day_of_month(year, month):
         return 31
 
 
-# Function to format a date string with leading zeros
+# Main function to handle date formatting
 def custom_format_date(date_str):
-    # Check if the date string is empty or consists only of whitespace
-    #if not date_str.strip():
-    #   return "undated"
+    # Check for 'post', 'pre', or 'ante' patterns and return immediately if matched
+    before_after_patterns = [
+        (r'(?i)\bpost[- ]*(\d{4})\b', 'after {year}'),
+        (r'(?i)\bpre[- ]*(\d{4})\b', 'before {year}'),
+        (r'(?i)\bante\.?[- ]*(\d{4})\b', 'before {year}'),
+    ]
     
+    for pattern, format_str in before_after_patterns:
+        match = re.search(pattern, date_str)
+        if match:
+            year = match.group(1)  # Capture the year
+            return format_str.format(year=year)
+        
     # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
     range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
     match = re.match(range_zero_day_regex, date_str)
@@ -173,8 +182,6 @@ def custom_format_date(date_str):
             start_year = f'{year_prefix}00'
             end_year = f'{year_prefix}99'
             return f'{month}/{day}/{start_year} - {month}/{day}/{end_year}'
-
-
 
     # Match full and abbreviated month names, optionally with '.' and day/year formats
     date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
