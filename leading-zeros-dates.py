@@ -6,9 +6,6 @@ import time
 import re
 from datetime import datetime
 
-# todo: add exception handling for closing script without choosing file
-
-
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
@@ -137,7 +134,7 @@ def custom_format_date(date_str):
             pass 
 
     # Handling circa dates
-    circa_regex = r'(circa|cir\.?|ca\.?|approx\.?)\s*(\d{4})'
+    circa_regex = r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})'
     if re.match(circa_regex, date_str, re.IGNORECASE):
         year = re.findall(circa_regex, date_str, re.IGNORECASE)[0][1]
         return f'circa {year}'
