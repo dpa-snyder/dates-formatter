@@ -74,6 +74,19 @@ def custom_format_date(date_str):
         if match:
             year = match.group(1)  # Capture the year
             return format_str.format(year=year)
+    
+    # Handle question marked date ranges
+    question_mark_date_ranges = [
+        (r'^\?? - (\d{1,2})/(\d{1,2})/(\d{4})$', lambda year, month, day: f'before {int(month):02d}/{int(day):02d}/{year}'),
+        (r'^\?? - (\d{4})$', lambda year: f'before {year}'),
+        (r'(\d{1,2})/(\d{1,2})/(\d{4}) - \??$', lambda year, month, day: f'after {int(month):02d}/{int(day):02d}/{year}'),
+    ]
+
+    for pattern, action in question_mark_date_ranges:
+        match = re.match(pattern, date_str)
+        if match:
+            return action(*match.groups())
+
         
     # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
     range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
