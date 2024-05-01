@@ -13,6 +13,7 @@ def excel_serial_to_date(serial):
     if serial_int > 59:
         serial_int += 1  # Excel leap year bug, 1900 is not a leap year
 
+    # Convert the date
     date_converted = excel_start_date + datetime.timedelta(days=serial_int - 1)
     
     return date_converted.strftime('%m/%d/%Y')  # Return the formatted date string
