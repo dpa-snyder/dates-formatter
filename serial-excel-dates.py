@@ -7,7 +7,7 @@ def excel_serial_to_date(serial):
     # check if serial is a five digit number
     if pd.isna(serial) or not serial_str.isdigit() or len(serial_str) != 5:
         return serial  # Return the original data if conditions are not met
-    excel_start_date = datetime.date(1899, 12, 30)
+    excel_start_date = datetime.date(1899, 12, 31)
     
     serial_int = int(serial_str)
     if serial_int > 59:
