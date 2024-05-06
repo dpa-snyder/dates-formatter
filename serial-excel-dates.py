@@ -2,11 +2,11 @@ import pandas as pd
 import datetime
 from openpyxl import load_workbook
 
-def excel_serial_to_date(serial):
-    serial_str = str(serial)
+def excel_serial_to_date(date_str):
+    serial_str = str(date_str)
     # check if serial is a five digit number
-    if pd.isna(serial) or not serial_str.isdigit() or len(serial_str) != 5:
-        return serial  # Return the original data if conditions are not met
+    if pd.isna(date_str) or not serial_str.isdigit() or len(serial_str) != 5:
+        return date_str  # Return the original data if conditions are not met
     excel_start_date = datetime.date(1899, 12, 31)
     
     serial_int = int(serial_str)
@@ -14,9 +14,9 @@ def excel_serial_to_date(serial):
         serial_int += 1  # Excel leap year bug, 1900 is not a leap year
 
     # Convert the date
-    date_converted = excel_start_date + datetime.timedelta(days=serial_int - 1)
+    serial_converted = excel_start_date + datetime.timedelta(days=serial_int - 1)
     
-    return date_converted.strftime('%m/%d/%Y')  # Return the formatted date string
+    return serial_converted.strftime('%m/%d/%Y')  # Return the formatted date string
 
 def add_converted_date_column(excel_file, sheet_name, serial_column):
     try:

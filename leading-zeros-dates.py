@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilename
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
@@ -62,6 +62,35 @@ def get_last_day_of_month(year, month):
 
 # Main function to handle date formatting
 def custom_format_date(date_str):
+    # if date_str contains "N.D." or "n.d." or "n.d" or "N.D" return "undated"
+    if re.search(r'\bN\.?D\.?\b', date_str, re.IGNORECASE):
+        return 'undated'
+
+    # if date_str contains "nd" or "ND" return "undated"
+    if re.search(r'\bnd\b', date_str, re.IGNORECASE):
+        return 'undated'
+    
+    # if date_str contains "no date" or "No Date" or "No date" or "no Date" return "undated"
+    if re.search(r'\bNo Date\b', date_str, re.IGNORECASE):
+        return 'undated'
+    
+    # if date_str contains "U.D." or "u.d." or "u.d" or "U.D" or "UD" or "ud" return "undated"
+    if re.search(r'\bU\.?D\.?\b', date_str, re.IGNORECASE):
+        return 'undated'
+    
+
+    # check for excel 5 digit serial date
+    if pd.notna(date_str) and str(date_str).isdigit() and len(str(date_str)) == 5:
+        excel_start_date = datetime(1899, 12, 31)
+        serial_int = int(date_str)
+        if serial_int > 59:
+            serial_int += 1
+        
+        serial_converted = excel_start_date + timedelta(days=serial_int - 1)    
+
+        return serial_converted.strftime('%m/%d/%Y')
+    
+    
     # Check for 'post', 'pre', or 'ante' patterns and return immediately if matched
     before_after_patterns = [
         (r'(?i)\bpost[- ]*(\d{4})\b', 'after {year}'),
@@ -75,6 +104,7 @@ def custom_format_date(date_str):
             year = match.group(1)  # Capture the year
             return format_str.format(year=year)
     
+
     # Handle question marked date ranges
     question_mark_date_ranges = [
     (r'^\?{1,2} - (\d{1,2})/(\d{1,2})/(\d{4})$', lambda month, day, year: f'before {int(month):02d}/{int(day):02d}/{year}'),
@@ -166,6 +196,26 @@ def custom_format_date(date_str):
     if re.match(timestamp_regex, date_str):
         date_part = date_str.split(' ')[0]  # Extract just the date part before the space
         return datetime.strptime(date_part, '%Y-%m-%d').strftime('%m/%d/%Y')
+
+ 
+    # Handling year ranges like "1974-75" or "1898-01"
+    year_range_two_digit_pattern = r'(\d{4})-(\d{2})'
+    match = re.match(year_range_two_digit_pattern, date_str)
+    if match:
+        start_year_full, end_year_two_digit = match.groups()
+        start_year = int(start_year_full)
+        end_year_prefix = start_year_full[:2]  # Get the first two digits of the start year
+
+        # Determine the correct century for the end year
+        if int(end_year_two_digit) < int(start_year_full[2:]):  # If '75' is less than '74' in '1974-75'
+            end_year_full = int(end_year_prefix + end_year_two_digit) + 100  # Move to the next century
+        else:
+            end_year_full = int(end_year_prefix + end_year_two_digit)
+
+        start_date = f'01/01/{start_year}'
+        end_date = f'12/31/{end_year_full}'
+        return f'{start_date} - {end_date}'
+    
 
     # Handling date ranges and single years
     year_range_regex = r'(\d{4})s?(-\d{4})?'
