@@ -92,6 +92,12 @@ def custom_format_date(date_str):
             year = match.group(1)  # Capture the year
             return format_str.format(year=year)
     
+    # Handling timestamp style values
+    timestamp_regex = r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}'
+    if re.match(timestamp_regex, date_str):
+        date_part = date_str.split(' ')[0]  # Extract just the date part before the space
+        return datetime.strptime(date_part, '%Y-%m-%d').strftime('%m/%d/%Y')
+
 
     # Handle full year range with two different years (e.g., 1971-1972)
     full_year_range_pattern = r'(\d{4})-(\d{4})'
@@ -212,11 +218,7 @@ def custom_format_date(date_str):
         return f'circa {year}'
 
 
-    # Handling timestamp style values
-    timestamp_regex = r'\d{4}-\d{2}-\d{2}'
-    if re.match(timestamp_regex, date_str):
-        date_part = date_str.split(' ')[0]  # Extract just the date part before the space
-        return datetime.strptime(date_part, '%Y-%m-%d').strftime('%m/%d/%Y')
+
 
 
      # Handling date ranges and single years
