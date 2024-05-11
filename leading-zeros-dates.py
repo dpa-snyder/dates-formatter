@@ -78,12 +78,13 @@ def custom_format_date(date_str):
 
         return serial_converted.strftime('%m/%d/%Y')
         
-    # Check for dates in the 'YYYY-MM-DD' or 'YYYY/MM/DD' format
-    iso_date_pattern = r'(\d{4})[-/](\d{2})[-/](\d{2})'
+    # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
+    iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
     match = re.match(iso_date_pattern, date_str)
     if match:
         year, month, day = match.groups()
-        return f'{month}/{day}/{year}'
+        # Pad the month and day with zeros if needed
+        return f'{int(month):02d}/{int(day):02d}/{year}'
 
 
 
@@ -226,10 +227,7 @@ def custom_format_date(date_str):
         return f'circa {year}'
 
 
-
-
-
-     # Handling date ranges and single years
+   # Handling date ranges and single years
     year_range_regex = r'(\d{4})s?(-\d{4})?'
     if re.match(year_range_regex, date_str):
         if '-' in date_str:
