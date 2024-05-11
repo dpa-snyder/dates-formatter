@@ -78,6 +78,14 @@ def custom_format_date(date_str):
 
         return serial_converted.strftime('%m/%d/%Y')
         
+    # Check for dates in the 'YYYY-MM-DD' or 'YYYY/MM/DD' format
+    iso_date_pattern = r'(\d{4})[-/](\d{2})[-/](\d{2})'
+    match = re.match(iso_date_pattern, date_str)
+    if match:
+        year, month, day = match.groups()
+        return f'{month}/{day}/{year}'
+
+
 
     # Check for 'post', 'pre', or 'ante' patterns and return immediately if matched
     before_after_patterns = [
