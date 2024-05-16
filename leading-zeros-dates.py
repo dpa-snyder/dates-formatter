@@ -63,7 +63,24 @@ def get_last_day_of_month(year, month):
 # Main function to handle date formatting
 def custom_format_date(date_str):
     try:
-    
+        
+        # Handle exact list of years, excluding single years and years with non-year characters
+        year_list_pattern = r'^\d{4}([,;\s-]+\d{4}){1,}$'
+        match = re.fullmatch(year_list_pattern, date_str)
+        if match:
+            years = sorted({int(year) for year in re.findall(r'\d{4}', date_str)})
+            if len(years) > 1:
+                start_year = years[0]
+                end_year = years[-1]
+                return (f'01/01/{start_year} - 12/31/{end_year}', 'Y')
+
+        # Check for 'vol' or 'volume' patterns with a year and optional numbers following
+        vol_pattern = r'(\d{4})\s+(vol|volume)\b.*'
+        match = re.match(vol_pattern, date_str, re.IGNORECASE)
+        if match:
+            year = match.group(1)
+            return (f'01/01/{year} - 12/31/{year}', 'Y')
+        
         # N.D., n.d., nd, No Date, not dated, U.D., u.d., ud
         if re.search(r'\b(N\.?D\.?|n\.?d\.?|U\.?D\.?|u\.?d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
             return ('undated', '')
