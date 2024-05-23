@@ -6,11 +6,13 @@ import time
 import re
 from datetime import datetime, timedelta
 
+
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
     root.update_idletasks()
     time.sleep(0.5)
+
 
 # Initialize Tkinter
 root = tk.Tk()
@@ -46,9 +48,11 @@ month_map = {
     "Dec": "12", "December": "12"
 }
 
+
 # Function to check leap year
 def is_leap_year(year):
     return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
 
 # Function to get the last day of a month
 def get_last_day_of_month(year, month):
@@ -85,7 +89,6 @@ def custom_format_date(date_str):
         if re.search(r'\b(N\.?D\.?|n\.?d\.?|U\.?D\.?|u\.?d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
             return ('undated', '')
 
-
         # check for excel 5 digit serial date
         if pd.notna(date_str) and str(date_str).isdigit() and len(str(date_str)) == 5:
             excel_start_date = datetime(1899, 12, 31)
@@ -104,8 +107,6 @@ def custom_format_date(date_str):
             year, month, day = match.groups()
             # Pad the month and day with zeros if needed
             return (f'{int(month):02d}/{int(day):02d}/{year}', '')
-
-
 
         # Check for 'post', 'pre', or 'ante' patterns and return immediately if matched
         before_after_patterns = [
@@ -126,14 +127,12 @@ def custom_format_date(date_str):
             date_part = date_str.split(' ')[0]  # Extract just the date part before the space
             return (datetime.strptime(date_part, '%Y-%m-%d').strftime('%m/%d/%Y'), '')
 
-
         # Handle full year range with two different years (e.g., 1971-1972)
         full_year_range_pattern = r'(\d{4})-(\d{4})'
         match = re.match(full_year_range_pattern, date_str)
         if match:
             start_year, end_year = match.groups()
             return (f'01/01/{start_year} - 12/31/{end_year}', '')
-        
 
         # Handle year-month to year-month (e.g., 1992/01 - 1992/03)
         year_month_to_year_month_pattern = r'(\d{4})/(\d{2}) - (\d{4})/(\d{2})'
@@ -142,7 +141,6 @@ def custom_format_date(date_str):
             start_year, start_month, end_year, end_month = match.groups()
             last_day_of_end_month = get_last_day_of_month(int(end_year), int(end_month))
             return (f'{start_month}/01/{start_year} - {end_month}/{last_day_of_end_month}/{end_year}', '')
-
 
         # Handle two-digit year range within the same century (e.g., 1974-75)
         two_digit_year_range_pattern = r'(\d{4})-(\d{2})'
@@ -153,7 +151,6 @@ def custom_format_date(date_str):
             if int(end_year_two_digit) < int(start_year_full[2:]):
                 end_year_full += 100  # Adjust century
             return (f'01/01/{start_year_full} - 12/31/{end_year_full}', '')
-
 
         # Handle question marked date ranges
         question_mark_date_ranges = [
@@ -167,7 +164,6 @@ def custom_format_date(date_str):
             if match:
                 return (action(*match.groups()), 'Y')
 
-            
         # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
         range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
         match = re.match(range_zero_day_regex, date_str)
@@ -180,10 +176,10 @@ def custom_format_date(date_str):
             last_day = get_last_day_of_month(int(year_start), int(month_start))
             # Construct the full date range
             start_date = f'{month_formatted}/01/{year_start}'
-            end_date = f'{month_formatted}/{last_day}/{year_start}'  # Using start year as range is within the same month and year
+            # Using start year as range is within the same month and year
+            end_date = f'{month_formatted}/{last_day}/{year_start}'
             return (f'{start_date} - {end_date}', '')
         
-
         # Handle 'MM/0/YYYY' format
         single_zero_dd_regex = r'(\d{1,2})/0/(\d{4})'
         match = re.match(single_zero_dd_regex, date_str)
@@ -194,7 +190,6 @@ def custom_format_date(date_str):
             end_date = f'{int(month):02d}/{last_day}/{year}'
             return (f'{start_date} - {end_date}', '')
         
-
         # Handling dates in the 'MM//YYYY' format
         blank_dd_regex = r'(\d{1,2})//(\d{4})'
         match = re.match(blank_dd_regex, date_str)
@@ -204,7 +199,6 @@ def custom_format_date(date_str):
             start_date = f'{int(month):02d}/01/{year}'
             end_date = f'{int(month):02d}/{last_day}/{year}'
             return (f'{start_date} - {end_date}', '')
-
 
         # Split date ranges, accounting for special handling of '??'
         if ' - ' in date_str:
@@ -238,13 +232,11 @@ def custom_format_date(date_str):
             except ValueError:
                 pass 
 
-
         # Handling circa dates
         circa_regex = r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})'
         if re.match(circa_regex, date_str, re.IGNORECASE):
             year = re.findall(circa_regex, date_str, re.IGNORECASE)[0][1]
             return (f'circa {year}', 'Y')
-
 
         # Handling date ranges and single years
         year_range_regex = r'(\d{4})s?(-\d{4})?'
@@ -257,7 +249,6 @@ def custom_format_date(date_str):
                 return (f'01/01/{year} - 12/31/{int(year)+9}', '')
             else:
                 return (f'01/01/{date_str} - 12/31/{date_str}', '')
-
 
         # Handling specific date ranges with question marks
         if '??' in date_str:
@@ -276,14 +267,12 @@ def custom_format_date(date_str):
                 end_year = f'{year_prefix}99'
                 return (f'{month}/{day}/{start_year} - {month}/{day}/{end_year}', '')
 
-
         # Match full and abbreviated month names, optionally with '.' and day/year formats
         date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
         match = re.match(date_pattern, date_str, re.IGNORECASE)
         if match:
             month, day, year = match.groups()
             return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', '')
-
 
         # Handling for full month names and years, converting to range
         month_range_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})'
@@ -292,7 +281,6 @@ def custom_format_date(date_str):
             month, year = match.groups()
             last_day = get_last_day_of_month(int(year), int(month_map[month.capitalize()[:3]]))
             return (f'{month_map[month.capitalize()[:3]]}/01/{year} - {month_map[month.capitalize()[:3]]}/{last_day}/{year}', '')
-
 
         # Handling for year-only formats with month abbreviations (e.g., Nov-86)
         abbreviated_year_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[-.]\s*(\d{2})'
@@ -303,7 +291,6 @@ def custom_format_date(date_str):
             year = f'19{year}' if int(year) < 50 else f'20{year}'
             last_day = get_last_day_of_month(int(year), int(month_map[month.capitalize()[:3]]))
             return (f'{month_map[month.capitalize()[:3]]}/01/{year} - {month_map[month.capitalize()[:3]]}/{last_day}/{year}', '')
-
 
         # Handling Named Months with Ranges
         named_month_range_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\s+(?:-|)\s*(?:\1\s+)?(\d{1,2})\s+(\d{4})'
@@ -364,6 +351,7 @@ def convert_strange_named_ranges(date_str):
 
     return f"{converted_start_date} - {converted_end_date}"
 
+
 # Determine the file extension and load the file accordingly
 if file_path.endswith('.csv'):
     df = pd.read_csv(file_path)
@@ -396,6 +384,7 @@ df['FormattedFullDate'] = df['FormattedFullDate'].apply(convert_strange_named_ra
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
+
 
 def ensure_chronological_order(date_str):
     fix_chrono_range_pattern = r'(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})'
@@ -431,6 +420,7 @@ def ensure_chronological_order(date_str):
 
     # Return the original string if no match or if parsing failed
     return date_str
+
 
 # Apply the function to the DataFrame
 df['FormattedFullDate'] = df['FormattedFullDate'].apply(ensure_chronological_order)
