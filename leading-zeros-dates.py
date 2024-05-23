@@ -56,11 +56,11 @@ def is_leap_year(year):
 
 # Function to get the last day of a month
 def get_last_day_of_month(year, month):
-    if month == 2: # February
+    if month == 2:  # February
         return 29 if is_leap_year(year) else 28
-    elif month in [4, 6, 9, 11]: # April, June, September, November
+    elif month in [4, 6, 9, 11]:  # April, June, September, November
         return 30
-    else: # January, March, May, July, August, October, December
+    else:  # January, March, May, July, August, October, December
         return 31
 
 
