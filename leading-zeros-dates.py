@@ -13,7 +13,6 @@ def update_progress_bar(progress_bar, value):
     root.update_idletasks()
     time.sleep(0.5)
 
-
 # Initialize Tkinter
 root = tk.Tk()
 root.withdraw()  # Hide the main window
@@ -78,6 +77,31 @@ def custom_format_date(date_str):
                 end_year = years[-1]
                 return (f'01/01/{start_year} - 12/31/{end_year}', 'Y')
 
+        # Handle date range in the format "Month Day, Year – Month Day, Year" with both en dash and hyphen-minus
+        full_date_range_pattern = r'([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})\s[–-]\s([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})'
+        match = re.match(full_date_range_pattern, date_str)
+        if match:
+            start_month, start_day, start_year, end_month, end_day, end_year = match.groups()
+            start_date = f'{month_map[start_month[:3].capitalize()]}/{start_day.zfill(2)}/{start_year}'
+            end_date = f'{month_map[end_month[:3].capitalize()]}/{end_day.zfill(2)}/{end_year}'
+            return (f'{start_date} - {end_date}', 'Y')
+
+        # Handle abbreviated month date range in the format "Month Day, Year - Month Day, Year"
+        abbreviated_month_date_range_pattern = r'([A-Za-z]+)\s(\d{1,2}),\s(\d{4})\s-\s([A-Za-z]+)\s(\d{1,2}),\s(\d{4})'
+        match = re.match(abbreviated_month_date_range_pattern, date_str)
+        if match:
+            start_month, start_day, start_year, end_month, end_day, end_year = match.groups()
+            start_date = f'{month_map[start_month[:3]]}/{start_day.zfill(2)}/{start_year}'
+            end_date = f'{month_map[end_month[:3]]}/{end_day.zfill(2)}/{end_year}'
+            return (f'{start_date} - {end_date}', 'Y')
+
+        # Match full and abbreviated month names, optionally with '.' and day/year formats
+        date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
+        match = re.match(date_pattern, date_str, re.IGNORECASE)
+        if match:
+            month, day, year = match.groups()
+            return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', 'Y')
+        
         # Check for 'vol' or 'volume' patterns with a year and optional numbers following
         vol_pattern = r'(\d{4})\s+(vol|volume)\b.*'
         match = re.match(vol_pattern, date_str, re.IGNORECASE)
@@ -267,13 +291,6 @@ def custom_format_date(date_str):
                 end_year = f'{year_prefix}99'
                 return (f'{month}/{day}/{start_year} - {month}/{day}/{end_year}', '')
 
-        # Match full and abbreviated month names, optionally with '.' and day/year formats
-        date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
-        match = re.match(date_pattern, date_str, re.IGNORECASE)
-        if match:
-            month, day, year = match.groups()
-            return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', '')
-
         # Handling for full month names and years, converting to range
         month_range_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})'
         match = re.match(month_range_pattern, date_str, re.IGNORECASE)
@@ -351,7 +368,6 @@ def convert_strange_named_ranges(date_str):
 
     return f"{converted_start_date} - {converted_end_date}"
 
-
 # Determine the file extension and load the file accordingly
 if file_path.endswith('.csv'):
     df = pd.read_csv(file_path)
@@ -380,7 +396,6 @@ df.drop(columns=['temp'], inplace=True)  # Clean up the temporary column
 
 # Apply convert_strange_named_ranges to the FormattedFullDate column
 df['FormattedFullDate'] = df['FormattedFullDate'].apply(convert_strange_named_ranges)
-
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
@@ -422,8 +437,22 @@ def ensure_chronological_order(date_str):
     return date_str
 
 
+def is_valid_date_format(date_str):
+    valid_patterns = [
+        r'^\d{2}/\d{2}/\d{4}$',  # MM/DD/YYYY
+        r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$',  # MM/DD/YYYY - MM/DD/YYYY
+        r'^undated$'  # undated
+    ]
+    return any(re.match(pattern, date_str) for pattern in valid_patterns)
+
 # Apply the function to the DataFrame
 df['FormattedFullDate'] = df['FormattedFullDate'].apply(ensure_chronological_order)
+
+# Analyze the FormattedFullDate column and update the Check Me column
+df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row['FormattedFullDate']) and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
+
+# Add a "Y" to the Check Me column if a semi-colon exists in the FullDate column, ensuring no duplicate "Y"
+df['Check Me'] = df.apply(lambda row: 'Y' if isinstance(row[column_to_format], str) and ';' in row[column_to_format] and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
 
 # Save the DataFrame back to the file
 if file_path.endswith('.csv'):
