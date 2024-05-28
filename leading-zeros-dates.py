@@ -63,7 +63,32 @@ def get_last_day_of_month(year, month):
         return 31
 
 
+# Function to prompt the user to select a column from a dropdown list
+def select_column():
+    column_selection_win = tk.Toplevel(root)
+    column_selection_win.title("Select Column to Format")
+    column_selection_win.geometry("400x250")
 
+    selected_column = tk.StringVar(column_selection_win)
+    selected_column.set(df.columns[0])  # Set default value to the first column
+
+    tk.Label(column_selection_win, text="Select the column to format:").pack()
+    tk.OptionMenu(column_selection_win, selected_column, *df.columns).pack()
+
+    def on_confirm():
+        global column_to_format
+        column_to_format = selected_column.get()
+        column_selection_win.destroy()
+    
+    def on_cancel():
+        column_selection_win.destroy()
+        root.destroy()
+
+    tk.Button(column_selection_win, text="Confirm", command=on_confirm).pack()
+    tk.Button(column_selection_win, text="Cancel", command=on_cancel).pack(side=tk.RIGHT, padx=20, pady=20)
+
+    column_selection_win.grab_set()
+    root.wait_window(column_selection_win)
 
 
 # Main function to handle date formatting
@@ -380,8 +405,8 @@ else:
 # Update progress bar after reading the file
 update_progress_bar(progress_bar, 33)
 
-# Specify the name of the column to format
-column_to_format = 'FullDate'
+# Prompt the user to select the column to format
+select_column()
 
 # Check if the specified column exists
 if column_to_format not in df.columns:
@@ -389,16 +414,15 @@ if column_to_format not in df.columns:
     exit()
 
 # Create a new column to store the formatted dates
-new_column_name = 'FormattedFullDate'
+new_column_name = f'Formatted{column_to_format}'
 
-# Create a new column to store the formatted dates and check the processing status
-# Apply custom_format_date and extract results into the FormattedFullDate and Check Me columns
+# Apply custom_format_date to create the new column and Check Me column
 df['temp'] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else ('undated', ''))
 df[new_column_name], df['Check Me'] = zip(*df['temp'])
 df.drop(columns=['temp'], inplace=True)  # Clean up the temporary column
 
-# Apply convert_strange_named_ranges to the FormattedFullDate column
-df['FormattedFullDate'] = df['FormattedFullDate'].apply(convert_strange_named_ranges)
+# Apply convert_strange_named_ranges to the new_column_name column
+df[new_column_name] = df[new_column_name].apply(convert_strange_named_ranges)
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
@@ -449,10 +473,10 @@ def is_valid_date_format(date_str):
     return any(re.match(pattern, date_str) for pattern in valid_patterns)
 
 # Apply the function to the DataFrame
-df['FormattedFullDate'] = df['FormattedFullDate'].apply(ensure_chronological_order)
+df[new_column_name] = df[new_column_name].apply(ensure_chronological_order)
 
-# Analyze the FormattedFullDate column and update the Check Me column
-df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row['FormattedFullDate']) and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
+# Analyze the new_column_name column and update the Check Me column
+df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
 
 # Add a "Y" to the Check Me column if a semi-colon exists in the FullDate column, ensuring no duplicate "Y"
 df['Check Me'] = df.apply(lambda row: 'Y' if isinstance(row[column_to_format], str) and ';' in row[column_to_format] and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
