@@ -63,6 +63,9 @@ def get_last_day_of_month(year, month):
         return 31
 
 
+
+
+
 # Main function to handle date formatting
 def custom_format_date(date_str):
     try:
@@ -459,7 +462,7 @@ if 'RG' in df.columns:
     df['RG'] = df['RG'].apply(lambda x: f'{int(x):04d}' if pd.notna(x) and x != '' else x)
 
 # Ensure SubGr, Series, and SubSeries columns are formatted with at least 3 digits
-for col in ['SubGr', 'Series', 'SubSeries Number']:
+for col in ['SubGr', 'SG', 'SubGroup', 'Series', 'SubSeries Number']:
     if col in df.columns:
         df[col] = df[col].apply(lambda x: f'{int(x):03d}' if pd.notna(x) and x != '' else x)
 
