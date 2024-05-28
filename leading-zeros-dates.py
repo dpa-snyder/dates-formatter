@@ -454,6 +454,15 @@ df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row['Forma
 # Add a "Y" to the Check Me column if a semi-colon exists in the FullDate column, ensuring no duplicate "Y"
 df['Check Me'] = df.apply(lambda row: 'Y' if isinstance(row[column_to_format], str) and ';' in row[column_to_format] and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
 
+# Ensure RG column is formatted with at least 4 digits
+if 'RG' in df.columns:
+    df['RG'] = df['RG'].apply(lambda x: f'{int(x):04d}' if pd.notna(x) and x != '' else x)
+
+# Ensure SubGr, Series, and SubSeries columns are formatted with at least 3 digits
+for col in ['SubGr', 'Series', 'SubSeries Number']:
+    if col in df.columns:
+        df[col] = df[col].apply(lambda x: f'{int(x):03d}' if pd.notna(x) and x != '' else x)
+
 # Save the DataFrame back to the file
 if file_path.endswith('.csv'):
     df.to_csv(file_path, index=False)
