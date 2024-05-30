@@ -138,7 +138,7 @@ def custom_format_date(date_str):
             return (f'01/01/{year} - 12/31/{year}', 'Y')
         
         # N.D., n.d., nd, No Date, not dated, U.D., u.d., ud
-        if re.search(r'\b(N\.?D\.?|n\.?d\.?|U\.?D\.?|u\.?d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
+        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
             return ('undated', '')
 
         # check for excel 5 digit serial date
