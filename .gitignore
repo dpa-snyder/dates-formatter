@@ -1,25 +1,8 @@
-
-dist/leading-zeros-dates.exe
-build/leading-zeros-dates/xref-leading-zeros-dates.html
-build/leading-zeros-dates/warn-leading-zeros-dates.txt
-build/leading-zeros-dates/Tree-02.toc
-build/leading-zeros-dates/Tree-01.toc
-build/leading-zeros-dates/Tree-00.toc
-build/leading-zeros-dates/PYZ-00.toc
-build/leading-zeros-dates/PYZ-00.pyz
-build/leading-zeros-dates/PKG-00.toc
-build/leading-zeros-dates/localpycs/struct.pyc
-build/leading-zeros-dates/localpycs/pyimod04_pywin32.pyc
-build/leading-zeros-dates/localpycs/pyimod03_ctypes.pyc
-build/leading-zeros-dates/localpycs/pyimod02_importers.pyc
-build/leading-zeros-dates/localpycs/pyimod01_archive.pyc
-build/leading-zeros-dates/leading-zeros-dates.pkg
-build/leading-zeros-dates/EXE-00.toc
-build/leading-zeros-dates/base_library.zip
-build/leading-zeros-dates/Analysis-00.toc
-1500_000_061_Wilmington_Death_Registers_test_3.xlsx
-1500_000_061_Wilmington_Death_Registers_test_2.xlsx
-1500_000_061_Wilmington_Death_Registers_control - Copy.xlsx
-1500_000_061_Wilmington_Death_Registers_test_2.xlsx
-1800_Revolutionary_War_Records_for_script.xlsx
+# Ignore the Jupyter Notebook checkpoints
 .ipynb_checkpoints/serial-excel-dates-checkpoint.py
+
+# Ingnore the virtual environment
+venv/
+
+# Ignore the pyenv version file
+.python-version
