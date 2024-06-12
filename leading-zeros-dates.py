@@ -7,21 +7,41 @@ import re
 from datetime import datetime, timedelta
 
 
+# Initialize Tkinter
+root = tk.Tk()
+root.withdraw()  # Hide the main window
+
 # Define Progress Bar
 def update_progress_bar(progress_bar, value):
     progress_bar['value'] = value
     root.update_idletasks()
     time.sleep(0.5)
 
-# Initialize Tkinter
-root = tk.Tk()
-root.withdraw()  # Hide the main window
 
-# File types options for the dialog
-file_types = [("Excel files", "*.xlsx;*.xls"), ("CSV files", "*.csv")]
+# Function to select the file
+def select_file():
+    file_types = [("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv")]
+    try:
+        file_path = askopenfilename(filetypes=file_types)
+        if not file_path:
+            messagebox.showerror("Error", "No file selected. Exiting.")
+            root.destroy()
+            exit()
+        return file_path
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while selecting a file: {str(e)}")
+        root.destroy()
+        exit()
 
-# Open file dialog and get the file path
-file_path = askopenfilename(filetypes=file_types)
+# Select the file
+file_path = select_file()
+
+# Determine the file extension and load the file accordingly
+if file_path.endswith('.csv'):
+    df = pd.read_csv(file_path)
+else:
+    df = pd.read_excel(file_path)
+
 
 # Progress Window
 progress_win = tk.Toplevel(root)
@@ -79,7 +99,7 @@ def select_column():
         global column_to_format
         column_to_format = selected_column.get()
         column_selection_win.destroy()
-    
+
     def on_cancel():
         column_selection_win.destroy()
         root.destroy()
@@ -94,7 +114,7 @@ def select_column():
 # Main function to handle date formatting
 def custom_format_date(date_str):
     try:
-        
+
         # Handle exact list of years, excluding single years and years with non-year characters
         year_list_pattern = r'^\d{4}([,;\s-]+\d{4}){1,}$'
         match = re.fullmatch(year_list_pattern, date_str)
@@ -129,14 +149,14 @@ def custom_format_date(date_str):
         if match:
             month, day, year = match.groups()
             return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', 'Y')
-        
+
         # Check for 'vol' or 'volume' patterns with a year and optional numbers following
         vol_pattern = r'(\d{4})\s+(vol|volume)\b.*'
         match = re.match(vol_pattern, date_str, re.IGNORECASE)
         if match:
             year = match.group(1)
             return (f'01/01/{year} - 12/31/{year}', 'Y')
-        
+
         # N.D., n.d., nd, No Date, not dated, U.D., u.d., ud
         if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
             return ('undated', '')
@@ -147,11 +167,11 @@ def custom_format_date(date_str):
             serial_int = int(date_str)
             if serial_int > 59:
                 serial_int += 1
-            
-            serial_converted = excel_start_date + timedelta(days=serial_int - 1)    
+
+            serial_converted = excel_start_date + timedelta(days=serial_int - 1)
 
             return (serial_converted.strftime('%m/%d/%Y'), '')
-            
+
         # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
         iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
         match = re.match(iso_date_pattern, date_str)
@@ -166,13 +186,13 @@ def custom_format_date(date_str):
             (r'(?i)\bpre[- ]*(\d{4})\b', 'before {year}'),
             (r'(?i)\bante\.?[- ]*(\d{4})\b', 'before {year}'),
         ]
-        
+
         for pattern, format_str in before_after_patterns:
             match = re.search(pattern, date_str)
             if match:
                 year = match.group(1)  # Capture the year
                 return (format_str.format(year=year), 'Y')
-        
+
         # Handling timestamp style values
         timestamp_regex = r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}'
         if re.match(timestamp_regex, date_str):
@@ -231,7 +251,7 @@ def custom_format_date(date_str):
             # Using start year as range is within the same month and year
             end_date = f'{month_formatted}/{last_day}/{year_start}'
             return (f'{start_date} - {end_date}', '')
-        
+
         # Handle 'MM/0/YYYY' format
         single_zero_dd_regex = r'(\d{1,2})/0/(\d{4})'
         match = re.match(single_zero_dd_regex, date_str)
@@ -241,7 +261,7 @@ def custom_format_date(date_str):
             start_date = f'{int(month):02d}/01/{year}'
             end_date = f'{int(month):02d}/{last_day}/{year}'
             return (f'{start_date} - {end_date}', '')
-        
+
         # Handling dates in the 'MM//YYYY' format
         blank_dd_regex = r'(\d{1,2})//(\d{4})'
         match = re.match(blank_dd_regex, date_str)
@@ -262,7 +282,7 @@ def custom_format_date(date_str):
                     # Extract month and year for start and end dates
                     month_start, _, year_start = start_date.split('/')
                     month_end, _, year_end = end_date.split('/')
-                    
+
                     # Handle '2/??/1999' format to '02/01/1999 - 02/28(or 29)/1999'
                     if month_start.isdigit() and year_start.isdigit():
                         last_day_start = get_last_day_of_month(int(year_start), int(month_start))
@@ -273,7 +293,7 @@ def custom_format_date(date_str):
                 else:
                     start_date_formatted = datetime.strptime(start_date, '%m/%d/%Y').strftime('%m/%d/%Y')
                     end_date_formatted = datetime.strptime(end_date, '%m/%d/%Y').strftime('%m/%d/%Y')
-                
+
                 return (f'{start_date_formatted} - {end_date_formatted}', '')
             except ValueError:
                 # If there's an error in parsing, return the original string
@@ -282,7 +302,7 @@ def custom_format_date(date_str):
             try:
                 return (datetime.strptime(date_str, '%m/%d/%Y').strftime('%m/%d/%Y'), '')
             except ValueError:
-                pass 
+                pass
 
         # Handling circa dates
         circa_regex = r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})'
@@ -354,7 +374,7 @@ def custom_format_date(date_str):
 
         # Default case: Copy as is
         return (date_str, 'Y')
-    
+
     except Exception as e:
         return (date_str, 'Y')
 
@@ -396,12 +416,6 @@ def convert_strange_named_ranges(date_str):
 
     return f"{converted_start_date} - {converted_end_date}"
 
-# Determine the file extension and load the file accordingly
-if file_path.endswith('.csv'):
-    df = pd.read_csv(file_path)
-else:
-    df = pd.read_excel(file_path)
-
 # Update progress bar after reading the file
 update_progress_bar(progress_bar, 33)
 
@@ -436,7 +450,7 @@ def ensure_chronological_order(date_str):
         start_month, start_day, start_year, end_month, end_day, end_year = [
             part.zfill(2) for part in match.groups()
         ]
-        
+
         # Form date strings
         start_date_str = f'{start_month}/{start_day}/{start_year}'
         end_date_str = f'{end_month}/{end_day}/{end_year}'
