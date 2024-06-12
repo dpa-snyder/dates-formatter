@@ -199,8 +199,8 @@ def custom_format_date(date_str):
             date_part = date_str.split(' ')[0]  # Extract just the date part before the space
             return (datetime.strptime(date_part, '%Y-%m-%d').strftime('%m/%d/%Y'), '')
 
-        # Handle full year range with two different years (e.g., 1971-1972)
-        full_year_range_pattern = r'(\d{4})-(\d{4})'
+        # Handle full year range with two different years (e.g., 1971-1972 or 1971 - 1972)
+        full_year_range_pattern = r'(\d{4})\s*-\s*(\d{4})'
         match = re.match(full_year_range_pattern, date_str)
         if match:
             start_year, end_year = match.groups()
