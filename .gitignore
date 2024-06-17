@@ -6,3 +6,4 @@ venv/
 
 # Ignore the pyenv version file
 .python-version
+test-files/1800_Revolutionary_War_Records_for_script.xlsx
