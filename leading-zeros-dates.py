@@ -1,4 +1,4 @@
-import pandas as pd
+import  pandas as pd
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilename
@@ -6,6 +6,8 @@ import time
 import re
 from datetime import datetime, timedelta
 
+# Initialize column_to_format
+column_to_format = None
 
 # Initialize Tkinter
 root = tk.Tk()
@@ -85,6 +87,7 @@ def get_last_day_of_month(year, month):
 
 # Function to prompt the user to select a column from a dropdown list
 def select_column():
+    global column_to_format
     column_selection_win = tk.Toplevel(root)
     column_selection_win.title("Select Column to Format")
     column_selection_win.geometry("400x250")
@@ -132,7 +135,7 @@ def custom_format_date(date_str):
             start_month, start_day, start_year, end_month, end_day, end_year = match.groups()
             start_date = f'{month_map[start_month[:3].capitalize()]}/{start_day.zfill(2)}/{start_year}'
             end_date = f'{month_map[end_month[:3].capitalize()]}/{end_day.zfill(2)}/{end_year}'
-            return (f'{start_date} - {end_date}', 'Y')
+            return (f'{start_date} - {end_date}', '')
 
         # Handle abbreviated month date range in the format "Month Day, Year - Month Day, Year"
         abbreviated_month_date_range_pattern = r'([A-Za-z]+)\s(\d{1,2}),\s(\d{4})\s-\s([A-Za-z]+)\s(\d{1,2}),\s(\d{4})'
@@ -141,14 +144,14 @@ def custom_format_date(date_str):
             start_month, start_day, start_year, end_month, end_day, end_year = match.groups()
             start_date = f'{month_map[start_month[:3]]}/{start_day.zfill(2)}/{start_year}'
             end_date = f'{month_map[end_month[:3]]}/{end_day.zfill(2)}/{end_year}'
-            return (f'{start_date} - {end_date}', 'Y')
+            return (f'{start_date} - {end_date}', '')
 
         # Match full and abbreviated month names, optionally with '.' and day/year formats
         date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})'
         match = re.match(date_pattern, date_str, re.IGNORECASE)
         if match:
             month, day, year = match.groups()
-            return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', 'Y')
+            return (f'{month_map[month.capitalize()[:3]]}/{day.zfill(2)}/{year}', '')
 
         # Check for 'vol' or 'volume' patterns with a year and optional numbers following
         vol_pattern = r'(\d{4})\s+(vol|volume)\b.*'
@@ -329,15 +332,11 @@ def custom_format_date(date_str):
                 if '??' == day:  # Day is unknown, format: MM/??/YYYY
                     return (f'{month}/01/{year} - {month}/{get_last_day_of_month(int(year), int(month))}/{year}', '')
                 else:  # Format: MM/DD/??, ignore and copy as is
-                    return (date_str, 'Y')
+                    return (date_str, '')
             elif date_str.startswith('??/'):  # Format: ??/YYYY
                 year = date_str.split('/')[1]
                 return (f'01/01/{year} - 12/31/{year}', '')
-            elif '??' in year:  # Year partially unknown, format: MM/DD/19??
-                month, day, year_prefix = date_str.split('/')[0], date_str.split('/')[1], date_str.split('/')[2][:2]
-                start_year = f'{year_prefix}00'
-                end_year = f'{year_prefix}99'
-                return (f'{month}/{day}/{start_year} - {month}/{day}/{end_year}', '')
+
 
         # Handling for full month names and years, converting to range
         month_range_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})'
