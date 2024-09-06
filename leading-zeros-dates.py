@@ -118,6 +118,22 @@ def select_column():
 def custom_format_date(date_str):
     try:
 
+        # First, normalize the date string to ensure leading zeros for month/day
+        def add_leading_zeros(date):
+            # Regular expression to match a date in the format M/D/YYYY or M/DD/YYYY or MM/D/YYYY
+            date = re.sub(r'\b(\d{1})/(\d{1,2})/(\d{4})', r'0\1/\2/\3', date)  # Add leading zero to month
+            date = re.sub(r'(\d{2})/(\d{1})/(\d{4})', r'\1/0\2/\3', date)      # Add leading zero to day
+            return date
+
+        # Apply the function to add leading zeros where necessary
+        date_str = add_leading_zeros(date_str)
+
+        # Check if the input is already a valid date range in MM/DD/YYYY - MM/DD/YYYY format
+        valid_date_range_pattern = r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$'
+        if re.match(valid_date_range_pattern, date_str):
+            # If it's a valid date range, return it as-is
+            return (date_str, '')
+
         # Handle exact list of years, excluding single years and years with non-year characters
         year_list_pattern = r'^\d{4}([,;\s-]+\d{4}){1,}$'
         match = re.fullmatch(year_list_pattern, date_str)
@@ -164,16 +180,34 @@ def custom_format_date(date_str):
         if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
             return ('undated', '')
 
-        # check for excel 5 digit serial date
-        if pd.notna(date_str) and str(date_str).isdigit() and len(str(date_str)) == 5:
+        # Handle excel 5-digit serial date ranges or incomplete ranges
+        excel_serial_range_pattern = r'(\d{5})? ?- ?(\d{5})?'
+        match = re.match(excel_serial_range_pattern, date_str)
+        
+        if match:
+            start_serial, end_serial = match.groups()
             excel_start_date = datetime(1899, 12, 31)
-            serial_int = int(date_str)
-            if serial_int > 59:
-                serial_int += 1
 
-            serial_converted = excel_start_date + timedelta(days=serial_int - 1)
+            def convert_serial(serial):
+                if not serial:
+                    return None
+                serial_int = int(serial)
+                if serial_int > 59:
+                    serial_int += 1  # Handle Excel's leap year bug for dates after 2/28/1900
+                serial_converted = excel_start_date + timedelta(days=serial_int - 1)
+                return serial_converted.strftime('%m/%d/%Y')
 
-            return (serial_converted.strftime('%m/%d/%Y'), '')
+            # Convert start and end serial numbers to dates
+            start_date = convert_serial(start_serial)
+            end_date = convert_serial(end_serial)
+
+            # Handle various cases based on what was present in the input
+            if start_date and end_date:
+                return (f'{start_date} - {end_date}', '')
+            elif start_date:
+                return (f'after {start_date}', 'Y')  # Incomplete end
+            elif end_date:
+                return (f'before {end_date}', 'Y')  # Incomplete start
 
         # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
         iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
@@ -442,20 +476,19 @@ update_progress_bar(progress_bar, 66)
 
 
 def ensure_chronological_order(date_str):
+    # Regular expression to match date ranges in the format MM/DD/YYYY - MM/DD/YYYY
     fix_chrono_range_pattern = r'(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})'
     match = re.match(fix_chrono_range_pattern, date_str)
     if match:
         # Extract dates and ensure month and day are two digits
-        start_month, start_day, start_year, end_month, end_day, end_year = [
-            part.zfill(2) for part in match.groups()
-        ]
+        start_month, start_day, start_year, end_month, end_day, end_year = match.groups()
 
         # Form date strings
-        start_date_str = f'{start_month}/{start_day}/{start_year}'
-        end_date_str = f'{end_month}/{end_day}/{end_year}'
+        start_date_str = f'{int(start_month):02d}/{int(start_day):02d}/{start_year}'
+        end_date_str = f'{int(end_month):02d}/{int(end_day):02d}/{end_year}'
 
         try:
-            # Parse date strings
+            # Parse date strings to datetime objects for comparison
             start_date = datetime.strptime(start_date_str, '%m/%d/%Y')
             end_date = datetime.strptime(end_date_str, '%m/%d/%Y')
 
@@ -463,15 +496,15 @@ def ensure_chronological_order(date_str):
             if start_date > end_date:
                 start_date, end_date = end_date, start_date
 
-            # Format dates back into strings
+            # Format dates back into strings without altering the day
             formatted_start_date = start_date.strftime('%m/%d/%Y')
             formatted_end_date = end_date.strftime('%m/%d/%Y')
 
             return f'{formatted_start_date} - {formatted_end_date}'
 
         except ValueError:
-            # Skip over dates that can't be parsed
-            pass
+            # Skip over dates that can't be parsed and return original string
+            return date_str
 
     # Return the original string if no match or if parsing failed
     return date_str
