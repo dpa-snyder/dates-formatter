@@ -5,6 +5,7 @@ from tkinter.filedialog import askopenfilename
 import time
 import re
 from datetime import datetime, timedelta
+import platform
 
 # Initialize column_to_format
 column_to_format = None
@@ -186,15 +187,26 @@ def custom_format_date(date_str):
         
         if match:
             start_serial, end_serial = match.groups()
-            excel_start_date = datetime(1899, 12, 31)
+
+            # Detect the operating system to determine the Excel start date
+            current_os = platform.system()
+
+            if current_os == 'Windows':
+                excel_start_date = datetime(1899, 12, 31)
+            elif current_os == 'Darwin':
+                excel_start_date = datetime(1904, 1, 1)
+            else:
+                excel_start_date = datetime(1899, 12, 31)
+
 
             def convert_serial(serial):
                 if not serial:
                     return None
                 serial_int = int(serial)
 
-                if serial_int == 60:
+                if current_os == 'Windows' and serial_int == 60:
                     serial_int += 1  # Handle Excel's leap year bug for dates after 2/28/1900
+                
                 serial_converted = excel_start_date + timedelta(days=serial_int - 1)
                 return serial_converted.strftime('%m/%d/%Y')
 
