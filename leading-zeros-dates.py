@@ -192,7 +192,8 @@ def custom_format_date(date_str):
                 if not serial:
                     return None
                 serial_int = int(serial)
-                if serial_int > 59:
+
+                if serial_int == 60:
                     serial_int += 1  # Handle Excel's leap year bug for dates after 2/28/1900
                 serial_converted = excel_start_date + timedelta(days=serial_int - 1)
                 return serial_converted.strftime('%m/%d/%Y')
