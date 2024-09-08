@@ -205,9 +205,9 @@ def custom_format_date(date_str):
             if start_date and end_date:
                 return (f'{start_date} - {end_date}', '')
             elif start_date:
-                return (f'after {start_date}', 'Y')  # Incomplete end
+                return (f'{start_date}', 'Y')  # Incomplete end
             elif end_date:
-                return (f'before {end_date}', 'Y')  # Incomplete start
+                return (f'{end_date}', 'Y')  # Incomplete start
 
         # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
         iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
