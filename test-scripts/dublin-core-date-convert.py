@@ -129,7 +129,7 @@ def convert_date_pattern(date_str):
 
 # Function to apply transformations to the DataFrame
 def process_dataframe(df, column):
-    new_column_name = f'Formatted{column}'
+    new_column_name = f'DC-Formatted{column}'
     df.insert(df.columns.get_loc(column) + 1, new_column_name, df[column].apply(lambda x: convert_date_pattern(str(x)) if pd.notna(x) else 'undated'))
 
     # Ensure RG column is formatted with at least 4 digits
