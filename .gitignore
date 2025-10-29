@@ -6,3 +6,6 @@ venv/
 
 # Ignore the pyenv version file
 .python-version
+
+# Ignore macOS metadata
+.DS_Store
