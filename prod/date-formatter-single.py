@@ -425,6 +425,84 @@ def custom_format_date(date_str):
         return (date_str, 'Y')
 
 
+# Single-date formatter: returns MM/DD/YYYY or '' if unparseable
+def format_single_date(date_str: str) -> str:
+    try:
+        if date_str is None:
+            return ''
+        s = str(date_str).strip()
+        if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
+            return ''
+
+        # Timestamp like YYYY-MM-DD HH:MM:SS -> take date part
+        ts_match = re.match(r'^(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}$', s)
+        if ts_match:
+            try:
+                d = datetime.strptime(ts_match.group(1), '%Y-%m-%d')
+                return d.strftime('%m/%d/%Y')
+            except Exception:
+                pass
+
+        # Excel serial (4-5+ digits)
+        if re.fullmatch(r'\d{4,5}', s):
+            serial_int = int(s)
+            current_os = platform.system()
+            if current_os == 'Windows':
+                excel_start_date = datetime(1899, 12, 31)
+                if serial_int == 60:
+                    serial_int += 1
+            elif current_os == 'Darwin':
+                excel_start_date = datetime(1904, 1, 1)
+            else:
+                excel_start_date = datetime(1899, 12, 31)
+            d = excel_start_date + timedelta(days=serial_int - 1)
+            return d.strftime('%m/%d/%Y')
+
+        # Try common single-date formats
+        fmts = [
+            '%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%Y/%m/%d',
+            '%m-%d-%Y', '%m-%d-%y', '%b %d %Y', '%b %d, %Y',
+            '%B %d %Y', '%B %d, %Y'
+        ]
+        for f in fmts:
+            try:
+                d = datetime.strptime(s, f)
+                return d.strftime('%m/%d/%Y')
+            except Exception:
+                continue
+
+        # Handle M/D/YYYY and M/D/YY without zero padding specifically
+        md_regex = re.match(r'^(\d{1,2})/(\d{1,2})/(\d{2}|\d{4})$', s)
+        if md_regex:
+            m, d, y = md_regex.groups()
+            if len(y) == 2:
+                # Python's %y pivot is 1969-2068; mimic similar behavior
+                y_int = int(y)
+                y_full = 2000 + y_int if y_int <= 68 else 1900 + y_int
+            else:
+                y_full = int(y)
+            try:
+                dt = datetime(y_full, int(m), int(d))
+                return dt.strftime('%m/%d/%Y')
+            except Exception:
+                return ''
+
+        # Month name + day + year with stray punctuation
+        name_regex = re.match(r'^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{2,4})$', s, re.IGNORECASE)
+        if name_regex:
+            mon, day, year = name_regex.groups()
+            y_full = int(year) if len(year) == 4 else (2000 + int(year) if int(year) <= 68 else 1900 + int(year))
+            try:
+                dt = datetime(y_full, int(month_map[mon.capitalize()[:3]]), int(day))
+                return dt.strftime('%m/%d/%Y')
+            except Exception:
+                return ''
+
+        return ''
+    except Exception:
+        return ''
+
+
 def convert_strange_named_ranges(date_str):
     # Enhanced regex to handle both full and abbreviated month names, and optional end month and year
     matches = re.search(r'(\b[A-Za-z]+) (\d{1,2})( \d{4})? - (\b[A-Za-z]*\b)? ?(\d{1,2})( \d{4})?', date_str)
@@ -475,10 +553,11 @@ if column_to_format not in df.columns:
 
 # Create a new column to store the formatted dates
 new_column_name = f'Formatted{column_to_format}'
+check_col_name = f'Check {column_to_format}'
 
 # Apply custom_format_date to create the new column and Check Me column
 df['temp'] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else ('undated', ''))
-df[new_column_name], df['Check Me'] = zip(*df['temp'])
+df[new_column_name], df[check_col_name] = zip(*df['temp'])
 df.drop(columns=['temp'], inplace=True)  # Clean up the temporary column
 
 # Apply convert_strange_named_ranges to the new_column_name column
@@ -534,17 +613,11 @@ def is_valid_date_format(date_str):
 # Apply the function to the DataFrame
 df[new_column_name] = df[new_column_name].apply(ensure_chronological_order)
 
-# Analyze the new_column_name column and update the Check Me column
-df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
+# Analyze the new_column_name column and update the check column
+df[check_col_name] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row[check_col_name] != 'Y' else row[check_col_name], axis=1)
 
-# Add a "Y" to the Check Me column if a semi-colon exists in the FullDate column, ensuring no duplicate "Y"
-df['Check Me'] = df.apply(lambda row: 'Y' if isinstance(row[column_to_format], str) and ';' in row[column_to_format] and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
-
-# Create a strict single-date column 'formatted_date' (MM/DD/YYYY only)
-single_date_pattern = re.compile(r'^\d{2}/\d{2}/\d{4}$')
-df['formatted_date'] = df[new_column_name].apply(
-    lambda s: s if isinstance(s, str) and single_date_pattern.match(s) else ''
-)
+# Create a strict single-date column 'formatted_date' (MM/DD/YYYY only) from the original input column
+df['formatted_date'] = df[column_to_format].apply(lambda s: format_single_date(str(s)) if pd.notna(s) else '')
 
 # Ensure 'formatted_date' appears immediately after the original input column
 cols = list(df.columns)
@@ -553,6 +626,37 @@ if 'formatted_date' in cols:
     insert_at = cols.index(column_to_format) + 1 if column_to_format in cols else len(cols)
     cols.insert(insert_at, 'formatted_date')
     df = df[cols]
+
+# Recompute check column: 'Yes' if formatted_date is empty or not strictly MM/DD/YYYY
+mmddyyyy_pattern = re.compile(r'^\d{2}/\d{2}/\d{4}$')
+df[check_col_name] = df['formatted_date'].apply(lambda s: 'Yes' if not isinstance(s, str) or not mmddyyyy_pattern.match(s) else '')
+
+# Copy original input into 'Original_{input}' and replace input with formatted value
+original_col_name = f'Original_{column_to_format}'
+if original_col_name not in df.columns:
+    df[original_col_name] = df[column_to_format]
+else:
+    df[original_col_name] = df[column_to_format]
+
+# Replace input column with the normalized single date
+df[column_to_format] = df['formatted_date']
+
+# Remove the old wide formatted range/text column and the helper 'formatted_date'
+if new_column_name in df.columns:
+    df.drop(columns=[new_column_name], inplace=True)
+if 'formatted_date' in df.columns:
+    df.drop(columns=['formatted_date'], inplace=True)
+
+# Ensure final order: Original_{input}, {input}, Check {input}, then the rest
+cols = list(df.columns)
+for c in [original_col_name, check_col_name]:
+    if c in cols:
+        cols.remove(c)
+insert_pos = cols.index(column_to_format) if column_to_format in cols else 0
+cols.insert(insert_pos, original_col_name)
+insert_pos = cols.index(column_to_format) + 1 if column_to_format in cols else 1
+cols.insert(insert_pos, check_col_name)
+df = df[cols]
 
 # Ensure RG column is formatted with at least 4 digits
 if 'RG' in df.columns:
