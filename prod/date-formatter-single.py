@@ -426,13 +426,23 @@ def custom_format_date(date_str):
 
 
 # Single-date formatter: returns MM/DD/YYYY or '' if unparseable
-def format_single_date(date_str: str) -> str:
+def format_single_date(date_str: str, column_name: str = '') -> str:
     try:
         if date_str is None:
             return ''
         s = str(date_str).strip()
         if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
             return ''
+        column_name_lower = (column_name or '').lower()
+
+        # Treat plain 4-digit values as years, not as Excel serial dates.
+        year_only_match = re.fullmatch(r'\d{4}', s)
+        if year_only_match:
+            year = int(s)
+            if 1000 <= year <= 2999:
+                if 'end' in column_name_lower:
+                    return f'12/31/{year}'
+                return f'01/01/{year}'
 
         # Timestamp like YYYY-MM-DD HH:MM:SS -> take date part
         ts_match = re.match(r'^(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}$', s)
@@ -443,8 +453,8 @@ def format_single_date(date_str: str) -> str:
             except Exception:
                 pass
 
-        # Excel serial (4-5+ digits)
-        if re.fullmatch(r'\d{4,5}', s):
+        # Excel serial (5+ digits)
+        if re.fullmatch(r'\d{5,}', s):
             serial_int = int(s)
             current_os = platform.system()
             if current_os == 'Windows':
@@ -617,7 +627,9 @@ df[new_column_name] = df[new_column_name].apply(ensure_chronological_order)
 df[check_col_name] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row[check_col_name] != 'Y' else row[check_col_name], axis=1)
 
 # Create a strict single-date column 'formatted_date' (MM/DD/YYYY only) from the original input column
-df['formatted_date'] = df[column_to_format].apply(lambda s: format_single_date(str(s)) if pd.notna(s) else '')
+df['formatted_date'] = df[column_to_format].apply(
+    lambda s: format_single_date(str(s), column_to_format) if pd.notna(s) else ''
+)
 
 # Ensure 'formatted_date' appears immediately after the original input column
 cols = list(df.columns)
@@ -640,6 +652,35 @@ else:
 
 # Replace input column with the normalized single date
 df[column_to_format] = df['formatted_date']
+
+# Ensure final output column is display-safe (MM/DD/YYYY only, no time component)
+def normalize_output_display(value):
+    if pd.isna(value) or value == '':
+        return ''
+    if isinstance(value, datetime):
+        return value.strftime('%m/%d/%Y')
+
+    s = str(value).strip()
+
+    # Already MM/DD/YYYY or MM/DD/YYYY with trailing time
+    mdy_match = re.match(r'^(\d{1,2}/\d{1,2}/\d{4})(?:\s+\d{2}:\d{2}:\d{2})?$', s)
+    if mdy_match:
+        try:
+            return datetime.strptime(mdy_match.group(1), '%m/%d/%Y').strftime('%m/%d/%Y')
+        except ValueError:
+            return ''
+
+    # ISO date or datetime
+    iso_match = re.match(r'^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?$', s)
+    if iso_match:
+        try:
+            return datetime.strptime(iso_match.group(1), '%Y-%m-%d').strftime('%m/%d/%Y')
+        except ValueError:
+            return ''
+
+    return s
+
+df[column_to_format] = df[column_to_format].apply(normalize_output_display)
 
 # Remove the old wide formatted range/text column and the helper 'formatted_date'
 if new_column_name in df.columns:
