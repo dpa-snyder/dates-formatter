@@ -1,11 +1,55 @@
-# Ignore the Jupyter Notebook checkpoints
-.ipynb_checkpoints/serial-excel-dates-checkpoint.py
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.installed.cfg
+MANIFEST
 
-# Ingnore the virtual environment
+# Virtual environments
 venv/
+.venv/
+env/
+ENV/
+.env
+.env.local
+.env.*
 
-# Ignore the pyenv version file
+# Jupyter
+.ipynb_checkpoints/
+*.checkpoint.py
+
+# pyenv
 .python-version
 
-# Ignore macOS metadata
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+._*
+
+# Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
