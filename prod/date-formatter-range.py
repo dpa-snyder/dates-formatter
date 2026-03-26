@@ -143,7 +143,7 @@ def custom_format_date(date_str):
             if len(years) > 1:
                 start_year = years[0]
                 end_year = years[-1]
-                return (f'01/01/{start_year} - 12/31/{end_year}', 'Y')
+                return (f'01/01/{start_year} - 12/31/{end_year}', 'Yes')
 
         # Handle date range in the format "Month Day, Year – Month Day, Year" with both en dash and hyphen-minus
         full_date_range_pattern = r'([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})\s[–-]\s([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})'
@@ -175,7 +175,7 @@ def custom_format_date(date_str):
         match = re.match(vol_pattern, date_str, re.IGNORECASE)
         if match:
             year = match.group(1)
-            return (f'01/01/{year} - 12/31/{year}', 'Y')
+            return (f'01/01/{year} - 12/31/{year}', 'Yes')
 
         # N.D., n.d., nd, No Date, not dated, U.D., u.d., ud
         if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
@@ -218,9 +218,9 @@ def custom_format_date(date_str):
             if start_date and end_date:
                 return (f'{start_date} - {end_date}', '')
             elif start_date:
-                return (f'{start_date}', 'Y')  # Incomplete end
+                return (f'{start_date}', 'Yes')  # Incomplete end
             elif end_date:
-                return (f'{end_date}', 'Y')  # Incomplete start
+                return (f'{end_date}', 'Yes')  # Incomplete start
 
         # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
         iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
@@ -241,7 +241,7 @@ def custom_format_date(date_str):
             match = re.search(pattern, date_str)
             if match:
                 year = match.group(1)  # Capture the year
-                return (format_str.format(year=year), 'Y')
+                return (format_str.format(year=year), 'Yes')
 
         # Handling timestamp style values
         timestamp_regex = r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}'
@@ -284,7 +284,7 @@ def custom_format_date(date_str):
         for pattern, action in question_mark_date_ranges:
             match = re.match(pattern, date_str)
             if match:
-                return (action(*match.groups()), 'Y')
+                return (action(*match.groups()), 'Yes')
 
         # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
         range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
@@ -358,7 +358,7 @@ def custom_format_date(date_str):
         circa_regex = r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})'
         if re.match(circa_regex, date_str, re.IGNORECASE):
             year = re.findall(circa_regex, date_str, re.IGNORECASE)[0][1]
-            return (f'circa {year}', 'Y')
+            return (f'circa {year}', 'Yes')
 
         # Handling date ranges and single years
         year_range_regex = r'(\d{4})s?(-\d{4})?'
@@ -419,10 +419,10 @@ def custom_format_date(date_str):
             return (f'{formatted_start_date} - {formatted_end_date}', '')
 
         # Default case: Copy as is
-        return (date_str, 'Y')
+        return (date_str, 'Yes')
 
     except Exception as e:
-        return (date_str, 'Y')
+        return (date_str, 'Yes')
 
 
 def convert_strange_named_ranges(date_str):
@@ -473,16 +473,18 @@ if column_to_format not in df.columns:
     print(f"The column '{column_to_format}' does not exist in the file.")
     exit()
 
-# Create a new column to store the formatted dates
-new_column_name = f'Formatted{column_to_format}'
+# Set up column names and save original values
+check_col_name = f'Check {column_to_format}'
+original_col_name = f'Original_{column_to_format}'
+df[original_col_name] = df[column_to_format].copy()
 
-# Apply custom_format_date to create the new column and Check Me column
+# Apply custom_format_date and replace the original column in-place
 df['temp'] = df[column_to_format].apply(lambda cell: custom_format_date(str(cell)) if pd.notna(cell) else ('undated', ''))
-df[new_column_name], df['Check Me'] = zip(*df['temp'])
+df[column_to_format], df[check_col_name] = zip(*df['temp'])
 df.drop(columns=['temp'], inplace=True)  # Clean up the temporary column
 
-# Apply convert_strange_named_ranges to the new_column_name column
-df[new_column_name] = df[new_column_name].apply(convert_strange_named_ranges)
+# Apply convert_strange_named_ranges to the formatted column
+df[column_to_format] = df[column_to_format].apply(convert_strange_named_ranges)
 
 # Update progress bar after processing (date formatting)
 update_progress_bar(progress_bar, 66)
@@ -532,13 +534,23 @@ def is_valid_date_format(date_str):
     return any(re.match(pattern, date_str) for pattern in valid_patterns)
 
 # Apply the function to the DataFrame
-df[new_column_name] = df[new_column_name].apply(ensure_chronological_order)
+df[column_to_format] = df[column_to_format].apply(ensure_chronological_order)
 
-# Analyze the new_column_name column and update the Check Me column
-df['Check Me'] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
+# Update the check column for invalid formats
+df[check_col_name] = df.apply(lambda row: 'Yes' if not is_valid_date_format(row[column_to_format]) and row[check_col_name] != 'Yes' else row[check_col_name], axis=1)
 
-# Add a "Y" to the Check Me column if a semi-colon exists in the FullDate column, ensuring no duplicate "Y"
-df['Check Me'] = df.apply(lambda row: 'Y' if isinstance(row[column_to_format], str) and ';' in row[column_to_format] and row['Check Me'] != 'Y' else row['Check Me'], axis=1)
+# Add a "Y" to the check column if a semi-colon exists in the original value
+df[check_col_name] = df.apply(lambda row: 'Yes' if isinstance(row[original_col_name], str) and ';' in row[original_col_name] and row[check_col_name] != 'Yes' else row[check_col_name], axis=1)
+
+# Order columns: formatted column in place, Original_ and Check_ inserted immediately after
+cols = list(df.columns)
+for c in [original_col_name, check_col_name]:
+    if c in cols:
+        cols.remove(c)
+insert_pos = cols.index(column_to_format) + 1 if column_to_format in cols else len(cols)
+cols.insert(insert_pos, original_col_name)
+cols.insert(insert_pos + 1, check_col_name)
+df = df[cols]
 
 # Ensure RG column is formatted with at least 4 digits
 if 'RG' in df.columns:

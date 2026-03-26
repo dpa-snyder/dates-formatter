@@ -129,8 +129,34 @@ def convert_date_pattern(date_str):
 
 # Function to apply transformations to the DataFrame
 def process_dataframe(df, column):
-    new_column_name = f'DC-Formatted{column}'
-    df.insert(df.columns.get_loc(column) + 1, new_column_name, df[column].apply(lambda x: convert_date_pattern(str(x)) if pd.notna(x) else 'undated'))
+    check_col_name = f'Check {column}'
+    original_col_name = f'Original_{column}'
+
+    # Save original values
+    df[original_col_name] = df[column].copy()
+
+    # Replace column with formatted values in-place
+    df[column] = df[column].apply(lambda x: convert_date_pattern(str(x)) if pd.notna(x) else 'undated')
+
+    # Create check column
+    valid_patterns = [
+        r'^\d{2}/\d{2}/\d{4}$',
+        r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$',
+        r'^undated$'
+    ]
+    def is_valid(s):
+        return any(re.match(p, str(s)) for p in valid_patterns)
+    df[check_col_name] = df[column].apply(lambda s: 'Yes' if not is_valid(s) else '')
+
+    # Order columns: formatted column in place, Original_ and Check_ inserted immediately after
+    cols = list(df.columns)
+    for c in [original_col_name, check_col_name]:
+        if c in cols:
+            cols.remove(c)
+    insert_pos = cols.index(column) + 1 if column in cols else len(cols)
+    cols.insert(insert_pos, original_col_name)
+    cols.insert(insert_pos + 1, check_col_name)
+    df = df[cols]
 
     # Ensure RG column is formatted with at least 4 digits
     if 'RG' in df.columns:

@@ -143,7 +143,7 @@ def custom_format_date(date_str):
             if len(years) > 1:
                 start_year = years[0]
                 end_year = years[-1]
-                return (f'01/01/{start_year} - 12/31/{end_year}', 'Y')
+                return (f'01/01/{start_year} - 12/31/{end_year}', 'Yes')
 
         # Handle date range in the format "Month Day, Year – Month Day, Year" with both en dash and hyphen-minus
         full_date_range_pattern = r'([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})\s[–-]\s([A-Za-z]+)\s(\d{1,2}),?\s(\d{4})'
@@ -175,7 +175,7 @@ def custom_format_date(date_str):
         match = re.match(vol_pattern, date_str, re.IGNORECASE)
         if match:
             year = match.group(1)
-            return (f'01/01/{year} - 12/31/{year}', 'Y')
+            return (f'01/01/{year} - 12/31/{year}', 'Yes')
 
         # N.D., n.d., nd, No Date, not dated, U.D., u.d., ud
         if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b', date_str, re.IGNORECASE):
@@ -218,9 +218,9 @@ def custom_format_date(date_str):
             if start_date and end_date:
                 return (f'{start_date} - {end_date}', '')
             elif start_date:
-                return (f'{start_date}', 'Y')  # Incomplete end
+                return (f'{start_date}', 'Yes')  # Incomplete end
             elif end_date:
-                return (f'{end_date}', 'Y')  # Incomplete start
+                return (f'{end_date}', 'Yes')  # Incomplete start
 
         # Check for dates in 'YYYY-MM-DD' or 'YYYY/MM/DD' formats, with support for single-digit months and days
         iso_date_pattern = r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})'
@@ -241,7 +241,7 @@ def custom_format_date(date_str):
             match = re.search(pattern, date_str)
             if match:
                 year = match.group(1)  # Capture the year
-                return (format_str.format(year=year), 'Y')
+                return (format_str.format(year=year), 'Yes')
 
         # Handling timestamp style values
         timestamp_regex = r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}'
@@ -284,7 +284,7 @@ def custom_format_date(date_str):
         for pattern, action in question_mark_date_ranges:
             match = re.match(pattern, date_str)
             if match:
-                return (action(*match.groups()), 'Y')
+                return (action(*match.groups()), 'Yes')
 
         # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
         range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
@@ -358,7 +358,7 @@ def custom_format_date(date_str):
         circa_regex = r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})'
         if re.match(circa_regex, date_str, re.IGNORECASE):
             year = re.findall(circa_regex, date_str, re.IGNORECASE)[0][1]
-            return (f'circa {year}', 'Y')
+            return (f'circa {year}', 'Yes')
 
         # Handling date ranges and single years
         year_range_regex = r'(\d{4})s?(-\d{4})?'
@@ -419,10 +419,10 @@ def custom_format_date(date_str):
             return (f'{formatted_start_date} - {formatted_end_date}', '')
 
         # Default case: Copy as is
-        return (date_str, 'Y')
+        return (date_str, 'Yes')
 
     except Exception as e:
-        return (date_str, 'Y')
+        return (date_str, 'Yes')
 
 
 # Single-date formatter: returns MM/DD/YYYY or '' if unparseable
@@ -614,7 +614,7 @@ def is_valid_date_format(date_str):
 df[new_column_name] = df[new_column_name].apply(ensure_chronological_order)
 
 # Analyze the new_column_name column and update the check column
-df[check_col_name] = df.apply(lambda row: 'Y' if not is_valid_date_format(row[new_column_name]) and row[check_col_name] != 'Y' else row[check_col_name], axis=1)
+df[check_col_name] = df.apply(lambda row: 'Yes' if not is_valid_date_format(row[new_column_name]) and row[check_col_name] != 'Yes' else row[check_col_name], axis=1)
 
 # Create a strict single-date column 'formatted_date' (MM/DD/YYYY only) from the original input column
 df['formatted_date'] = df[column_to_format].apply(lambda s: format_single_date(str(s)) if pd.notna(s) else '')
@@ -652,10 +652,9 @@ cols = list(df.columns)
 for c in [original_col_name, check_col_name]:
     if c in cols:
         cols.remove(c)
-insert_pos = cols.index(column_to_format) if column_to_format in cols else 0
+insert_pos = cols.index(column_to_format) + 1 if column_to_format in cols else len(cols)
 cols.insert(insert_pos, original_col_name)
-insert_pos = cols.index(column_to_format) + 1 if column_to_format in cols else 1
-cols.insert(insert_pos, check_col_name)
+cols.insert(insert_pos + 1, check_col_name)
 df = df[cols]
 
 # Ensure RG column is formatted with at least 4 digits
