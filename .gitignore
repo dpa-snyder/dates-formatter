@@ -54,3 +54,11 @@ cython_debug/
 Thumbs.db
 desktop.ini
 $RECYCLE.BIN/
+
+# Script output files
+*_single.xlsx
+*_single.csv
+*_range.xlsx
+*_range.csv
+*_dublin-core.xlsx
+*_dublin-core.csv

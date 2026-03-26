@@ -12,8 +12,7 @@ root.withdraw()
 
 # Function to select a file
 def select_file():
-    file_types = [("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv")]
-    file_path = askopenfilename(filetypes=file_types)
+    file_path = askopenfilename()
     if not file_path:
         messagebox.showerror("Error", "No file selected. Exiting.")
         root.destroy()

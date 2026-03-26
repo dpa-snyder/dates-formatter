@@ -23,9 +23,8 @@ def update_progress_bar(progress_bar, value):
 
 # Function to select the file
 def select_file():
-    file_types = [("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv")]
     try:
-        file_path = askopenfilename(filetypes=file_types)
+        file_path = askopenfilename()
         if not file_path:
             messagebox.showerror("Error", "No file selected. Exiting.")
             root.destroy()
