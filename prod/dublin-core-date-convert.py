@@ -57,12 +57,39 @@ def get_last_day_of_month(year, month):
         return 30
     return 31
 
+def ensure_chronological_order(date_str):
+    m = re.match(r'(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})', date_str)
+    if not m:
+        return date_str
+    sm, sd, sy, em, ed, ey = m.groups()
+    try:
+        s = datetime.strptime(f'{int(sm):02d}/{int(sd):02d}/{sy}', '%m/%d/%Y')
+        e = datetime.strptime(f'{int(em):02d}/{int(ed):02d}/{ey}', '%m/%d/%Y')
+        if s > e:
+            s, e = e, s
+        return f'{s.strftime("%m/%d/%Y")} - {e.strftime("%m/%d/%Y")}'
+    except ValueError:
+        return date_str
+
+
+month_map = {
+    "Jan": "01", "January": "01", "Feb": "02", "February": "02",
+    "Mar": "03", "March": "03", "Apr": "04", "April": "04", "May": "05",
+    "Jun": "06", "June": "06", "Jul": "07", "July": "07",
+    "Aug": "08", "August": "08", "Sep": "09", "Sept": "09", "September": "09",
+    "Oct": "10", "October": "10", "Nov": "11", "November": "11",
+    "Dec": "12", "December": "12",
+}
+
+
 # Function to convert date patterns
 def convert_date_pattern(date_str):
     try:
         # Skip if the date is already in the desired format
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
+
+        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
 
         if re.match(r'\d{4}-\d{2}-\d{2}$', date_str):
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -104,7 +131,14 @@ def convert_date_pattern(date_str):
             return f"{start_date_formatted} - {end_date_formatted}"
 
         if re.match(r'\d{4}-\d{2}$', date_str):
-            year, month = map(int, date_str.split('-'))
+            y_str, suffix = date_str.split('-')
+            suffix_int = int(suffix)
+            if suffix_int > 12:
+                ey = int(y_str[:2] + suffix)
+                if suffix_int < int(y_str[2:]):
+                    ey += 100
+                return f"01/01/{y_str} - 12/31/{ey}"
+            year, month = int(y_str), suffix_int
             last_day = get_last_day_of_month(year, month)
             return f"{month:02d}/01/{year} - {month:02d}/{last_day}/{year}"
 
@@ -122,6 +156,20 @@ def convert_date_pattern(date_str):
             date_str = date_str.replace('To', '-').replace('TO', '-').replace('to', '-')
             return convert_date_pattern(date_str)
 
+        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})',
+                     date_str, re.IGNORECASE)
+        if m:
+            mo, y = m.groups()
+            num = month_map[mo.capitalize()[:3]]
+            last = get_last_day_of_month(int(y), int(num))
+            return f"{num}/01/{y} - {num}/{last}/{y}"
+
+        m = re.match(r'(\d{1,2})/0{1,2}/(\d{4})', date_str)
+        if m:
+            mo, y = m.groups()
+            last = get_last_day_of_month(int(y), int(mo))
+            return f"{int(mo):02d}/01/{y} - {int(mo):02d}/{last}/{y}"
+
         return date_str  # Return original if no match
     except Exception as e:
         return date_str  # Return original if any error occurs
@@ -135,7 +183,8 @@ def process_dataframe(df, column):
     df[original_col_name] = df[column].copy()
 
     # Replace column with formatted values in-place
-    df[column] = df[column].apply(lambda x: convert_date_pattern(str(x)) if pd.notna(x) else 'undated')
+    df[column] = df[column].apply(
+        lambda x: ensure_chronological_order(convert_date_pattern(str(x))) if pd.notna(x) else 'undated')
 
     # Create check column
     valid_patterns = [

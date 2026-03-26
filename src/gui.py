@@ -44,72 +44,22 @@ def get_last_day_of_month(year, month):
 # ─── Single-date pipeline ─────────────────────────────────────────────────────
 
 def format_single_date(date_str):
-    """Return MM/DD/YYYY for a single date value, or '' if not parseable."""
+    """Return MM/DD/YYYY — first date of any range, or '' if not parseable."""
+    if date_str is None:
+        return ''
+    s = str(date_str).strip()
+    if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
+        return ''
     try:
-        if date_str is None:
-            return ''
-        s = str(date_str).strip()
-        if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
-            return ''
-
-        # Timestamp YYYY-MM-DD HH:MM:SS
-        ts = re.match(r'^(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}$', s)
-        if ts:
-            try:
-                return datetime.strptime(ts.group(1), '%Y-%m-%d').strftime('%m/%d/%Y')
-            except Exception:
-                pass
-
-        # Excel serial (4–5 digits)
-        if re.fullmatch(r'\d{4,5}', s):
-            serial = int(s)
-            cur_os = platform.system()
-            if cur_os == 'Windows':
-                base = datetime(1899, 12, 31)
-                if serial == 60:
-                    serial += 1
-            elif cur_os == 'Darwin':
-                base = datetime(1904, 1, 1)
-            else:
-                base = datetime(1899, 12, 31)
-            return (base + timedelta(days=serial - 1)).strftime('%m/%d/%Y')
-
-        # Common explicit formats
-        for fmt in ('%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%Y/%m/%d',
-                    '%m-%d-%Y', '%m-%d-%y', '%b %d %Y', '%b %d, %Y',
-                    '%B %d %Y', '%B %d, %Y'):
-            try:
-                return datetime.strptime(s, fmt).strftime('%m/%d/%Y')
-            except Exception:
-                continue
-
-        # M/D/YYYY or M/D/YY without zero-padding
-        m = re.match(r'^(\d{1,2})/(\d{1,2})/(\d{2}|\d{4})$', s)
-        if m:
-            mo, d, y = m.groups()
-            y_int = int(y)
-            y_full = (2000 + y_int if y_int <= 68 else 1900 + y_int) if len(y) == 2 else y_int
-            try:
-                return datetime(y_full, int(mo), int(d)).strftime('%m/%d/%Y')
-            except Exception:
-                return ''
-
-        # Month-name + day + year
-        m = re.match(
-            r'^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*'
-            r'(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{2,4})$', s, re.IGNORECASE)
-        if m:
-            mon, day, year = m.groups()
-            y_int = int(year)
-            y_full = y_int if len(year) == 4 else (2000 + y_int if y_int <= 68 else 1900 + y_int)
-            try:
-                return datetime(y_full, int(month_map[mon.capitalize()[:3]]), int(day)).strftime('%m/%d/%Y')
-            except Exception:
-                return ''
-
-        return ''
+        result, _ = custom_format_date(s)
+        result = ensure_chronological_order(result)
+        if ' - ' in result:
+            return result.split(' - ')[0]
+        if re.match(r'^\d{2}/\d{2}/\d{4}$', result):
+            return result
     except Exception:
-        return ''
+        pass
+    return ''
 
 
 # ─── Range pipeline ───────────────────────────────────────────────────────────
@@ -122,10 +72,20 @@ def custom_format_date(date_str):
             d = re.sub(r'(\d{2})/(\d{1})/(\d{4})', r'\1/0\2/\3', d)
             return d
 
+        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
         date_str = add_leading_zeros(date_str)
 
         if re.match(r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$', date_str):
             return (date_str, '')
+
+        if re.fullmatch(r'\d{5}', date_str):
+            serial = int(date_str)
+            cur_os = platform.system()
+            if cur_os == 'Darwin':
+                d = datetime(1904, 1, 1) + timedelta(days=serial - 1)
+            else:
+                d = datetime(1899, 12, 31) + timedelta(days=serial)
+            return (d.strftime('%m/%d/%Y'), 'Yes')
 
         m = re.fullmatch(r'^\d{4}([,;\s-]+\d{4}){1,}$', date_str)
         if m:
@@ -170,9 +130,9 @@ def custom_format_date(date_str):
                 if not serial:
                     return None
                 n = int(serial)
-                if cur_os == 'Windows' and n == 60:
-                    n += 1
-                return (base + timedelta(days=n - 1)).strftime('%m/%d/%Y')
+                if cur_os == 'Darwin':
+                    return (base + timedelta(days=n - 1)).strftime('%m/%d/%Y')
+                return (base + timedelta(days=n)).strftime('%m/%d/%Y')
 
             sd, ed = conv(ss), conv(es)
             if sd and ed:
@@ -229,13 +189,13 @@ def custom_format_date(date_str):
             if m:
                 return (action(*m.groups()), 'Yes')
 
-        m = re.match(r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})', date_str)
+        m = re.match(r'(\d{1,2})/0{1,2}/(\d{4}) - (\d{1,2})/0{1,2}/(\d{4})', date_str)
         if m:
             ms, ys, _, ye = m.groups()
             last = get_last_day_of_month(int(ys), int(ms))
             return (f'{int(ms):02d}/01/{ys} - {int(ms):02d}/{last}/{ys}', '')
 
-        m = re.match(r'(\d{1,2})/0/(\d{4})', date_str)
+        m = re.match(r'(\d{1,2})/0{1,2}/(\d{4})', date_str)
         if m:
             mo, y = m.groups()
             last = get_last_day_of_month(int(y), int(mo))
@@ -379,6 +339,7 @@ def convert_date_pattern(date_str):
     try:
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
+        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
         if re.match(r'\d{4}-\d{2}-\d{2}$', date_str):
             return datetime.strptime(date_str, '%Y-%m-%d').strftime('%m/%d/%Y')
         if re.match(r'\d{4}-\d{4}$', date_str):
@@ -406,7 +367,14 @@ def convert_date_pattern(date_str):
             return (f'{datetime.strptime(sd, "%Y-%m-%d").strftime("%m/%d/%Y")} - '
                     f'{datetime.strptime(ed, "%Y-%m-%d").strftime("%m/%d/%Y")}')
         if re.match(r'\d{4}-\d{2}$', date_str):
-            y, mo = map(int, date_str.split('-'))
+            y_str, suffix = date_str.split('-')
+            suffix_int = int(suffix)
+            if suffix_int > 12:
+                ey = int(y_str[:2] + suffix)
+                if suffix_int < int(y_str[2:]):
+                    ey += 100
+                return f'01/01/{y_str} - 12/31/{ey}'
+            y, mo = int(y_str), suffix_int
             return f'{mo:02d}/01/{y} - {mo:02d}/{get_last_day_of_month(y, mo)}/{y}'
         if re.match(r'\d{4}$', date_str):
             y = int(date_str)
@@ -418,6 +386,18 @@ def convert_date_pattern(date_str):
         if re.match(r'\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}', date_str):
             return convert_date_pattern(
                 date_str.replace('To', '-').replace('TO', '-').replace('to', '-'))
+        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})',
+                     date_str, re.IGNORECASE)
+        if m:
+            mo, y = m.groups()
+            num = month_map[mo.capitalize()[:3]]
+            last = get_last_day_of_month(int(y), int(num))
+            return f'{num}/01/{y} - {num}/{last}/{y}'
+        m = re.match(r'(\d{1,2})/0{1,2}/(\d{4})', date_str)
+        if m:
+            mo, y = m.groups()
+            last = get_last_day_of_month(int(y), int(mo))
+            return f'{int(mo):02d}/01/{y} - {int(mo):02d}/{last}/{y}'
         return date_str
     except Exception:
         return date_str
@@ -671,7 +651,7 @@ class DateFormatterApp(ctk.CTk):
             results = []
             for i, val in enumerate(df[column]):
                 results.append(
-                    convert_date_pattern(str(val)) if pd.notna(val) else 'undated')
+                    ensure_chronological_order(convert_date_pattern(str(val))) if pd.notna(val) else 'undated')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
                              f"[Dublin Core] row {i+1:,} of {total:,}…")

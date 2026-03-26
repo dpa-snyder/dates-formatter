@@ -126,6 +126,7 @@ def custom_format_date(date_str):
             return date
 
         # Apply the function to add leading zeros where necessary
+        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
         date_str = add_leading_zeros(date_str)
 
         # Check if the input is already a valid date range in MM/DD/YYYY - MM/DD/YYYY format
@@ -202,12 +203,9 @@ def custom_format_date(date_str):
                 if not serial:
                     return None
                 serial_int = int(serial)
-
-                if current_os == 'Windows' and serial_int == 60:
-                    serial_int += 1  # Handle Excel's leap year bug for dates after 2/28/1900
-                
-                serial_converted = excel_start_date + timedelta(days=serial_int - 1)
-                return serial_converted.strftime('%m/%d/%Y')
+                if current_os == 'Darwin':
+                    return (excel_start_date + timedelta(days=serial_int - 1)).strftime('%m/%d/%Y')
+                return (excel_start_date + timedelta(days=serial_int)).strftime('%m/%d/%Y')
 
             # Convert start and end serial numbers to dates
             start_date = convert_serial(start_serial)
@@ -286,7 +284,7 @@ def custom_format_date(date_str):
                 return (action(*match.groups()), 'Yes')
 
         # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
-        range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
+        range_zero_day_regex = r'(\d{1,2})/0{1,2}/(\d{4}) - (\d{1,2})/0{1,2}/(\d{4})'
         match = re.match(range_zero_day_regex, date_str)
         if match:
             month_start, year_start, month_end, year_end = match.groups()
@@ -302,7 +300,7 @@ def custom_format_date(date_str):
             return (f'{start_date} - {end_date}', '')
 
         # Handle 'MM/0/YYYY' format
-        single_zero_dd_regex = r'(\d{1,2})/0/(\d{4})'
+        single_zero_dd_regex = r'(\d{1,2})/0{1,2}/(\d{4})'
         match = re.match(single_zero_dd_regex, date_str)
         if match:
             month, year = match.groups()
@@ -426,80 +424,22 @@ def custom_format_date(date_str):
 
 # Single-date formatter: returns MM/DD/YYYY or '' if unparseable
 def format_single_date(date_str: str) -> str:
+    """Return MM/DD/YYYY — first date of any range, or '' if not parseable."""
+    if date_str is None:
+        return ''
+    s = str(date_str).strip()
+    if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
+        return ''
     try:
-        if date_str is None:
-            return ''
-        s = str(date_str).strip()
-        if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
-            return ''
-
-        # Timestamp like YYYY-MM-DD HH:MM:SS -> take date part
-        ts_match = re.match(r'^(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}$', s)
-        if ts_match:
-            try:
-                d = datetime.strptime(ts_match.group(1), '%Y-%m-%d')
-                return d.strftime('%m/%d/%Y')
-            except Exception:
-                pass
-
-        # Excel serial (4-5+ digits)
-        if re.fullmatch(r'\d{4,5}', s):
-            serial_int = int(s)
-            current_os = platform.system()
-            if current_os == 'Windows':
-                excel_start_date = datetime(1899, 12, 31)
-                if serial_int == 60:
-                    serial_int += 1
-            elif current_os == 'Darwin':
-                excel_start_date = datetime(1904, 1, 1)
-            else:
-                excel_start_date = datetime(1899, 12, 31)
-            d = excel_start_date + timedelta(days=serial_int - 1)
-            return d.strftime('%m/%d/%Y')
-
-        # Try common single-date formats
-        fmts = [
-            '%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%Y/%m/%d',
-            '%m-%d-%Y', '%m-%d-%y', '%b %d %Y', '%b %d, %Y',
-            '%B %d %Y', '%B %d, %Y'
-        ]
-        for f in fmts:
-            try:
-                d = datetime.strptime(s, f)
-                return d.strftime('%m/%d/%Y')
-            except Exception:
-                continue
-
-        # Handle M/D/YYYY and M/D/YY without zero padding specifically
-        md_regex = re.match(r'^(\d{1,2})/(\d{1,2})/(\d{2}|\d{4})$', s)
-        if md_regex:
-            m, d, y = md_regex.groups()
-            if len(y) == 2:
-                # Python's %y pivot is 1969-2068; mimic similar behavior
-                y_int = int(y)
-                y_full = 2000 + y_int if y_int <= 68 else 1900 + y_int
-            else:
-                y_full = int(y)
-            try:
-                dt = datetime(y_full, int(m), int(d))
-                return dt.strftime('%m/%d/%Y')
-            except Exception:
-                return ''
-
-        # Month name + day + year with stray punctuation
-        name_regex = re.match(r'^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{2,4})$', s, re.IGNORECASE)
-        if name_regex:
-            mon, day, year = name_regex.groups()
-            y_full = int(year) if len(year) == 4 else (2000 + int(year) if int(year) <= 68 else 1900 + int(year))
-            try:
-                dt = datetime(y_full, int(month_map[mon.capitalize()[:3]]), int(day))
-                return dt.strftime('%m/%d/%Y')
-            except Exception:
-                return ''
-
-        return ''
+        result, _ = custom_format_date(s)
+        result = ensure_chronological_order(result)
+        if ' - ' in result:
+            return result.split(' - ')[0]
+        if re.match(r'^\d{2}/\d{2}/\d{4}$', result):
+            return result
     except Exception:
-        return ''
+        pass
+    return ''
 
 
 def convert_strange_named_ranges(date_str):

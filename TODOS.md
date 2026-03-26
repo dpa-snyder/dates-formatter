@@ -106,3 +106,6 @@ pip install -r requirements.txt
 
 ### test-scripts/ is now empty
 Directory exists but has no contents after cleanup. Can be removed or repopulated with actual tests.
+
+### Suppress openpyxl deprecation warning during tests
+`openpyxl` emits a Python 3.13 deprecation warning (`datetime.utcnow()`) during fixture reads. Current workaround is to suppress it in the test command.

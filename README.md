@@ -55,6 +55,7 @@ requirements.txt
 ## Requirements
 
 ```
+customtkinter==5.2.2
 pandas==2.2.2
 openpyxl==3.1.2
 ```
@@ -69,3 +70,25 @@ pip install -r requirements.txt
 ## Deploying to Windows
 
 Copy the relevant script(s) from `prod/` to `%USERPROFILE%\scripts\` on the target machine, then run the corresponding `.bat` file.
+
+---
+
+## Automated Tests
+
+The repo now includes a small `unittest` suite that reads cases directly from the Excel fixtures in `test-files/`.
+
+Run everything with:
+```
+./run-tests.sh
+```
+
+Or run the underlying command directly:
+```
+python3 -W ignore::DeprecationWarning -m unittest discover -s tests -q
+```
+
+The suite is split into:
+- smoke tests for fixture rows that should already work
+- expected-failure regression tests for known TODO bugs
+
+When we fix a TODO item, we can remove that test's `expectedFailure` marker and keep the fixture row as a permanent regression check.

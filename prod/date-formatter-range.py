@@ -126,6 +126,7 @@ def custom_format_date(date_str):
             return date
 
         # Apply the function to add leading zeros where necessary
+        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
         date_str = add_leading_zeros(date_str)
 
         # Check if the input is already a valid date range in MM/DD/YYYY - MM/DD/YYYY format
@@ -133,6 +134,16 @@ def custom_format_date(date_str):
         if re.match(valid_date_range_pattern, date_str):
             # If it's a valid date range, return it as-is
             return (date_str, '')
+
+        # Standalone 5-digit Excel serial (no dash — would otherwise fall through to year pattern)
+        if re.fullmatch(r'\d{5}', date_str):
+            serial_int = int(date_str)
+            current_os = platform.system()
+            if current_os == 'Darwin':
+                d = datetime(1904, 1, 1) + timedelta(days=serial_int - 1)
+            else:
+                d = datetime(1899, 12, 31) + timedelta(days=serial_int)
+            return (d.strftime('%m/%d/%Y'), 'Yes')
 
         # Handle exact list of years, excluding single years and years with non-year characters
         year_list_pattern = r'^\d{4}([,;\s-]+\d{4}){1,}$'
@@ -202,12 +213,9 @@ def custom_format_date(date_str):
                 if not serial:
                     return None
                 serial_int = int(serial)
-
-                if current_os == 'Windows' and serial_int == 60:
-                    serial_int += 1  # Handle Excel's leap year bug for dates after 2/28/1900
-                
-                serial_converted = excel_start_date + timedelta(days=serial_int - 1)
-                return serial_converted.strftime('%m/%d/%Y')
+                if current_os == 'Darwin':
+                    return (excel_start_date + timedelta(days=serial_int - 1)).strftime('%m/%d/%Y')
+                return (excel_start_date + timedelta(days=serial_int)).strftime('%m/%d/%Y')
 
             # Convert start and end serial numbers to dates
             start_date = convert_serial(start_serial)
@@ -286,7 +294,7 @@ def custom_format_date(date_str):
                 return (action(*match.groups()), 'Yes')
 
         # Handling dates with a single '0' day part for range inputs 'MM/0/YYYY - MM/0/YYYY'
-        range_zero_day_regex = r'(\d{1,2})/0/(\d{4}) - (\d{1,2})/0/(\d{4})'
+        range_zero_day_regex = r'(\d{1,2})/0{1,2}/(\d{4}) - (\d{1,2})/0{1,2}/(\d{4})'
         match = re.match(range_zero_day_regex, date_str)
         if match:
             month_start, year_start, month_end, year_end = match.groups()
@@ -302,7 +310,7 @@ def custom_format_date(date_str):
             return (f'{start_date} - {end_date}', '')
 
         # Handle 'MM/0/YYYY' format
-        single_zero_dd_regex = r'(\d{1,2})/0/(\d{4})'
+        single_zero_dd_regex = r'(\d{1,2})/0{1,2}/(\d{4})'
         match = re.match(single_zero_dd_regex, date_str)
         if match:
             month, year = match.groups()
