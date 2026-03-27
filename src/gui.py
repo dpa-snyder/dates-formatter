@@ -432,12 +432,6 @@ def reorder_columns(df, column, original_col, check_col):
 
 MODES = ["Single Date", "Date Range", "Dublin Core"]
 
-MODE_SUFFIXES = {
-    "Single Date": "single",
-    "Date Range":  "range",
-    "Dublin Core": "dublin-core",
-}
-
 MODE_LABELS = {
     "Single Date": "GovServ: single dates formatted to MM/DD/YYYY",
     "Date Range":  "ArchivERA: date ranges formatted to MM/DD/YYYY \u2013 MM/DD/YYYY",
@@ -450,10 +444,11 @@ class DateFormatterApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Date Formatter")
-        self.geometry("600x560")
+        self.geometry("600x660")
         self.resizable(False, False)
         self.df = None
         self.file_path = None
+        self.col_vars = {}
         self._build_ui()
 
     # ── Layout ───────────────────────────────────────────────────────────────
@@ -486,22 +481,21 @@ class DateFormatterApp(ctk.CTk):
                      font=ctk.CTkFont(size=13), text_color="gray"
                      ).grid(row=1, column=0, padx=30, pady=(0, 20), sticky="w")
 
-        # ── Output formats ──
-        ctk.CTkLabel(self, text="Output Format(s)",
+        # ── Conversion type (radio — single selection) ──
+        ctk.CTkLabel(self, text="Conversion Type",
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=2, column=0, padx=30, pady=(0, 8), sticky="w")
 
-        cb_frame = ctk.CTkFrame(self, fg_color="transparent")
-        cb_frame.grid(row=3, column=0, padx=30, pady=(0, 20), sticky="w")
+        rb_frame = ctk.CTkFrame(self, fg_color="transparent")
+        rb_frame.grid(row=3, column=0, padx=30, pady=(0, 20), sticky="w")
 
-        self.mode_vars = {}
+        self.mode_var = ctk.StringVar(value="Single Date")
         for i, mode in enumerate(MODES):
-            var = ctk.BooleanVar(value=(mode == "Single Date"))
-            self.mode_vars[mode] = var
-            cb = ctk.CTkCheckBox(
-                cb_frame, text=MODE_LABELS[mode],
-                variable=var, command=self._check_run_state)
-            cb.grid(row=i, column=0, pady=4, sticky="w")
+            ctk.CTkRadioButton(
+                rb_frame, text=MODE_LABELS[mode],
+                variable=self.mode_var, value=mode,
+                command=self._check_run_state
+            ).grid(row=i, column=0, pady=4, sticky="w")
 
         # ── File ──
         ctk.CTkLabel(self, text="File",
@@ -521,15 +515,16 @@ class DateFormatterApp(ctk.CTk):
                       command=self._browse
                       ).grid(row=0, column=1)
 
-        # ── Column ──
-        ctk.CTkLabel(self, text="Column to Format",
+        # ── Columns to format (multi-select) ──
+        ctk.CTkLabel(self, text="Columns to Format",
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=6, column=0, padx=30, pady=(0, 6), sticky="w")
 
-        self.col_menu = ctk.CTkOptionMenu(
-            self, values=["Load a file first"],
-            width=540, height=38, state="disabled")
-        self.col_menu.grid(row=7, column=0, padx=30, pady=(0, 24), sticky="w")
+        self.col_frame = ctk.CTkScrollableFrame(self, width=520, height=120)
+        self.col_frame.grid(row=7, column=0, padx=30, pady=(0, 20), sticky="ew")
+        self._col_placeholder = ctk.CTkLabel(
+            self.col_frame, text="Load a file first", text_color="gray")
+        self._col_placeholder.grid(row=0, column=0, pady=6, sticky="w")
 
         # ── Run ──
         self.run_btn = ctk.CTkButton(
@@ -553,8 +548,8 @@ class DateFormatterApp(ctk.CTk):
         ctk.set_appearance_mode("dark" if self._is_dark.get() else "light")
 
     def _check_run_state(self):
-        any_checked = any(v.get() for v in self.mode_vars.values())
-        if self.df is not None and any_checked:
+        any_col = any(v.get() for v in self.col_vars.values())
+        if self.df is not None and any_col:
             self.run_btn.configure(state="normal")
         else:
             self.run_btn.configure(state="disabled")
@@ -577,47 +572,60 @@ class DateFormatterApp(ctk.CTk):
         self.file_entry.insert(0, os.path.basename(path))
         self.file_entry.configure(state="disabled")
 
-        cols = list(df.columns)
-        self.col_menu.configure(values=cols, state="normal")
-        self.col_menu.set(cols[0])
+        # Rebuild column checkboxes
+        for widget in self.col_frame.winfo_children():
+            widget.destroy()
+        self.col_vars = {}
+        for i, col in enumerate(df.columns):
+            var = ctk.BooleanVar(value=False)
+            self.col_vars[col] = var
+            ctk.CTkCheckBox(
+                self.col_frame, text=col,
+                variable=var, command=self._check_run_state
+            ).grid(row=i, column=0, pady=2, sticky="w")
+
         self._check_run_state()
         self._set_status(0, f"{len(df):,} rows loaded — ready.")
 
     def _run(self):
-        selected = [m for m in MODES if self.mode_vars[m].get()]
-        if not selected:
+        mode    = self.mode_var.get()
+        columns = [col for col, var in self.col_vars.items() if var.get()]
+        if not columns:
             return
-        column = self.col_menu.get()
         self.run_btn.configure(state="disabled")
         self.progress_bar.set(0)
         self._set_status(0, "Starting…")
         threading.Thread(
-            target=self._run_all, args=(column, selected), daemon=True).start()
+            target=self._run_all, args=(columns, mode), daemon=True).start()
 
     # ── Processing (background thread) ───────────────────────────────────────
 
-    def _run_all(self, column, modes):
+    def _run_all(self, columns, mode):
         try:
-            n = len(modes)
-            results = []
-            for i, mode in enumerate(modes):
-                p_start = i / n
-                p_end   = (i + 1) / n
-                out_path, flagged, total = self._process_mode(
-                    column, mode, p_start, p_end)
-                results.append((mode, out_path, flagged, total))
-            self.after(0, self._finish_all, results)
+            df = self.df.copy()
+            n  = len(columns)
+            total_flagged = 0
+            for i, column in enumerate(columns):
+                df, flagged = self._process_column(
+                    df, column, mode, i / n, (i + 1) / n)
+                total_flagged += flagged
+
+            self.after(0, self._set_status, 0.97,
+                       f"Saving {os.path.basename(self.file_path)}…")
+            self._save_with_retry(df, self.file_path)
+            self.after(0, self._finish_all, mode, total_flagged, len(df), n)
+        except RuntimeError as e:
+            self.after(0, self._set_status, 0, str(e))
+            self.after(0, lambda: self.run_btn.configure(state="normal"))
         except Exception as e:
             self.after(0, self._error, str(e))
 
-    def _process_mode(self, column, mode, p_start, p_end):
-        df = self.df.copy()
+    def _process_column(self, df, column, mode, p_start, p_end):
         total = len(df)
         tick  = max(1, total // 100)
 
         original_col = f'Original_{column}'
         check_col    = f'Check {column}'
-
         df[original_col] = df[column].copy()
 
         p_range = p_end - p_start
@@ -632,7 +640,7 @@ class DateFormatterApp(ctk.CTk):
                 results.append(format_single_date(str(val)) if pd.notna(val) else '')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
-                             f"[Single] row {i+1:,} of {total:,}…")
+                             f"[Single] {column} — row {i+1:,} of {total:,}…")
             df[column] = results
             pat = re.compile(r'^\d{2}/\d{2}/\d{4}$')
             df[check_col] = df[column].apply(
@@ -647,14 +655,14 @@ class DateFormatterApp(ctk.CTk):
                 flags.append(f)
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.55,
-                             f"[Range] row {i+1:,} of {total:,}…")
+                             f"[Range] {column} — row {i+1:,} of {total:,}…")
             df[column]    = formatted
             df[check_col] = flags
 
-            progress(0.65, "[Range] resolving named ranges…")
+            progress(0.65, f"[Range] {column} — resolving named ranges…")
             df[column] = df[column].apply(convert_strange_named_ranges)
 
-            progress(0.75, "[Range] checking chronological order…")
+            progress(0.75, f"[Range] {column} — checking chronological order…")
             df[column] = df[column].apply(ensure_chronological_order)
 
             df[check_col] = df.apply(
@@ -670,10 +678,11 @@ class DateFormatterApp(ctk.CTk):
             results = []
             for i, val in enumerate(df[column]):
                 results.append(
-                    ensure_chronological_order(convert_date_pattern(str(val))) if pd.notna(val) else 'undated')
+                    ensure_chronological_order(
+                        convert_date_pattern(str(val))) if pd.notna(val) else 'undated')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
-                             f"[Dublin Core] row {i+1:,} of {total:,}…")
+                             f"[Dublin Core] {column} — row {i+1:,} of {total:,}…")
             df[column] = results
             dc_valid = [
                 r'^\d{2}/\d{2}/\d{4}$',
@@ -683,25 +692,43 @@ class DateFormatterApp(ctk.CTk):
             df[check_col] = df[column].apply(
                 lambda s: 'Yes' if not any(re.match(p, str(s)) for p in dc_valid) else '')
 
-        progress(0.88, f"[{mode}] reordering columns…")
+        progress(0.88, f"[{mode}] {column} — reordering columns…")
         df = reorder_columns(df, column, original_col, check_col)
 
-        progress(0.93, f"[{mode}] applying archive leading zeros…")
+        progress(0.93, f"[{mode}] {column} — applying leading zeros…")
         df = apply_leading_zeros(df)
 
-        # Output file: original_name_suffix.ext
-        base, ext = os.path.splitext(self.file_path)
-        suffix   = MODE_SUFFIXES[mode]
-        out_path = f"{base}_{suffix}{ext}"
-
-        progress(0.97, f"[{mode}] saving {os.path.basename(out_path)}…")
-        if out_path.endswith('.csv'):
-            df.to_csv(out_path, index=False)
-        else:
-            df.to_excel(out_path, index=False)
-
         flagged = int((df[check_col] == 'Yes').sum())
-        return out_path, flagged, total
+        return df, flagged
+
+    def _save_with_retry(self, df, path):
+        """Save df to path, retrying if the file is locked (e.g. open in Excel)."""
+        event = threading.Event()
+        result = [True]
+
+        while True:
+            try:
+                if path.endswith('.csv'):
+                    df.to_csv(path, index=False)
+                else:
+                    df.to_excel(path, index=False)
+                return
+            except PermissionError:
+                event.clear()
+
+                def ask(event=event, result=result):
+                    ans = messagebox.askretrycancel(
+                        "File in use",
+                        f"{os.path.basename(path)} appears to be open.\n"
+                        "Please close it and click Retry."
+                    )
+                    result[0] = ans
+                    event.set()
+
+                self.after(0, ask)
+                event.wait()
+                if not result[0]:
+                    raise RuntimeError("Save cancelled.")
 
     # ── UI state helpers ──────────────────────────────────────────────────────
 
@@ -709,13 +736,12 @@ class DateFormatterApp(ctk.CTk):
         self.progress_bar.set(progress)
         self.status_lbl.configure(text=text)
 
-    def _finish_all(self, results):
+    def _finish_all(self, mode, flagged, total, n_cols):
         self.run_btn.configure(state="normal")
         self.progress_bar.set(1.0)
-        parts = [f"{MODE_SUFFIXES[m]}: {f:,} flagged" for m, _, f, _ in results]
-        total = results[0][3] if results else 0
+        col_str = f"{n_cols} column{'s' if n_cols > 1 else ''}"
         self.status_lbl.configure(
-            text=f"Done — {total:,} rows  |  " + "  |  ".join(parts))
+            text=f"Done — {total:,} rows, {col_str}  |  {flagged:,} flagged")
 
     def _error(self, msg):
         self.run_btn.configure(state="normal")
