@@ -439,9 +439,9 @@ MODE_SUFFIXES = {
 }
 
 MODE_LABELS = {
-    "Single Date": "GovServ - single date conversion",
-    "Date Range":  "ArchivERA date conversion",
-    "Dublin Core": "Dublin Core date conversion",
+    "Single Date": "GovServ: single dates formatted to MM/DD/YYYY",
+    "Date Range":  "ArchivERA: date ranges formatted to MM/DD/YYYY \u2013 MM/DD/YYYY",
+    "Dublin Core": "DublinCore: date ranges formatted to MM/DD/YYYY \u2013 MM/DD/YYYY",
 }
 
 
@@ -539,7 +539,7 @@ class DateFormatterApp(ctk.CTk):
         self.run_btn.grid(row=8, column=0, padx=30, pady=(0, 18))
 
         # ── Progress ──
-        self.progress_bar = ctk.CTkProgressBar(self, width=540)
+        self.progress_bar = ctk.CTkProgressBar(self, width=540, height=40)
         self.progress_bar.set(0)
         self.progress_bar.grid(row=9, column=0, padx=30, pady=(0, 8))
 
