@@ -444,8 +444,8 @@ class DateFormatterApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Date Formatter")
-        self.geometry("600x660")
-        self.resizable(False, False)
+        self.geometry("600x720")
+        self.resizable(False, True)
         self.df = None
         self.file_path = None
         self.col_vars = {}
@@ -520,7 +520,7 @@ class DateFormatterApp(ctk.CTk):
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=6, column=0, padx=30, pady=(0, 6), sticky="w")
 
-        self.col_frame = ctk.CTkScrollableFrame(self, width=520, height=120)
+        self.col_frame = ctk.CTkScrollableFrame(self, width=520, height=100)
         self.col_frame.grid(row=7, column=0, padx=30, pady=(0, 20), sticky="ew")
         self._col_placeholder = ctk.CTkLabel(
             self.col_frame, text="Load a file first", text_color="gray")
