@@ -438,10 +438,10 @@ MODE_SUFFIXES = {
     "Dublin Core": "dublin-core",
 }
 
-MODE_DESCRIPTIONS = {
-    "Single Date": "MM/DD/YYYY",
-    "Date Range":  "MM/DD/YYYY – MM/DD/YYYY",
-    "Dublin Core": "Dublin Core-compatible",
+MODE_LABELS = {
+    "Single Date": "GovServ - single date conversion",
+    "Date Range":  "ArchivERA date conversion",
+    "Dublin Core": "Dublin Core date conversion",
 }
 
 
@@ -461,10 +461,26 @@ class DateFormatterApp(ctk.CTk):
     def _build_ui(self):
         self.grid_columnconfigure(0, weight=1)
 
-        # Title
-        ctk.CTkLabel(self, text="Date Formatter",
+        # Title row with theme toggle
+        title_row = ctk.CTkFrame(self, fg_color="transparent")
+        title_row.grid(row=0, column=0, padx=30, pady=(28, 2), sticky="ew")
+        title_row.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(title_row, text="Date Formatter",
                      font=ctk.CTkFont(size=24, weight="bold")
-                     ).grid(row=0, column=0, padx=30, pady=(28, 2), sticky="w")
+                     ).grid(row=0, column=0, sticky="w")
+
+        # Sun/moon pill toggle
+        self._is_dark = ctk.BooleanVar(value=True)
+        toggle_frame = ctk.CTkFrame(title_row, fg_color="transparent")
+        toggle_frame.grid(row=0, column=1, sticky="e")
+        ctk.CTkLabel(toggle_frame, text="☀", font=ctk.CTkFont(size=16)
+                     ).grid(row=0, column=0, padx=(0, 4))
+        ctk.CTkSwitch(toggle_frame, text="", variable=self._is_dark,
+                      width=46, command=self._toggle_theme
+                      ).grid(row=0, column=1)
+        ctk.CTkLabel(toggle_frame, text="🌙", font=ctk.CTkFont(size=14)
+                     ).grid(row=0, column=2, padx=(4, 0))
 
         ctk.CTkLabel(self, text="Normalize date columns in Excel and CSV files.",
                      font=ctk.CTkFont(size=13), text_color="gray"
@@ -483,7 +499,7 @@ class DateFormatterApp(ctk.CTk):
             var = ctk.BooleanVar(value=(mode == "Single Date"))
             self.mode_vars[mode] = var
             cb = ctk.CTkCheckBox(
-                cb_frame, text=f"{mode}  —  {MODE_DESCRIPTIONS[mode]}",
+                cb_frame, text=MODE_LABELS[mode],
                 variable=var, command=self._check_run_state)
             cb.grid(row=i, column=0, pady=4, sticky="w")
 
@@ -532,6 +548,9 @@ class DateFormatterApp(ctk.CTk):
         self.status_lbl.grid(row=10, column=0, padx=30, pady=(0, 24), sticky="w")
 
     # ── Callbacks ────────────────────────────────────────────────────────────
+
+    def _toggle_theme(self):
+        ctk.set_appearance_mode("dark" if self._is_dark.get() else "light")
 
     def _check_run_state(self):
         any_checked = any(v.get() for v in self.mode_vars.values())
