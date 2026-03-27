@@ -444,7 +444,8 @@ class DateFormatterApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Date Formatter")
-        self.geometry("600x720")
+        self.geometry("600x800")
+        self.minsize(600, 800)
         self.resizable(False, True)
         self.df = None
         self.file_path = None
@@ -455,9 +456,15 @@ class DateFormatterApp(ctk.CTk):
 
     def _build_ui(self):
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # Scrollable main container
+        p = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        p.grid(row=0, column=0, sticky="nsew")
+        p.grid_columnconfigure(0, weight=1)
 
         # Title row with theme toggle
-        title_row = ctk.CTkFrame(self, fg_color="transparent")
+        title_row = ctk.CTkFrame(p, fg_color="transparent")
         title_row.grid(row=0, column=0, padx=30, pady=(28, 2), sticky="ew")
         title_row.grid_columnconfigure(0, weight=1)
 
@@ -477,16 +484,16 @@ class DateFormatterApp(ctk.CTk):
         ctk.CTkLabel(toggle_frame, text="🌙", font=ctk.CTkFont(size=14)
                      ).grid(row=0, column=2, padx=(4, 0))
 
-        ctk.CTkLabel(self, text="Normalize date columns in Excel and CSV files.",
+        ctk.CTkLabel(p, text="Normalize date columns in Excel and CSV files.",
                      font=ctk.CTkFont(size=13), text_color="gray"
                      ).grid(row=1, column=0, padx=30, pady=(0, 20), sticky="w")
 
         # ── Conversion type (radio — single selection) ──
-        ctk.CTkLabel(self, text="Conversion Type",
+        ctk.CTkLabel(p, text="Conversion Type",
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=2, column=0, padx=30, pady=(0, 8), sticky="w")
 
-        rb_frame = ctk.CTkFrame(self, fg_color="transparent")
+        rb_frame = ctk.CTkFrame(p, fg_color="transparent")
         rb_frame.grid(row=3, column=0, padx=30, pady=(0, 20), sticky="w")
 
         self.mode_var = ctk.StringVar(value="Single Date")
@@ -498,11 +505,11 @@ class DateFormatterApp(ctk.CTk):
             ).grid(row=i, column=0, pady=4, sticky="w")
 
         # ── File ──
-        ctk.CTkLabel(self, text="File",
+        ctk.CTkLabel(p, text="File",
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=4, column=0, padx=30, pady=(0, 6), sticky="w")
 
-        file_frame = ctk.CTkFrame(self, fg_color="transparent")
+        file_frame = ctk.CTkFrame(p, fg_color="transparent")
         file_frame.grid(row=5, column=0, padx=30, pady=(0, 20), sticky="ew")
         file_frame.grid_columnconfigure(0, weight=1)
 
@@ -516,30 +523,31 @@ class DateFormatterApp(ctk.CTk):
                       ).grid(row=0, column=1)
 
         # ── Columns to format (multi-select) ──
-        ctk.CTkLabel(self, text="Columns to Format",
+        ctk.CTkLabel(p, text="Columns to Format",
                      font=ctk.CTkFont(size=13, weight="bold")
                      ).grid(row=6, column=0, padx=30, pady=(0, 6), sticky="w")
 
-        self.col_frame = ctk.CTkScrollableFrame(self, width=520, height=100)
+        self.col_frame = ctk.CTkScrollableFrame(p, height=120)
         self.col_frame.grid(row=7, column=0, padx=30, pady=(0, 20), sticky="ew")
+        self.col_frame.grid_columnconfigure(0, weight=1)
         self._col_placeholder = ctk.CTkLabel(
             self.col_frame, text="Load a file first", text_color="gray")
         self._col_placeholder.grid(row=0, column=0, pady=6, sticky="w")
 
         # ── Run ──
         self.run_btn = ctk.CTkButton(
-            self, text="Run", height=46, width=540,
+            p, text="Run", height=46,
             font=ctk.CTkFont(size=15, weight="bold"),
             state="disabled", command=self._run)
-        self.run_btn.grid(row=8, column=0, padx=30, pady=(0, 18))
+        self.run_btn.grid(row=8, column=0, padx=30, pady=(0, 18), sticky="ew")
 
         # ── Progress ──
-        self.progress_bar = ctk.CTkProgressBar(self, width=540, height=40)
+        self.progress_bar = ctk.CTkProgressBar(p, height=40)
         self.progress_bar.set(0)
-        self.progress_bar.grid(row=9, column=0, padx=30, pady=(0, 8))
+        self.progress_bar.grid(row=9, column=0, padx=30, pady=(0, 8), sticky="ew")
 
         self.status_lbl = ctk.CTkLabel(
-            self, text="", font=ctk.CTkFont(size=12), text_color="gray")
+            p, text="", font=ctk.CTkFont(size=12), text_color="gray")
         self.status_lbl.grid(row=10, column=0, padx=30, pady=(0, 24), sticky="w")
 
     # ── Callbacks ────────────────────────────────────────────────────────────
