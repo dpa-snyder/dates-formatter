@@ -29,7 +29,7 @@ Bring all three date formatter variants to a consistent structure, add prod vers
 **Cleanup:**
 - Removed stale `src/` files: `leading-zeros-dates.py`, `format-cleanup.py`
 - Removed stale `test-scripts/`: `dublin-core-date-convert.py`, `serial-excel-dates.py`, `test-named-range.py`
-- Moved `.venc/` from `prod/` to repo root; added to `.gitignore`
+- Replaced the stale root `.venc/` environment with `.venv/`; `.venv/` is the canonical local environment name
 - Deleted untracked sensitive test file from `test-files/`
 
 ---
@@ -40,12 +40,14 @@ Bring all three date formatter variants to a consistent structure, add prod vers
 Replace the current tkinter file picker / column dropdown with a proper GUI that gives users more control and visibility.
 
 ### Status
-Not started. Details TBD.
+In progress. Current direction is a single deployed GUI with three in-app conversion modes:
+- Single Date Conversion
+- ArchivERA Conversion
+- DublinCore Conversion
 
 ---
 
 ## Backlog
 
-- Resolve govserv bat/script name mismatch (see TODOS.md)
-- Rebuild `.venc/` at root after move
-- Decide fate of empty `test-scripts/` directory
+- Package the GUI deployment flow cleanly for Windows
+- Consider bundling/distribution beyond a Python + batch launcher

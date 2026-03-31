@@ -5,7 +5,8 @@ REM  Date Formatter — GUI Launcher
 REM  Requires: Python 3.x, customtkinter, pandas, openpyxl
 REM  Install deps (run once): pip install customtkinter pandas openpyxl
 REM
-REM  Drop gui.py into %USERPROFILE%\scripts\ then double-click this bat to launch.
+REM  Deploy prod\gui.py to %USERPROFILE%\scripts\gui.py, then double-click
+REM  this bat to launch the app.
 REM ─────────────────────────────────────────────────────────────────────────────
 
 python "%USERPROFILE%\scripts\gui.py"

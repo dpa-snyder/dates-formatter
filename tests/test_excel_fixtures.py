@@ -2,7 +2,6 @@ import importlib.util
 import math
 from pathlib import Path
 import unittest
-from unittest.mock import patch
 import warnings
 
 import pandas as pd
@@ -40,13 +39,11 @@ def cell_text(value):
 
 
 def parse_single_windows(raw_value):
-    with patch.object(GUI.platform, "system", return_value="Windows"):
-        return GUI.format_single_date(cell_text(raw_value))
+    return GUI.format_single_date(cell_text(raw_value))
 
 
 def parse_range_windows(raw_value):
-    with patch.object(GUI.platform, "system", return_value="Windows"):
-        formatted, _flag = GUI.custom_format_date(cell_text(raw_value))
+    formatted, _flag = GUI.custom_format_date(cell_text(raw_value))
     formatted = GUI.convert_strange_named_ranges(formatted)
     return GUI.ensure_chronological_order(formatted)
 
@@ -88,7 +85,7 @@ class TestFixtureSmoke(unittest.TestCase):
                 )
 
     def test_dublin_core_preserves_known_good_rows(self):
-        cases = [7, 8, 9, 10, 11, 12]
+        cases = [7, 8, 9, 10, 11, 12, 25, 30, 46, 59, 77, 122]
         for rownum in cases:
             row = workbook_row("testing-column.xlsx", rownum)
             raw = row["Convert Us"]
@@ -134,11 +131,8 @@ class TestFixtureSmoke(unittest.TestCase):
 
 class TestKnownBugRegressions(unittest.TestCase):
     def test_single_mode_should_not_treat_year_only_values_as_excel_serials(self):
-        row = workbook_row("testing-column.xlsx", 45)
-        self.assertEqual(
-            parse_single_windows(row["Convert Us"]),
-            cell_text(row["Expected Result"]),
-        )
+        self.assertEqual(parse_single_windows("1900"), "01/01/1900")
+        self.assertEqual(parse_single_windows("1980"), "01/01/1980")
 
     def test_range_parenthetical_content_should_not_corrupt_output(self):
         row = workbook_row("testing-column.xlsx", 42)

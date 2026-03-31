@@ -1,20 +1,18 @@
 # Leading Zeros Dates
 
-A set of Python scripts for normalizing inconsistent date formats in Excel/CSV spreadsheets. Designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized for data entry or export.
+A GUI-based Python app for normalizing inconsistent date formats in Excel and CSV spreadsheets. It is designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized before import or export.
 
 ---
 
-## Scripts
+## App Modes
 
-There are three variants, each targeting a different output format. All three share the same structural behavior.
+The deployed app provides three conversion options in one interface:
 
-| Script | Output Format | Use Case |
-|--------|--------------|----------|
-| `date-formatter-single.py` | `MM/DD/YYYY` | Records with a single date value |
-| `date-formatter-range.py` | `MM/DD/YYYY - MM/DD/YYYY` | Records with date ranges |
-| `dublin-core-date-convert.py` | `MM/DD/YYYY` or `MM/DD/YYYY - MM/DD/YYYY` | Dublin Core metadata format |
-
-See [ASSOCIATIONS.md](ASSOCIATIONS.md) for which `.bat` launcher maps to which script.
+| Mode | Output | Use Case |
+|------|--------|----------|
+| `Single Date Conversion` | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
+| `ArchivERA Conversion` | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
+| `DublinCore Conversion` | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
 
 ---
 
@@ -34,19 +32,18 @@ After running any script, three columns appear together in the spreadsheet:
 
 ```
 prod/                        # Stable, deployment-ready scripts
-  date-formatter-single.py
-  date-formatter-range.py
-  dublin-core-date-convert.py
-  AE-ranged-date-converter.bat
-  dublin-core-date-converter.bat
-  govserv-date-converter.bat
+  gui.py
+  date-formatter-gui.bat
+  date-formatter-single.py           # Legacy single-mode script
+  date-formatter-range.py            # Legacy range-mode script
+  dublin-core-date-convert.py        # Legacy dublin-core script
 
 src/                         # Active development
-  date-formatter-single.py   # Current dev version
+  gui.py
 
 test-files/                  # Sample/test spreadsheets
 
-ASSOCIATIONS.md              # Bat → script mapping reference
+ASSOCIATIONS.md              # Launcher/deployment reference
 requirements.txt
 ```
 
@@ -69,7 +66,25 @@ pip install -r requirements.txt
 
 ## Deploying to Windows
 
-Copy the relevant script(s) from `prod/` to `%USERPROFILE%\scripts\` on the target machine, then run the corresponding `.bat` file.
+Copy `gui.py` from `prod/` to:
+
+```
+%USERPROFILE%\scripts\gui.py
+```
+
+The batch launcher can live anywhere convenient, including the Desktop. It always points back to:
+
+```
+%USERPROFILE%\scripts\gui.py
+```
+
+If you want a Desktop shortcut/workflow, copy this file from `prod/` to the Desktop:
+
+```
+date-formatter-gui.bat
+```
+
+Then launch `date-formatter-gui.bat`. The batch file already points at `%USERPROFILE%\scripts\gui.py`.
 
 ---
 
