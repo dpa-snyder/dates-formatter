@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dates Formatter Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #1f2c2a;
+      --muted: #5b6a66;
+      --panel: #fffef9;
+      --line: #ddd5c6;
+      --a: #0f766e;
+      --b: #8a5b20;
+      --ok: #20633c;
+      --warn: #8b5d00;
+      --danger: #8a2f2f;
+      --shadow: 0 12px 30px rgba(31, 44, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 500px at -5% -10%, rgba(15, 118, 110, 0.16), transparent 70%),
+        radial-gradient(1000px 600px at 110% 0%, rgba(138, 91, 32, 0.15), transparent 70%),
+        var(--bg);
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a { color: var(--a); text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+
+    .hero {
+      padding: 36px 24px 26px;
+      background: linear-gradient(145deg, #163a36 0%, #2f5734 50%, #7a4b1d 100%);
+      color: #fdfdfc;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .hero-wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      line-height: 1.08;
+      letter-spacing: 0.01em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 760px;
+      font-size: 0.98rem;
+      opacity: 0.9;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 0.74rem;
+      letter-spacing: 0.03em;
+    }
+
+    .layout {
+      max-width: 1160px;
+      margin: 22px auto 54px;
+      padding: 0 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: 96px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .stat strong {
+      font-size: 1.7rem;
+      line-height: 1;
+      color: var(--a);
+      font-weight: 800;
+    }
+
+    .stat span {
+      margin-top: 5px;
+      font-size: 0.72rem;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2f403d;
+    }
+
+    .sub {
+      margin-top: 6px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .mode-cards {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mode {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fffcf4;
+    }
+
+    .mode h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #204a45;
+    }
+
+    .mode p {
+      margin: 6px 0;
+      font-size: 0.82rem;
+      color: #374946;
+    }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .chip {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border-radius: 999px;
+      border: 1px solid #d8d0bf;
+      background: #f5efe0;
+      color: #5f4c2f;
+      padding: 3px 8px;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fcfbf6;
+      display: grid;
+      gap: 4px;
+    }
+
+    .status-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.83rem;
+      font-weight: 700;
+    }
+
+    .badge { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 999px; }
+    .ok { background: #d9f0e0; color: var(--ok); }
+    .warn { background: #fff1c9; color: var(--warn); }
+
+    .status p {
+      margin: 0;
+      font-size: 0.77rem;
+      color: #445451;
+    }
+
+    .progress-wrap {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f6f2e9;
+      overflow: hidden;
+      height: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2c7a64, #b67924);
+      transition: width 400ms ease;
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    pre {
+      margin: 0;
+      background: #1f2f2e;
+      color: #f3f8f7;
+      border-radius: 10px;
+      border: 1px solid #162423;
+      padding: 10px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    li { margin-bottom: 6px; font-size: 0.83rem; }
+
+    .footer {
+      text-align: center;
+      color: #5f6e6a;
+      font-size: 0.76rem;
+      padding: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid, .quick {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        padding: 26px 18px 20px;
+      }
+      .layout {
+        padding: 0 14px;
+        margin-top: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-wrap">
+      <div>
+        <h1>Dates Formatter<br/>Project Dashboard</h1>
+        <p>Operational snapshot for the spreadsheet date-normalization toolchain. This page tracks conversion modes, current parser posture, tests, and deployment entry points for Windows operators.</p>
+      </div>
+      <div class="pill-row">
+        <span class="pill">Repository: dates-formatter</span>
+        <span class="pill">Runtime: Python + CustomTkinter</span>
+        <span class="pill" id="updated-pill">Updated: </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stats">
+      <article class="stat"><strong>3</strong><span>Conversion Modes</span></article>
+      <article class="stat"><strong>13</strong><span>Automated Tests</span></article>
+      <article class="stat"><strong>8</strong><span>Prod Assets</span></article>
+      <article class="stat"><strong>1</strong><span>Known Parser Follow-up</span></article>
+      <article class="stat"><strong>4</strong><span>Primary Docs</span></article>
+      <article class="stat"><strong>2</strong><span>UI Targets (dev/prod)</span></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Conversion Workflows</h2>
+        <p class="sub">Mode-level behavior and output intent from the active GUI path.</p>
+        <div class="mode-cards">
+          <div class="mode">
+            <h3>Single Date</h3>
+            <p>Normalizes values to first-resolved date in <code>MM/DD/YYYY</code>. Preserves original and writes review flags for non-conforming output.</p>
+            <div class="chips"><span class="chip">Output: one date</span><span class="chip">Strict check</span><span class="chip">Review column</span></div>
+          </div>
+          <div class="mode">
+            <h3>Date Range (ArchivERA)</h3>
+            <p>Converts mixed inputs into <code>MM/DD/YYYY - MM/DD/YYYY</code>, resolves named ranges, and enforces chronological ordering.</p>
+            <div class="chips"><span class="chip">Range normalization</span><span class="chip">Order correction</span><span class="chip">Manual flagging</span></div>
+          </div>
+          <div class="mode">
+            <h3>Dublin Core</h3>
+            <p>Transforms common non-DC date strings to DC-compatible values while preserving ambiguous text as flagged output.</p>
+            <div class="chips"><span class="chip">DC cleanup</span><span class="chip">Serial conversion</span><span class="chip">Undated support</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Current Status</h2>
+        <p class="sub">Quick read on tests, reliability, and tracked follow-ups.</p>
+        <div class="status-list">
+          <div class="status">
+            <div class="status-head">Fixture Test Suite <span class="badge ok">passing</span></div>
+            <p><code>./run-tests.sh</code> runs in local <code>.venv</code> and currently reports <strong>13/13</strong> passing tests.</p>
+          </div>
+          <div class="status">
+            <div class="status-head">Range Zero-Day Parsing <span class="badge ok">fixed</span></div>
+            <p><code>MM/00/YYYY - MM/00/YYYY</code> logic now preserves both range endpoints instead of collapsing to the first month.</p>
+          </div>
+          <div class="status">
+            <div class="status-head">Named Month Partial-Year <span class="badge warn">tracked</span></div>
+            <p>Case such as <code>June 1 1940 - July 2</code> is recorded in TODOs and should remain review-flagged pending parser enhancement.</p>
+          </div>
+        </div>
+        <p class="sub" style="margin-top:12px;margin-bottom:6px">Implementation posture</p>
+        <div class="progress-wrap"><div class="progress-fill" id="progress-fill"></div></div>
+      </article>
+    </section>
+
+    <section class="quick">
+      <article class="panel">
+        <h2>Operator Commands</h2>
+        <p class="sub">Fast local checks for developers and maintainers.</p>
+        <pre><code>./run-tests.sh
+python3 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt</code></pre>
+        <ul>
+          <li>Test runner bootstraps dependencies in <code>.venv</code>.</li>
+          <li>GUI scripts are mirrored in <code>src/</code> and <code>prod/</code>.</li>
+          <li>Spreadsheet fixtures under <code>test-files/</code> drive regressions.</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <h2>Project Links</h2>
+        <p class="sub">Primary docs and deployment entry points.</p>
+        <ul>
+          <li><a href="README.md">README.md</a></li>
+          <li><a href="TODOS.md">TODOS.md</a></li>
+          <li><a href="ACTION-PLAN.md">ACTION-PLAN.md</a></li>
+          <li><a href="ASSOCIATIONS.md">ASSOCIATIONS.md</a></li>
+          <li><a href="src/gui.py">src/gui.py</a></li>
+          <li><a href="prod/gui.py">prod/gui.py</a></li>
+          <li><a href="tests/test_excel_fixtures.py">tests/test_excel_fixtures.py</a></li>
+          <li><a href="prod/date-formatter-gui.bat">prod/date-formatter-gui.bat</a></li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Dates Formatter dashboard for GitHub Pages. Built as a static ops view for maintainers.
+  </footer>
+
+  <script>
+    (function () {
+      const now = new Date();
+      const formatted = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+      const pill = document.getElementById('updated-pill');
+      if (pill) pill.textContent = `Updated: ${formatted}`;
+
+      const complete = 3; // passing suite, range fix, docs baseline
+      const total = 4;    // one parser follow-up still tracked
+      const pct = Math.round((complete / total) * 100);
+      const bar = document.getElementById('progress-fill');
+      if (bar) bar.style.width = `${pct}%`;
+    })();
+  </script>
+</body>
+</html>

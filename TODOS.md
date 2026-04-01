@@ -9,7 +9,7 @@ Ongoing and pinned items. See ACTION-PLAN.md for completed work.
 These are confirmed bugs with wrong or garbled output. Highest priority.
 
 ---
-No open P0 parser bugs are currently tracked in the GUI deployment path. The root fixture suite is passing.
+- `convert_strange_named_ranges` does not fully normalize named month ranges when only one side includes a year (example: `June 1 1940 - July 2`). Current behavior should remain flagged (`Check ... = Yes`) until parser logic is fixed.
 
 ---
 

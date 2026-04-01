@@ -1,5 +1,37 @@
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
+try:
+    import customtkinter as ctk
+except Exception:  # Allows parser/test imports on systems without Tk.
+    class _CTkStub:
+        CTk = object
+
+        @staticmethod
+        def set_appearance_mode(_mode):
+            return None
+
+        @staticmethod
+        def set_default_color_theme(_theme):
+            return None
+
+    ctk = _CTkStub()
+try:
+    from tkinter import filedialog, messagebox
+except Exception:
+    class _FileDialogStub:
+        @staticmethod
+        def askopenfilename(*args, **kwargs):
+            raise RuntimeError("Tkinter is unavailable in this environment.")
+
+    class _MessageBoxStub:
+        @staticmethod
+        def showerror(*args, **kwargs):
+            raise RuntimeError("Tkinter is unavailable in this environment.")
+
+        @staticmethod
+        def askretrycancel(*args, **kwargs):
+            return False
+
+    filedialog = _FileDialogStub()
+    messagebox = _MessageBoxStub()
 import pandas as pd
 import threading
 import re
@@ -201,9 +233,11 @@ def custom_format_date(date_str):
 
         m = re.match(r'(\d{1,2})/0{1,2}/(\d{4}) - (\d{1,2})/0{1,2}/(\d{4})', date_str)
         if m:
-            ms, ys, _, ye = m.groups()
-            last = get_last_day_of_month(int(ys), int(ms))
-            return (f'{int(ms):02d}/01/{ys} - {int(ms):02d}/{last}/{ys}', '')
+            ms, ys, me, ye = m.groups()
+            start = f'{int(ms):02d}/01/{ys}'
+            end_last = get_last_day_of_month(int(ye), int(me))
+            end = f'{int(me):02d}/{end_last}/{ye}'
+            return (f'{start} - {end}', '')
 
         m = re.match(r'(\d{1,2})/0{1,2}/(\d{4})', date_str)
         if m:
@@ -223,8 +257,8 @@ def custom_format_date(date_str):
                 if '??' in sd or '??' in ed or '00' in sd or '00' in ed:
                     ms, _, ys = sd.split('/')
                     me, _, ye = ed.split('/')
-                    if ms.isdigit() and ys.isdigit():
-                        last = get_last_day_of_month(int(ys), int(ms))
+                    if all(x.isdigit() for x in [ms, ys, me, ye]):
+                        last = get_last_day_of_month(int(ye), int(me))
                         return (f'{int(ms):02d}/01/{ys} - {int(me):02d}/{last}/{ye}', '')
                     return (date_str, '')
                 sdf = datetime.strptime(sd, '%m/%d/%Y').strftime('%m/%d/%Y')
