@@ -27,7 +27,7 @@ Bring all three date formatter variants to a consistent structure, add prod vers
 - `ACTION-PLAN.md` — this file
 
 **Cleanup:**
-- Removed stale `src/` files: `leading-zeros-dates.py`, `format-cleanup.py`
+- Removed stale `src/` files: `date-formatter-single.py` (legacy `leading-zeros-dates.py`), `format-cleanup.py`
 - Removed stale `test-scripts/`: `dublin-core-date-convert.py`, `serial-excel-dates.py`, `test-named-range.py`
 - Replaced the stale root `.venc/` environment with `.venv/`; `.venv/` is the canonical local environment name
 - Deleted untracked sensitive test file from `test-files/`

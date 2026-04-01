@@ -1,4 +1,4 @@
-# Leading Zeros Dates
+# Dates Formatter
 
 A GUI-based Python app for normalizing inconsistent date formats in Excel and CSV spreadsheets. It is designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized before import or export.
 
