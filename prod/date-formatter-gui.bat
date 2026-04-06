@@ -9,7 +9,7 @@ REM  Deploy prod\gui.py to %USERPROFILE%\scripts\gui.py, then double-click
 REM  this bat to launch the app.
 REM ─────────────────────────────────────────────────────────────────────────────
 
-python "%USERPROFILE%\scripts\gui.py"
+python "%USERPROFILE%\scripts\date-formatter-gui.py"
 
 REM If Python exits with an error (e.g. missing dependency), hold the window
 REM open so the user can read the message before it disappears.

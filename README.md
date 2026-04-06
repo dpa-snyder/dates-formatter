@@ -32,14 +32,14 @@ After running any script, three columns appear together in the spreadsheet:
 
 ```
 prod/                        # Stable, deployment-ready scripts
-  gui.py
+  date-formatter-gui.py
   date-formatter-gui.bat
   date-formatter-single.py           # Legacy single-mode script
   date-formatter-range.py            # Legacy range-mode script
   dublin-core-date-convert.py        # Legacy dublin-core script
 
 src/                         # Active development
-  gui.py
+  date-formatter-gui.py
 
 test-files/                  # Sample/test spreadsheets
 
@@ -51,14 +51,15 @@ requirements.txt
 
 ## Requirements
 
-```
+```text
 customtkinter==5.2.2
 pandas==2.2.2
 openpyxl==3.1.2
 ```
 
 Install with:
-```
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -66,21 +67,21 @@ pip install -r requirements.txt
 
 ## Deploying to Windows
 
-Copy `gui.py` from `prod/` to:
+Copy `date-formatter-gui.py` from `prod/` to:
 
-```
-%USERPROFILE%\scripts\gui.py
+```text
+%USERPROFILE%\scripts\date-formatter-gui.py
 ```
 
 The batch launcher can live anywhere convenient, including the Desktop. It always points back to:
 
-```
-%USERPROFILE%\scripts\gui.py
+```text
+%USERPROFILE%\scripts\date-formatter-gui.py
 ```
 
 If you want a Desktop shortcut/workflow, copy this file from `prod/` to the Desktop:
 
-```
+```bat
 date-formatter-gui.bat
 ```
 
@@ -93,16 +94,19 @@ Then launch `date-formatter-gui.bat`. The batch file already points at `%USERPRO
 The repo now includes a small `unittest` suite that reads cases directly from the Excel fixtures in `test-files/`.
 
 Run everything with:
-```
+
+```bash
 ./run-tests.sh
 ```
 
 Or run the underlying command directly:
-```
+
+```bash
 python3 -W ignore::DeprecationWarning -m unittest discover -s tests -q
 ```
 
 The suite is split into:
+
 - smoke tests for fixture rows that should already work
 - expected-failure regression tests for known TODO bugs
 
