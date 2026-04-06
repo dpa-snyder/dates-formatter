@@ -9,7 +9,7 @@ A GUI-based Python app for normalizing inconsistent date formats in Excel and CS
 The deployed app provides three conversion options in one interface:
 
 | Mode | Output | Use Case |
-|------|--------|----------|
+| ------ | -------- | ---------- |
 | `Single Date Conversion` | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
 | `ArchivERA Conversion` | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
 | `DublinCore Conversion` | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
@@ -21,7 +21,7 @@ The deployed app provides three conversion options in one interface:
 After running any script, three columns appear together in the spreadsheet:
 
 | Column | Description |
-|--------|-------------|
+| -------- | ----------- |
 | `{chosen column}` | Formatted date output (replaces original in-place) |
 | `Original_{chosen column}` | Original raw value preserved for review |
 | `Check {chosen column}` | `Yes` if the output needs manual review |
@@ -30,7 +30,7 @@ After running any script, three columns appear together in the spreadsheet:
 
 ## Structure
 
-```
+```text
 prod/                        # Stable, deployment-ready scripts
   date-formatter-gui.py
   date-formatter-gui.bat
