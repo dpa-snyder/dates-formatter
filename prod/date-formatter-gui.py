@@ -517,13 +517,50 @@ class DateFormatterApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Date Formatter")
-        self.geometry("600x800")
-        self.minsize(600, 800)
-        self.resizable(False, True)
+        self.ui_scale = self._compute_ui_scale()
+        self._apply_ui_scale()
+        self._set_window_geometry()
+        self.resizable(True, True)
         self.df = None
         self.file_path = None
         self.col_vars = {}
         self._build_ui()
+
+    def _compute_ui_scale(self):
+        """Blend screen-height and DPI scaling into a stable UI scale."""
+        screen_h = self.winfo_screenheight()
+        resolution_scale = screen_h / 1080.0
+        try:
+            tk_dpi_scale = float(self.tk.call("tk", "scaling")) / 1.3333333333
+        except Exception:
+            tk_dpi_scale = 1.0
+        blended = (resolution_scale * 0.65) + (tk_dpi_scale * 0.35)
+        return max(0.95, min(1.35, blended))
+
+    def _apply_ui_scale(self):
+        try:
+            ctk.set_widget_scaling(self.ui_scale)
+        except Exception:
+            pass
+
+    def _font(self, size, weight="normal"):
+        scaled = int(round(size * self.ui_scale))
+        scaled = max(10, min(40, scaled))
+        return ctk.CTkFont(size=scaled, weight=weight)
+
+    def _set_window_geometry(self):
+        """Open near the top of the screen and scale to desktop resolution."""
+        self.update_idletasks()
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+
+        width = max(600, min(1100, int(screen_w * 0.78)))
+        height = max(700, min(920, int(screen_h * 0.90)))
+        x = max(0, (screen_w - width) // 2)
+        y = 0
+
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.minsize(600, 700)
 
     # ── Layout ───────────────────────────────────────────────────────────────
 
@@ -542,28 +579,28 @@ class DateFormatterApp(ctk.CTk):
         title_row.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(title_row, text="Date Formatter",
-                     font=ctk.CTkFont(size=24, weight="bold")
+                     font=self._font(24, "bold")
                      ).grid(row=0, column=0, sticky="w")
 
         # Sun/moon pill toggle
         self._is_dark = ctk.BooleanVar(value=True)
         toggle_frame = ctk.CTkFrame(title_row, fg_color="transparent")
         toggle_frame.grid(row=0, column=1, sticky="e")
-        ctk.CTkLabel(toggle_frame, text="☀", font=ctk.CTkFont(size=16)
+        ctk.CTkLabel(toggle_frame, text="☀", font=self._font(16)
                      ).grid(row=0, column=0, padx=(0, 4))
         ctk.CTkSwitch(toggle_frame, text="", variable=self._is_dark,
                       width=46, command=self._toggle_theme
                       ).grid(row=0, column=1)
-        ctk.CTkLabel(toggle_frame, text="🌙", font=ctk.CTkFont(size=14)
+        ctk.CTkLabel(toggle_frame, text="🌙", font=self._font(14)
                      ).grid(row=0, column=2, padx=(4, 0))
 
         ctk.CTkLabel(p, text="Normalize date columns in Excel and CSV files.",
-                     font=ctk.CTkFont(size=13), text_color="gray"
+                     font=self._font(13), text_color="gray"
                      ).grid(row=1, column=0, padx=30, pady=(0, 20), sticky="w")
 
         # ── Conversion type (radio — single selection) ──
         ctk.CTkLabel(p, text="Conversion Type",
-                     font=ctk.CTkFont(size=13, weight="bold")
+                     font=self._font(13, "bold")
                      ).grid(row=2, column=0, padx=30, pady=(0, 8), sticky="w")
 
         rb_frame = ctk.CTkFrame(p, fg_color="transparent")
@@ -579,7 +616,7 @@ class DateFormatterApp(ctk.CTk):
 
         # ── File ──
         ctk.CTkLabel(p, text="File",
-                     font=ctk.CTkFont(size=13, weight="bold")
+                     font=self._font(13, "bold")
                      ).grid(row=4, column=0, padx=30, pady=(0, 6), sticky="w")
 
         file_frame = ctk.CTkFrame(p, fg_color="transparent")
@@ -597,7 +634,7 @@ class DateFormatterApp(ctk.CTk):
 
         # ── Columns to format (multi-select) ──
         ctk.CTkLabel(p, text="Columns to Format",
-                     font=ctk.CTkFont(size=13, weight="bold")
+                     font=self._font(13, "bold")
                      ).grid(row=6, column=0, padx=30, pady=(0, 6), sticky="w")
 
         self.col_frame = ctk.CTkScrollableFrame(p, height=120)
@@ -610,7 +647,7 @@ class DateFormatterApp(ctk.CTk):
         # ── Run ──
         self.run_btn = ctk.CTkButton(
             p, text="Run", height=46,
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=self._font(15, "bold"),
             state="disabled", command=self._run)
         self.run_btn.grid(row=8, column=0, padx=30, pady=(0, 18), sticky="ew")
 
@@ -620,7 +657,7 @@ class DateFormatterApp(ctk.CTk):
         self.progress_bar.grid(row=9, column=0, padx=30, pady=(0, 8), sticky="ew")
 
         self.status_lbl = ctk.CTkLabel(
-            p, text="", font=ctk.CTkFont(size=12), text_color="gray")
+            p, text="", font=self._font(12), text_color="gray")
         self.status_lbl.grid(row=10, column=0, padx=30, pady=(0, 24), sticky="w")
 
     # ── Callbacks ────────────────────────────────────────────────────────────
