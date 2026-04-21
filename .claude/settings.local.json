@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/baghead/code/leading-zeros-dates/ASSOCIATIONS.md:*)",
+      "Bash(sed -i '' \"s/''Y''/''Yes''/g\" /Users/baghead/code/leading-zeros-dates/prod/date-formatter-range.py)",
+      "Bash(sed -i '' \"s/''Y''/''Yes''/g\" /Users/baghead/code/leading-zeros-dates/prod/dublin-core-date-convert.py)",
+      "Bash(sed -i '' \"s/''Y''/''Yes''/g\" /Users/baghead/code/leading-zeros-dates/src/date-formatter-single.py)",
+      "Bash(sed -i '' \"s/''Y''/''Yes''/g\" /Users/baghead/code/leading-zeros-dates/prod/date-formatter-single.py)",
+      "Bash(/Users/baghead/code/leading-zeros-dates/README.md:*)",
+      "Bash(/Users/baghead/code/leading-zeros-dates/ACTION-PLAN.md:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python3 -c \":*)",
+      "Read(//Users/baghead/.config/pip/**)",
+      "Read(//Users/baghead/.pip/**)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(''/Users/baghead/code/leading-zeros-dates/src/gui.py''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(python3:*)",
+      "Bash(./run-tests.sh)",
+      "Bash(grep -n \"serial\\\\|\\\\d{4,5}\" /Users/baghead/code/leading-zeros-dates/src/gui.py)",
+      "Bash(grep -n \"fullmatch\\\\|\\\\d{4,5}\\\\|\\\\d{5}\" /Users/baghead/code/leading-zeros-dates/prod/date-formatter-range.py)"
+    ]
+  }
+}
