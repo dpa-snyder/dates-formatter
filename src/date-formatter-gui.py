@@ -38,7 +38,9 @@ import re
 from datetime import datetime, timedelta
 import os
 
-ctk.set_appearance_mode("dark")
+THEME_MODE = "dark"  # Persisted user setting; updated in-place by the app.
+
+ctk.set_appearance_mode(THEME_MODE)
 ctk.set_default_color_theme("blue")
 
 
@@ -583,7 +585,7 @@ class DateFormatterApp(ctk.CTk):
                      ).grid(row=0, column=0, sticky="w")
 
         # Sun/moon pill toggle
-        self._is_dark = ctk.BooleanVar(value=True)
+        self._is_dark = ctk.BooleanVar(value=(THEME_MODE == "dark"))
         toggle_frame = ctk.CTkFrame(title_row, fg_color="transparent")
         toggle_frame.grid(row=0, column=1, sticky="e")
         ctk.CTkLabel(toggle_frame, text="☀", font=self._font(16)
@@ -663,7 +665,30 @@ class DateFormatterApp(ctk.CTk):
     # ── Callbacks ────────────────────────────────────────────────────────────
 
     def _toggle_theme(self):
-        ctk.set_appearance_mode("dark" if self._is_dark.get() else "light")
+        mode = "dark" if self._is_dark.get() else "light"
+        ctk.set_appearance_mode(mode)
+        self._persist_theme_mode(mode)
+
+    def _persist_theme_mode(self, mode):
+        """Persist theme preference directly in this script (no external file)."""
+        if mode not in {"dark", "light"}:
+            return
+        script_path = os.path.abspath(__file__)
+        try:
+            with open(script_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            updated = re.sub(
+                r'^THEME_MODE\s*=\s*"(dark|light)"\s*# Persisted user setting; updated in-place by the app\.$',
+                f'THEME_MODE = "{mode}"  # Persisted user setting; updated in-place by the app.',
+                content,
+                count=1,
+                flags=re.MULTILINE,
+            )
+            if updated != content:
+                with open(script_path, "w", encoding="utf-8") as f:
+                    f.write(updated)
+        except OSError:
+            pass
 
     def _check_run_state(self):
         any_col = any(v.get() for v in self.col_vars.values())
