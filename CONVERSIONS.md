@@ -110,7 +110,7 @@ Then `is_valid_date_format` decides the Check value:
 
 ## Mode 3: Dublin Core Conversion
 
-Output: same as Mode 2 (DC-style date strings), but the parser knows additional ISO and DC input formats.
+Converts mixed inputs into Dublin Core-friendly date output. Emits ranges and single dates in the same shape as Mode 2 (ArchivERA), but the parser accepts additional ISO and Dublin Core partial formats on the input side.
 
 | # | Pattern | Example input | Example output |
 |---|---------|---------------|----------------|

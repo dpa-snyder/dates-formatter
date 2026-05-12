@@ -612,13 +612,13 @@ MODE_OUTPUT_EXAMPLE = {
 MODE_HELP = {
     "Single Date": "Output a single date. Ranges collapse to the start date.",
     "Date Range":  "Output a date range. Single dates pass through.",
-    "Dublin Core": "Convert Dublin Core or ISO inputs.",
+    "Dublin Core": "Convert mixed inputs into Dublin Core-friendly output.",
 }
 
 MODE_TOOLTIP = {
     "Single Date": "Best when each row should resolve to one specific date.",
     "Date Range":  "Best when each row represents a span of time. Use this for ArchivERA imports.",
-    "Dublin Core": "Best when input uses Dublin Core or ISO format (YYYY-MM-DD, YYYY/YYYY, etc.).",
+    "Dublin Core": "Best when you need Dublin Core-friendly date output. Handles a wide variety of inputs including ISO and DC partial formats.",
 }
 
 THEME_LABELS = {"light": "Light", "dark": "Dark", "system": "Auto"}

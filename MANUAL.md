@@ -63,9 +63,9 @@ Use this when each row represents a span of time. This mode is designed for Arch
 
 ### Dublin Core Conversion
 
-Use this when converting Dublin Core or ISO inputs (`2026-05-08`, `1962-1965`, `1962-06/1965-08`) into the standard MM/DD/YYYY format.
+Use this when you need Dublin Core-friendly date output. Like ArchivERA, this mode emits dates as ranges. It accepts a wider variety of inputs than ArchivERA, including ISO and Dublin Core partial formats (`2026-05-08`, `1962-1965`, `1962-06/1965-08`, `YYYY-MM-DD/YYYY-MM-DD`).
 
-If you are unsure which mode to pick, use **Date Range**. It handles the widest variety of inputs.
+If you are unsure which mode to pick, use **Date Range**. Dublin Core handles the same range outputs plus more exotic input formats.
 
 ## Step 2: Open your file
 

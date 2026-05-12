@@ -10,7 +10,7 @@ The app provides three conversion options in a single interface.
 |------|--------|----------|
 | Single Date Conversion | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
 | ArchivERA Conversion | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
-| Dublin Core Conversion | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
+| Dublin Core Conversion | Dublin Core-friendly date output (ranges and single dates) | Convert mixed inputs into Dublin Core format |
 
 ## Output guarantees
 
