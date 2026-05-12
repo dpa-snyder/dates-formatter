@@ -51,7 +51,6 @@ prod/                          # Stable, deployment-ready scripts
   user-manual.html             # Opened by the in-app "View User Manual" button
   date-formatter-single.py     # Legacy single-mode script
   date-formatter-range.py      # Legacy range-mode script
-  dublin-core-date-convert.py  # Legacy Dublin Core script
 
 src/                           # Active development
   date-formatter-gui.py
