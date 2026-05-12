@@ -68,7 +68,6 @@ SETTINGS_PATH = os.path.join(
 DEFAULT_SETTINGS = {
     "theme": "dark",             # "dark" | "light" | "system"
     "geometry": None,            # "WxH+X+Y" or None
-    "recent_files": [],          # most-recent first, capped at 5
     "output_mode": "overwrite",  # "overwrite" | "copy"
 }
 
@@ -715,7 +714,6 @@ class DateFormatterApp(ctk.CTk):
         self._geom_after = None
 
         self._build_ui()
-        self._refresh_recent_files()
         self._update_stepper(1)
 
         self.bind("<Configure>", self._on_configure)
@@ -989,45 +987,53 @@ class DateFormatterApp(ctk.CTk):
         browse_btn.grid(row=0, column=1)
         Tooltip(browse_btn, "Pick an Excel (.xlsx) or CSV file.")
 
-        self._recent_frame = ctk.CTkFrame(body, fg_color="transparent")
-        self._recent_frame.grid(row=1, column=0, sticky="ew", pady=(10, 0))
-
-    def _refresh_recent_files(self):
-        for w in self._recent_frame.winfo_children():
-            w.destroy()
-        recent = [p for p in SETTINGS.get("recent_files", []) if os.path.exists(p)]
-        if not recent:
-            return
-        ctk.CTkLabel(
-            self._recent_frame, text="Recent:",
-            font=self._font(11), text_color=("gray45", "gray60")
-        ).pack(side="left", padx=(0, 6))
-        for p in recent:
-            name = os.path.basename(p)
-            btn = ctk.CTkButton(
-                self._recent_frame, text=name, height=24,
-                fg_color="transparent", border_width=1,
-                text_color=("gray20", "gray80"),
-                hover_color=("gray85", "gray25"),
-                font=self._font(11),
-                command=lambda pp=p: self._load_file(pp))
-            btn.pack(side="left", padx=2)
-            Tooltip(btn, p)
-
     # ── Columns card (search + checkbox list) ──
 
     def _build_columns_card(self, parent, row):
         body = self._make_card(parent, row, "Columns to Format", "☑")
 
-        self.col_search_var = ctk.StringVar()
-        self.col_search_var.trace_add("write", lambda *_: self._refresh_columns())
+        # Search bar: icon + entry + result count, visually distinct
+        search_row = ctk.CTkFrame(
+            body, fg_color=("gray94", "gray18"),
+            border_width=1, border_color=("gray80", "gray28"),
+            corner_radius=8, height=36)
+        search_row.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        search_row.grid_columnconfigure(1, weight=1)
+        search_row.grid_propagate(False)
 
-        search_entry = ctk.CTkEntry(
-            body, textvariable=self.col_search_var,
-            placeholder_text="🔍  Search columns…",
-            height=32)
-        search_entry.grid(row=0, column=0, sticky="ew", pady=(0, 8))
-        Tooltip(search_entry, "Filter the list below. Case-insensitive.")
+        ctk.CTkLabel(
+            search_row, text="🔍",
+            font=self._font(13),
+            text_color=("gray45", "gray60")
+        ).grid(row=0, column=0, padx=(12, 6), pady=4)
+
+        self.search_entry = ctk.CTkEntry(
+            search_row,
+            placeholder_text="Search columns by name. Live results.",
+            fg_color="transparent", border_width=0,
+            height=28)
+        self.search_entry.grid(row=0, column=1, sticky="ew", padx=(0, 6), pady=2)
+        # CTkEntry wraps an internal tk.Entry. Bind both layers so KeyRelease
+        # always fires regardless of which widget actually receives the event.
+        inner_entry = getattr(self.search_entry, "_entry", self.search_entry)
+        for target in (self.search_entry, inner_entry):
+            try:
+                target.bind("<KeyRelease>", self._refresh_columns, add="+")
+            except Exception:
+                pass
+        # Defensive: poll the entry value 4x/second so the filter still updates
+        # even if no KeyRelease event reaches us (placeholder mode, IME, etc.).
+        self._last_search_text = ""
+        self.after(250, self._poll_search)
+        Tooltip(self.search_entry,
+                "Type to filter the column list below. Case-insensitive. "
+                "Matches anywhere in the column name.")
+
+        self._search_count = ctk.CTkLabel(
+            search_row, text="",
+            font=self._font(11),
+            text_color=("gray45", "gray60"))
+        self._search_count.grid(row=0, column=2, padx=(0, 12), pady=4)
 
         self.col_frame = ctk.CTkScrollableFrame(body, height=140)
         self.col_frame.grid(row=1, column=0, sticky="ew")
@@ -1044,10 +1050,16 @@ class DateFormatterApp(ctk.CTk):
         self._hint_label.grid(row=2, column=0, sticky="w", pady=(8, 0))
         self._hint_label.grid_remove()
 
-    def _refresh_columns(self):
+    def _refresh_columns(self, *_):
         if not self._col_checkboxes:
+            self._search_count.configure(text="")
+            self._last_search_text = ""
             return
-        q = self.col_search_var.get().strip().lower()
+        try:
+            q = self.search_entry.get().strip().lower()
+        except Exception:
+            q = ""
+        self._last_search_text = q
         visible = 0
         for col, cb in self._col_checkboxes.items():
             if not q or q in col.lower():
@@ -1055,6 +1067,21 @@ class DateFormatterApp(ctk.CTk):
                 visible += 1
             else:
                 cb.grid_remove()
+        total = len(self._col_checkboxes)
+        if q:
+            self._search_count.configure(text=f"{visible} / {total}")
+        else:
+            self._search_count.configure(text=f"{total} columns")
+
+    def _poll_search(self):
+        """Fallback polling for the search entry, in case KeyRelease bind doesn't fire."""
+        try:
+            current = self.search_entry.get().strip().lower()
+            if current != self._last_search_text:
+                self._refresh_columns()
+        except Exception:
+            pass
+        self.after(250, self._poll_search)
 
     # ── Output card (overwrite vs save copy) ──
 
@@ -1272,20 +1299,16 @@ class DateFormatterApp(ctk.CTk):
                 variable=var, command=self._on_state_change)
             cb.grid(row=i, column=0, pady=2, sticky="w")
             self._col_checkboxes[col] = cb
-        self.col_search_var.set("")
+        try:
+            self.search_entry.delete(0, "end")
+        except Exception:
+            pass
+        self._refresh_columns()
 
-        self._push_recent(path)
-        self._refresh_recent_files()
         self._log(f"Loaded {os.path.basename(path)} ({len(df):,} rows, "
                   f"{len(df.columns)} columns).", "ok")
         self._on_state_change()
         self.progress_bar.set(0)
-
-    def _push_recent(self, path):
-        rec = [p for p in SETTINGS.get("recent_files", []) if p != path]
-        rec.insert(0, path)
-        SETTINGS["recent_files"] = rec[:5]
-        save_settings(SETTINGS)
 
     def _open_path(self, path):
         if not path:
