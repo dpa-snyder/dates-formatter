@@ -21,7 +21,8 @@
       "Bash(./.venv/bin/python *)",
       "Bash(git stash *)",
       "Bash(./.venv/bin/pip index *)",
-      "Bash(./.venv/bin/pip install *)"
+      "Bash(./.venv/bin/pip install *)",
+      "Bash(git log *)"
     ]
   }
 }
