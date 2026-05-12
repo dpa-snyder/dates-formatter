@@ -116,6 +116,16 @@ When the run finishes, the status bar reports the number of flagged rows. A row 
 
 Flagged rows are not errors. They are rows that benefit from a human glance.
 
+## Built-in safeguards
+
+Every formatted output respects three rules:
+
+* **Correct day counts per month.** February has 28 days (29 in leap years). April, June, September, and November have 30. The rest have 31. The app never emits an invalid date like `02/30/1990` or `04/31/1990`.
+* **Leap-year awareness.** February 29 only appears in years where it is valid. A year is a leap year if it is divisible by 4, except century years which must also be divisible by 400. So `02/29/2000` is valid and `02/29/1900` is not.
+* **Chronological order.** In any output range `start - end`, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.
+
+If the input itself is an invalid date (for example `02/30/1990`), the app leaves it alone and flags the row for review rather than guessing what was meant.
+
 ## Special outputs
 
 These values appear when the input expresses something more nuanced than a plain date or range. They are always flagged.

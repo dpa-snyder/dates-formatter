@@ -231,6 +231,7 @@
     <li><a href="#columns">Pick date columns</a></li>
     <li><a href="#run">Run it</a></li>
     <li><a href="#output">Understanding the output</a></li>
+    <li><a href="#safeguards">Built-in safeguards</a></li>
     <li><a href="#special">Special outputs</a></li>
     <li><a href="#columns-preserved">What stays the same</a></li>
     <li><a href="#patterns">Patterns recognized</a></li>
@@ -361,6 +362,17 @@
   <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
 </ul>
 <p>Flagged rows are not errors. They are rows that benefit from a human glance.</p>
+</section>
+
+<section id="safeguards">
+<h2>Built-in safeguards</h2>
+<p>Every formatted output respects three rules:</p>
+<ul>
+  <li><strong>Correct day counts per month.</strong> February has 28 days (29 in leap years). April, June, September, and November have 30. The rest have 31. The app never emits an invalid date like <code>02/30/1990</code> or <code>04/31/1990</code>.</li>
+  <li><strong>Leap-year awareness.</strong> February 29 only appears in years where it is valid. A year is a leap year if it is divisible by 4, except century years which must also be divisible by 400. So <code>02/29/2000</code> is valid and <code>02/29/1900</code> is not.</li>
+  <li><strong>Chronological order.</strong> In any output range <code>start - end</code>, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.</li>
+</ul>
+<p>If the input itself is an invalid date (for example <code>02/30/1990</code>), the app leaves it alone and flags the row for review rather than guessing what was meant.</p>
 </section>
 
 <section id="special">

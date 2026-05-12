@@ -12,6 +12,16 @@ The app provides three conversion options in a single interface.
 | ArchivERA Conversion | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
 | Dublin Core Conversion | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
 
+## Output guarantees
+
+Every formatted output respects three invariants regardless of mode.
+
+* Days per month follow the calendar. The app never emits `02/30/1990` or `04/31/1990`.
+* February 29 only appears in valid leap years (divisible by 4, except century years not divisible by 400).
+* In any output range `start - end`, the start date is on or before the end date. Reversed inputs are swapped before saving.
+
+Invalid input dates are not corrected. They are passed through unchanged and flagged for review.
+
 ## Column output
 
 After running any mode, three columns appear together in the spreadsheet.

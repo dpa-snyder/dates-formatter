@@ -10,6 +10,16 @@ Per-mode input/output spec in parser order. First match wins. See `MANUAL.md` an
 * Single-digit month and day are zero-padded before matching (`1/5/1991` becomes `01/05/1991`).
 * Year-only inputs are usually expanded into full ranges.
 
+## Guarantees applied to every output
+
+All three modes enforce the following invariants on any generated date or range. These run in addition to the per-mode rules below.
+
+* **Days per month respect the calendar.** `get_last_day_of_month(year, month)` returns 28, 29, 30, or 31 as appropriate. The parser never emits `02/30`, `04/31`, etc.
+* **Leap-year awareness.** `is_leap_year(year)` returns `True` only for years divisible by 4, except century years not divisible by 400. February 29 is only emitted when valid for the given year. `02/29/2000` is valid. `02/29/1900` is not.
+* **Chronological order.** After parsing, every range is passed through `ensure_chronological_order`, which swaps the two sides if the start date is after the end date. Single Date mode applies the same check via `format_single_date`. Output ranges always satisfy `start <= end`.
+
+Invalid input dates (for example `02/30/1990`) do not crash the parser. They fall through the recognized-pattern list and are returned as-is with `Check = Yes`. The parser does not attempt to correct invalid input dates.
+
 ## Mode 1: Single Date Conversion
 
 Output: `MM/DD/YYYY`. The pipeline first runs the full **Date Range** parser (Mode 2), then collapses any resulting range to its start date.
