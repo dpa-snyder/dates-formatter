@@ -132,7 +132,7 @@ These values appear when the input expresses something more nuanced than a plain
 
 | Output | Meaning |
 |--------|---------|
-| `undated` | The original said `n.d.`, `no date`, `not dated`, etc. |
+| `undated` | The original said `n.d.`, `no date`, `not dated`, `undated`, etc. |
 | `circa 1962` | The original said `circa 1962`, `ca. 1962`, `approx. 1962`, etc. |
 | `before 01/01/1991` | The original said `before 1991`, `pre-1991`, or `ante 1991`. |
 | `before 10/15/1991` | The original gave a specific cutoff date with "before". |
@@ -186,8 +186,11 @@ The conversion engine tries many input formats. Below are the most common patter
 | `June 1962` | `06/01/1962 - 06/30/1962` |
 | `Jun 1962` | `06/01/1962 - 06/30/1962` |
 | `Jun-62` | `06/01/1962 - 06/30/1962` |
+| `Jun-22` | `06/01/2022 - 06/30/2022` |
 | `June 5, 1964` | `06/05/1964` |
 | `June 5th, 1964` | `06/05/1964` |
+
+For `MonthName-YY` inputs, two-digit years 50 and above become 19YY. Values below 50 become 20YY. Archival convention: high two-digit years are older.
 
 ### Month and year ranges
 
@@ -223,7 +226,7 @@ Always flagged.
 | `before 10/15/1991` | `before 10/15/1991` |
 | `after 1991` | `after 12/31/1991` |
 | `post-1991` | `after 12/31/1991` |
-| `n.d.`, `N.D.`, `no date`, `undated` | `undated` |
+| `n.d.`, `N.D.`, `no date`, `not dated`, `undated` | `undated` |
 
 ### Wildcards and incomplete inputs
 
@@ -236,11 +239,12 @@ Always flagged.
 
 ### Excel serial numbers
 
-Sometimes pasted from older workbooks.
+Sometimes pasted from older workbooks. Output matches what Excel itself displays for the same serial. The converter accounts for Excel's 1900 leap-year quirk, so `44197` becomes `01/01/2021` exactly as Excel would show it.
 
 | Input | Output |
 |-------|--------|
 | `44197` | `01/01/2021` |
+| `40178` | `12/31/2009` |
 
 ### Unrecognized inputs
 

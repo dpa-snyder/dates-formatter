@@ -57,6 +57,31 @@ def get_last_day_of_month(year, month):
         return 30
     return 31
 
+def is_excel_serial_text(value):
+    return bool(re.fullmatch(r'\d{5}', str(value)))
+
+
+def excel_serial_to_date(serial_text):
+    serial = int(serial_text)
+    base = datetime(1899, 12, 30) if serial >= 60 else datetime(1899, 12, 31)
+    return (base + timedelta(days=serial)).strftime('%m/%d/%Y')
+
+
+def _pad_alnum(val, width):
+    """Pad numeric portion of an ID to `width` chars; preserves leading letter (e.g. W22)."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return val
+    s = str(val).strip()
+    if s == '':
+        return s
+    m = re.match(r'^([A-Za-z]?)(\d+)$', s)
+    if not m:
+        return s
+    prefix, digits = m.groups()
+    pad = max(0, width - len(prefix))
+    return f'{prefix}{digits.zfill(pad)}'
+
+
 def ensure_chronological_order(date_str):
     m = re.match(r'(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})', date_str)
     if not m:
@@ -90,6 +115,24 @@ def convert_date_pattern(date_str):
             return date_str
 
         date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
+        if is_excel_serial_text(date_str):
+            return excel_serial_to_date(date_str)
+        m = re.fullmatch(r'(\d{5})?\s*-\s*(\d{5})?', date_str)
+        if m:
+            start_serial, end_serial = m.groups()
+            start_date = excel_serial_to_date(start_serial) if start_serial else ''
+            end_date = excel_serial_to_date(end_serial) if end_serial else ''
+            if start_date and end_date:
+                return f'{start_date} - {end_date}'
+            if start_date:
+                return start_date
+            if end_date:
+                return end_date
+        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated|undated)\b',
+                     date_str, re.IGNORECASE):
+            return 'undated'
+        if re.match(r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$', date_str):
+            return datetime.strptime(date_str.split()[0], '%Y-%m-%d').strftime('%m/%d/%Y')
 
         if re.match(r'\d{4}-\d{2}-\d{2}$', date_str):
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -153,8 +196,24 @@ def convert_date_pattern(date_str):
             return f"{start_date_formatted} - {end_date_formatted}"
 
         if re.match(r'\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}', date_str):
-            date_str = date_str.replace('To', '-').replace('TO', '-').replace('to', '-')
-            return convert_date_pattern(date_str)
+            return convert_date_pattern(re.sub(r'\s+(To|TO|to)\s+', '/', date_str))
+        m = re.search(
+            r'(?i)\b(?P<kw>before|pre|ante|after|post)\.?\s*-?\s*'
+            r'(?P<date>\d{1,2}/\d{1,2}/\d{4}|\d{4})\b',
+            date_str)
+        if m:
+            kw = m.group('kw').lower()
+            out_kw = 'after' if kw in {'after', 'post'} else 'before'
+            raw = m.group('date')
+            if '/' in raw:
+                mo, d, y = raw.split('/')
+                norm = f'{int(mo):02d}/{int(d):02d}/{y}'
+            else:
+                norm = f'01/01/{raw}' if out_kw == 'before' else f'12/31/{raw}'
+            return f'{out_kw} {norm}'
+        m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})', date_str, re.IGNORECASE)
+        if m:
+            return f'circa {m.group(2)}'
 
         m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})',
                      date_str, re.IGNORECASE)
@@ -206,14 +265,14 @@ def process_dataframe(df, column):
     cols.insert(insert_pos + 1, check_col_name)
     df = df[cols]
 
-    # Ensure RG column is formatted with at least 4 digits
+    # Ensure RG column is padded to at least 4 chars (letter prefix preserved, e.g. W22 -> W022)
     if 'RG' in df.columns:
-        df['RG'] = df['RG'].apply(lambda x: f'{int(x):04d}' if pd.notna(x) and x != '' else x)
+        df['RG'] = df['RG'].apply(lambda x: _pad_alnum(x, 4))
 
-    # Ensure SubGr, Series, and SubSeries columns are formatted with at least 3 digits
+    # Ensure SubGr, Series, and SubSeries columns are padded to at least 3 chars
     for col in ['SubGr', 'SG', 'SubGroup', 'Series', 'SubSeries Number', 'Record Group Number', 'Subgroup Number', 'Series Number']:
         if col in df.columns:
-            df[col] = df[col].apply(lambda x: f'{int(x):03d}' if pd.notna(x) and x != '' else x)
+            df[col] = df[col].apply(lambda x: _pad_alnum(x, 3))
 
     return df
 

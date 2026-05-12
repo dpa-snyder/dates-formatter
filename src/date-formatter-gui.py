@@ -137,7 +137,9 @@ def is_excel_serial_text(value):
 
 
 def excel_serial_to_date(serial_text):
-    return (datetime(1899, 12, 31) + timedelta(days=int(serial_text))).strftime('%m/%d/%Y')
+    serial = int(serial_text)
+    base = datetime(1899, 12, 30) if serial >= 60 else datetime(1899, 12, 31)
+    return (base + timedelta(days=serial)).strftime('%m/%d/%Y')
 
 
 # ─── Single-date pipeline ─────────────────────────────────────────────────────
@@ -166,6 +168,7 @@ def format_single_date(date_str):
 def custom_format_date(date_str):
     """Return (formatted_str, flag) where flag is 'Yes' or ''."""
     try:
+        date_str = str(date_str)
         def add_leading_zeros(d):
             d = re.sub(r'\b(\d{1})/(\d{1,2})/(\d{4})', r'0\1/\2/\3', d)
             d = re.sub(r'(\d{2})/(\d{1})/(\d{4})', r'\1/0\2/\3', d)
@@ -219,7 +222,7 @@ def custom_format_date(date_str):
         if m:
             return (f'01/01/{m.group(1)} - 12/31/{m.group(1)}', 'Yes')
 
-        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b',
+        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated|undated)\b',
                      date_str, re.IGNORECASE):
             return ('undated', '')
 
@@ -370,7 +373,7 @@ def custom_format_date(date_str):
                      date_str, re.IGNORECASE)
         if m:
             mo, y2 = m.groups()
-            y = f'19{y2}' if int(y2) < 50 else f'20{y2}'
+            y = f'20{y2}' if int(y2) < 50 else f'19{y2}'
             num = month_map[mo.capitalize()[:3]]
             last = get_last_day_of_month(int(y), int(num))
             return (f'{num}/01/{y} - {num}/{last}/{y}', '')
@@ -443,6 +446,7 @@ def is_valid_date_format(date_str):
 
 def convert_date_pattern(date_str):
     try:
+        date_str = str(date_str)
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
         date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
@@ -459,7 +463,7 @@ def convert_date_pattern(date_str):
                 return start_date
             if end_date:
                 return end_date
-        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated)\b',
+        if re.search(r'\b(N\.?\s*D\.?|n\.?\s*d\.?|U\.?\s*D\.?|u\.?\s*d\.?|No Date|not dated|undated)\b',
                      date_str, re.IGNORECASE):
             return 'undated'
         if re.match(r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$', date_str):
@@ -509,7 +513,7 @@ def convert_date_pattern(date_str):
                     f'{datetime.strptime(ed, "%Y-%m-%d").strftime("%m/%d/%Y")}')
         if re.match(r'\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}', date_str):
             return convert_date_pattern(
-                date_str.replace('To', '-').replace('TO', '-').replace('to', '-'))
+                re.sub(r'\s+(To|TO|to)\s+', '/', date_str))
         m = re.search(
             r'(?i)\b(?P<kw>before|pre|ante|after|post)\.?\s*-?\s*'
             r'(?P<date>\d{1,2}/\d{1,2}/\d{4}|\d{4})\b',

@@ -383,7 +383,7 @@
 <table>
   <thead><tr><th>Output</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, etc.</td></tr>
+    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, <code>undated</code>, etc.</td></tr>
     <tr><td><code>circa 1962</code></td><td>The original said <code>circa 1962</code>, <code>ca. 1962</code>, <code>approx. 1962</code>, etc.</td></tr>
     <tr><td><code>before 01/01/1991</code></td><td>The original said <code>before 1991</code>, <code>pre-1991</code>, or <code>ante 1991</code>.</td></tr>
     <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date with "before".</td></tr>
@@ -447,10 +447,12 @@
     <tr><td><code>June 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>Jun 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+    <tr><td><code>Jun-22</code></td><td><code>06/01/2022 - 06/30/2022</code></td></tr>
     <tr><td><code>June 5, 1964</code></td><td><code>06/05/1964</code></td></tr>
     <tr><td><code>June 5th, 1964</code></td><td><code>06/05/1964</code></td></tr>
   </tbody>
 </table>
+<p>For <code>MonthName-YY</code> inputs, two-digit years 50 and above become 19YY. Values below 50 become 20YY. Archival convention: high two-digit years are older.</p>
 
 <h3>Month and year ranges</h3>
 <table>
@@ -486,7 +488,7 @@
     <tr><td><code>before 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
     <tr><td><code>after 1991</code></td><td><code>after 12/31/1991</code></td></tr>
     <tr><td><code>post-1991</code></td><td><code>after 12/31/1991</code></td></tr>
-    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>undated</code></td><td><code>undated</code></td></tr>
+    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>not dated</code>, <code>undated</code></td><td><code>undated</code></td></tr>
   </tbody>
 </table>
 
@@ -502,11 +504,12 @@
 </table>
 
 <h3>Excel serial numbers</h3>
-<p>Sometimes pasted from older workbooks.</p>
+<p>Sometimes pasted from older workbooks. Output matches what Excel itself displays for the same serial. The converter accounts for Excel's 1900 leap-year quirk, so <code>44197</code> becomes <code>01/01/2021</code> exactly as Excel would show it.</p>
 <table>
   <thead><tr><th>Input</th><th>Output</th></tr></thead>
   <tbody>
     <tr><td><code>44197</code></td><td><code>01/01/2021</code></td></tr>
+    <tr><td><code>40178</code></td><td><code>12/31/2009</code></td></tr>
   </tbody>
 </table>
 

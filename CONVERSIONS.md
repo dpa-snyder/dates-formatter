@@ -17,6 +17,8 @@ All three modes enforce the following invariants on any generated date or range.
 * **Days per month respect the calendar.** `get_last_day_of_month(year, month)` returns 28, 29, 30, or 31 as appropriate. The parser never emits `02/30`, `04/31`, etc.
 * **Leap-year awareness.** `is_leap_year(year)` returns `True` only for years divisible by 4, except century years not divisible by 400. February 29 is only emitted when valid for the given year. `02/29/2000` is valid. `02/29/1900` is not.
 * **Chronological order.** After parsing, every range is passed through `ensure_chronological_order`, which swaps the two sides if the start date is after the end date. Single Date mode applies the same check via `format_single_date`. Output ranges always satisfy `start <= end`.
+* **Excel serial values match Excel's display.** `excel_serial_to_date` corrects for Excel's 1900 leap-year bug: serials `< 60` use a `1899-12-31` base, serials `>= 60` use a `1899-12-30` base. Result matches what Excel itself shows for the same serial. Example: `44197` returns `01/01/2021`, the same date Excel displays for that serial. Matches `openpyxl.utils.datetime.from_excel`.
+* **`MonthName-YY` 2-digit year pivot.** `int(yy) < 50` yields `20YY`. `int(yy) >= 50` yields `19YY`. Archival convention: high values are older. `Jun-62` becomes `06/01/1962`. `Jun-22` becomes `06/01/2022`.
 
 Invalid input dates (for example `02/30/1990`) do not crash the parser. They fall through the recognized-pattern list and are returned as-is with `Check = Yes`. The parser does not attempt to correct invalid input dates.
 
@@ -70,7 +72,7 @@ Parser tries each step in this order. First match wins.
 | 7 | `MonthName YYYY` (month + year only) | `June 1962` | `06/01/1962 - 06/30/1962` | |
 | 8 | `MonthName Dst, YYYY` (ordinal day) | `June 5th, 1964` | `06/05/1964` | |
 | 9 | `YYYY vol` / `YYYY volume` | `1962 vol 3` | `01/01/1962 - 12/31/1962` | Yes |
-| 10 | No-date markers (`N.D.`, `U.D.`, `No Date`, `not dated`) | `N.D.` | `undated` | |
+| 10 | No-date markers (`N.D.`, `U.D.`, `No Date`, `not dated`, `undated`) | `N.D.` | `undated` | |
 | 11 | Excel serial range `NNNNN - NNNNN` (either side optional) | `44197 - 44561` | `01/01/2021 - 12/31/2021` | |
 | 12 | ISO `YYYY-MM-DD` | `1962-06-05` | `06/05/1962` | |
 | 13 | `before` / `pre` / `ante` / `after` / `post` + year or full date | `before 1991` | `before 01/01/1991` | Yes |
@@ -118,7 +120,7 @@ Converts mixed inputs into Dublin Core-friendly date output. Emits ranges and si
 | 0a | Strip parens | `1962 (approx)` | (continues as `1962`) |
 | 1 | Excel serial (5-digit) | `44197` | `01/01/2021` |
 | 2 | Excel serial range | `44197 - 44561` | `01/01/2021 - 12/31/2021` |
-| 3 | No-date markers | `n.d.` | `undated` |
+| 3 | No-date markers (`N.D.`, `U.D.`, `No Date`, `not dated`, `undated`) | `n.d.` | `undated` |
 | 4 | ISO timestamp `YYYY-MM-DD HH:MM:SS` | `1962-06-05 14:30:00` | `06/05/1962` |
 | 5 | ISO `YYYY-MM-DD` | `1962-06-05` | `06/05/1962` |
 | 6 | DC range `YYYY-YYYY` | `1962-1965` | `01/01/1962 - 12/31/1965` |
