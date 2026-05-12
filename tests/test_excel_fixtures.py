@@ -9,7 +9,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "test-files"
-GUI_PATH = ROOT / "src" / "gui.py"
+GUI_PATH = ROOT / "src" / "date-formatter-gui.py"
 
 warnings.simplefilter("ignore", DeprecationWarning)
 

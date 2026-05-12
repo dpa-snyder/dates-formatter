@@ -10,4 +10,4 @@ if ! ./.venv/bin/python -c 'import importlib.util as u; mods=("pandas","openpyxl
   ./.venv/bin/python -m pip install -r requirements.txt
 fi
 
-./.venv/bin/python -W ignore::DeprecationWarning -m unittest discover -s tests -q
+./.venv/bin/python -m unittest discover -s tests -q

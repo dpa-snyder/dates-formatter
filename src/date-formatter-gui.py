@@ -35,10 +35,50 @@ except Exception:
 import pandas as pd
 import threading
 import re
+import json
+import logging
+import tempfile
+import traceback
+import webbrowser
 from datetime import datetime, timedelta
 import os
 
-THEME_MODE = "dark"  # Persisted user setting; updated in-place by the app.
+MANUAL_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "user-manual.html")
+
+LOG_PATH = os.path.join(tempfile.gettempdir(), "date-formatter.log")
+logging.basicConfig(
+    filename=LOG_PATH,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+
+SETTINGS_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "dates-formatter-settings.json")
+DEFAULT_SETTINGS = {"theme": "dark"}
+
+
+def load_settings():
+    try:
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return {**DEFAULT_SETTINGS, **data}
+    except (OSError, json.JSONDecodeError):
+        pass
+    return dict(DEFAULT_SETTINGS)
+
+
+def save_settings(settings):
+    try:
+        with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+    except OSError as e:
+        logging.warning("Could not save settings to %s: %s", SETTINGS_PATH, e)
+
+
+SETTINGS = load_settings()
+THEME_MODE = SETTINGS["theme"] if SETTINGS["theme"] in {"dark", "light"} else "dark"
 
 ctk.set_appearance_mode(THEME_MODE)
 ctk.set_default_color_theme("blue")
@@ -191,14 +231,20 @@ def custom_format_date(date_str):
             y, mo, d = m.groups()
             return (f'{int(mo):02d}/{int(d):02d}/{y}', '')
 
-        for pat, fmt in [
-            (r'(?i)\bpost[- ]*(\d{4})\b', 'after {year}'),
-            (r'(?i)\bpre[- ]*(\d{4})\b', 'before {year}'),
-            (r'(?i)\bante\.?[- ]*(\d{4})\b', 'before {year}'),
-        ]:
-            m = re.search(pat, date_str)
-            if m:
-                return (fmt.format(year=m.group(1)), 'Yes')
+        m = re.search(
+            r'(?i)\b(?P<kw>before|pre|ante|after|post)\.?\s*-?\s*'
+            r'(?P<date>\d{1,2}/\d{1,2}/\d{4}|\d{4})\b',
+            date_str)
+        if m:
+            kw = m.group('kw').lower()
+            out_kw = 'after' if kw in {'after', 'post'} else 'before'
+            raw = m.group('date')
+            if '/' in raw:
+                mo, d, y = raw.split('/')
+                norm = f'{int(mo):02d}/{int(d):02d}/{y}'
+            else:
+                norm = f'01/01/{raw}' if out_kw == 'before' else f'12/31/{raw}'
+            return (f'{out_kw} {norm}', 'Yes')
 
         if re.match(r'\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}', date_str):
             return (datetime.strptime(date_str.split()[0], '%Y-%m-%d').strftime('%m/%d/%Y'), '')
@@ -450,14 +496,20 @@ def convert_date_pattern(date_str):
         if re.match(r'\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}', date_str):
             return convert_date_pattern(
                 date_str.replace('To', '-').replace('TO', '-').replace('to', '-'))
-        for pat, fmt in [
-            (r'(?i)\bpost[- ]*(\d{4})\b', 'after {year}'),
-            (r'(?i)\bpre[- ]*(\d{4})\b', 'before {year}'),
-            (r'(?i)\bante\.?[- ]*(\d{4})\b', 'before {year}'),
-        ]:
-            m = re.search(pat, date_str)
-            if m:
-                return fmt.format(year=m.group(1))
+        m = re.search(
+            r'(?i)\b(?P<kw>before|pre|ante|after|post)\.?\s*-?\s*'
+            r'(?P<date>\d{1,2}/\d{1,2}/\d{4}|\d{4})\b',
+            date_str)
+        if m:
+            kw = m.group('kw').lower()
+            out_kw = 'after' if kw in {'after', 'post'} else 'before'
+            raw = m.group('date')
+            if '/' in raw:
+                mo, d, y = raw.split('/')
+                norm = f'{int(mo):02d}/{int(d):02d}/{y}'
+            else:
+                norm = f'01/01/{raw}' if out_kw == 'before' else f'12/31/{raw}'
+            return f'{out_kw} {norm}'
         m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})', date_str, re.IGNORECASE)
         if m:
             return f'circa {m.group(2)}'
@@ -480,15 +532,33 @@ def convert_date_pattern(date_str):
 
 # ─── Shared column post-processing ───────────────────────────────────────────
 
+def _pad_alnum(val, width):
+    """Pad numeric portion of an ID to `width` total chars.
+
+    Pure numerics get zero-padded. A single leading letter is preserved
+    and the digits after it get padded so the total length is `width`.
+    Unknown shapes are returned unchanged rather than crashing.
+    """
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return val
+    s = str(val).strip()
+    if s == '':
+        return s
+    m = re.match(r'^([A-Za-z]?)(\d+)$', s)
+    if not m:
+        return s
+    prefix, digits = m.groups()
+    pad = max(0, width - len(prefix))
+    return f'{prefix}{digits.zfill(pad)}'
+
+
 def apply_leading_zeros(df):
     if 'RG' in df.columns:
-        df['RG'] = df['RG'].apply(
-            lambda x: f'{int(x):04d}' if pd.notna(x) and x != '' else x)
+        df['RG'] = df['RG'].apply(lambda x: _pad_alnum(x, 4))
     for col in ['SubGr', 'SG', 'SubGroup', 'Series', 'SubSeries Number',
                 'Record Group Number', 'Subgroup Number', 'Series Number']:
         if col in df.columns:
-            df[col] = df[col].apply(
-                lambda x: f'{int(x):03d}' if pd.notna(x) and x != '' else x)
+            df[col] = df[col].apply(lambda x: _pad_alnum(x, 3))
     return df
 
 
@@ -511,6 +581,12 @@ MODE_LABELS = {
     "Single Date": "Single Date Conversion — MM/DD/YYYY",
     "Date Range":  "ArchivERA Conversion — MM/DD/YYYY to MM/DD/YYYY",
     "Dublin Core": "DublinCore Conversion — formats non-DC inputs",
+}
+
+MODE_HELP = {
+    "Single Date": "Output a single MM/DD/YYYY value. Ranges collapse to the start date.",
+    "Date Range":  "Output a MM/DD/YYYY - MM/DD/YYYY range. Single dates pass through.",
+    "Dublin Core": "Convert Dublin Core / ISO inputs into MM/DD/YYYY format.",
 }
 
 
@@ -609,12 +685,19 @@ class DateFormatterApp(ctk.CTk):
         rb_frame.grid(row=3, column=0, padx=30, pady=(0, 20), sticky="w")
 
         self.mode_var = ctk.StringVar(value="Single Date")
-        for i, mode in enumerate(MODES):
+        row_idx = 0
+        for mode in MODES:
             ctk.CTkRadioButton(
                 rb_frame, text=MODE_LABELS[mode],
                 variable=self.mode_var, value=mode,
                 command=self._check_run_state
-            ).grid(row=i, column=0, pady=4, sticky="w")
+            ).grid(row=row_idx, column=0, pady=(4, 0), sticky="w")
+            ctk.CTkLabel(
+                rb_frame, text=MODE_HELP[mode],
+                font=self._font(11), text_color="gray"
+            ).grid(row=row_idx + 1, column=0, padx=(24, 0),
+                   pady=(0, 6), sticky="w")
+            row_idx += 2
 
         # ── File ──
         ctk.CTkLabel(p, text="File",
@@ -660,35 +743,42 @@ class DateFormatterApp(ctk.CTk):
 
         self.status_lbl = ctk.CTkLabel(
             p, text="", font=self._font(12), text_color="gray")
-        self.status_lbl.grid(row=10, column=0, padx=30, pady=(0, 24), sticky="w")
+        self.status_lbl.grid(row=10, column=0, padx=30, pady=(0, 12), sticky="w")
+
+        # ── Footer (manual link) ──
+        footer = ctk.CTkFrame(p, fg_color="transparent")
+        footer.grid(row=11, column=0, padx=30, pady=(0, 24), sticky="ew")
+        footer.grid_columnconfigure(0, weight=1)
+        ctk.CTkButton(
+            footer, text="📖  View User Manual",
+            height=32, fg_color="transparent", border_width=1,
+            text_color=("gray20", "gray80"),
+            hover_color=("gray85", "gray25"),
+            font=self._font(12),
+            command=self._open_manual
+        ).grid(row=0, column=0, sticky="e")
 
     # ── Callbacks ────────────────────────────────────────────────────────────
+
+    def _open_manual(self):
+        if not os.path.exists(MANUAL_PATH):
+            messagebox.showerror(
+                "Manual not found",
+                f"Expected user-manual.html at:\n{MANUAL_PATH}\n\n"
+                "Ask your IT Admin to redeploy with the manual file.")
+            return
+        try:
+            webbrowser.open(f"file://{MANUAL_PATH}")
+        except Exception as e:
+            logging.error("Failed to open manual: %s", e)
+            messagebox.showerror("Could not open manual", str(e))
 
     def _toggle_theme(self):
         mode = "dark" if self._is_dark.get() else "light"
         ctk.set_appearance_mode(mode)
-        self._persist_theme_mode(mode)
-
-    def _persist_theme_mode(self, mode):
-        """Persist theme preference directly in this script (no external file)."""
-        if mode not in {"dark", "light"}:
-            return
-        script_path = os.path.abspath(__file__)
-        try:
-            with open(script_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            updated = re.sub(
-                r'^THEME_MODE\s*=\s*"(dark|light)"\s*# Persisted user setting; updated in-place by the app\.$',
-                f'THEME_MODE = "{mode}"  # Persisted user setting; updated in-place by the app.',
-                content,
-                count=1,
-                flags=re.MULTILINE,
-            )
-            if updated != content:
-                with open(script_path, "w", encoding="utf-8") as f:
-                    f.write(updated)
-        except OSError:
-            pass
+        if mode in {"dark", "light"}:
+            SETTINGS["theme"] = mode
+            save_settings(SETTINGS)
 
     def _check_run_state(self):
         any_col = any(v.get() for v in self.col_vars.values())
@@ -702,7 +792,10 @@ class DateFormatterApp(ctk.CTk):
         if not path:
             return
         try:
-            df = pd.read_csv(path) if path.endswith('.csv') else pd.read_excel(path)
+            if path.endswith('.csv'):
+                df = pd.read_csv(path, dtype=str, keep_default_na=False)
+            else:
+                df = pd.read_excel(path, dtype=str, keep_default_na=False)
         except Exception as e:
             messagebox.showerror("Error", f"Could not load file:\n{e}")
             return
@@ -744,6 +837,8 @@ class DateFormatterApp(ctk.CTk):
     # ── Processing (background thread) ───────────────────────────────────────
 
     def _run_all(self, columns, mode):
+        logging.info("Run start: mode=%s columns=%s file=%s",
+                     mode, columns, self.file_path)
         try:
             df = self.df.copy()
             n  = len(columns)
@@ -756,12 +851,16 @@ class DateFormatterApp(ctk.CTk):
             self.after(0, self._set_status, 0.97,
                        f"Saving {os.path.basename(self.file_path)}…")
             self._save_with_retry(df, self.file_path)
+            logging.info("Run done: rows=%d flagged=%d", len(df), total_flagged)
             self.after(0, self._finish_all, mode, total_flagged, len(df), n)
         except RuntimeError as e:
+            logging.warning("Run cancelled or non-fatal: %s", e)
             self.after(0, self._set_status, 0, str(e))
             self.after(0, lambda: self.run_btn.configure(state="normal"))
         except Exception as e:
-            self.after(0, self._error, str(e))
+            logging.error("Unhandled exception during run:\n%s",
+                          traceback.format_exc())
+            self.after(0, self._error, f"{e}\n\nDetails logged to: {LOG_PATH}")
 
     def _process_column(self, df, column, mode, p_start, p_end):
         total = len(df)
@@ -780,7 +879,7 @@ class DateFormatterApp(ctk.CTk):
         if mode == "Single Date":
             results = []
             for i, val in enumerate(df[column]):
-                results.append(format_single_date(str(val)) if pd.notna(val) else '')
+                results.append(format_single_date(val) if val else '')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
                              f"[Single] {column} — row {i+1:,} of {total:,}…")
@@ -793,7 +892,7 @@ class DateFormatterApp(ctk.CTk):
         elif mode == "Date Range":
             formatted, flags = [], []
             for i, val in enumerate(df[column]):
-                v, f = custom_format_date(str(val)) if pd.notna(val) else ('undated', '')
+                v, f = custom_format_date(val) if val else ('undated', '')
                 formatted.append(v)
                 flags.append(f)
                 if i % tick == 0:
@@ -822,7 +921,7 @@ class DateFormatterApp(ctk.CTk):
             for i, val in enumerate(df[column]):
                 results.append(
                     ensure_chronological_order(
-                        convert_date_pattern(str(val))) if pd.notna(val) else 'undated')
+                        convert_date_pattern(val)) if val else 'undated')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
                              f"[Dublin Core] {column} — row {i+1:,} of {total:,}…")
@@ -854,7 +953,12 @@ class DateFormatterApp(ctk.CTk):
                 if path.endswith('.csv'):
                     df.to_csv(path, index=False)
                 else:
-                    df.to_excel(path, index=False)
+                    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                        df.to_excel(writer, index=False)
+                        ws = writer.sheets[next(iter(writer.sheets))]
+                        for row in ws.iter_rows(min_row=2):
+                            for cell in row:
+                                cell.number_format = '@'
                 return
             except PermissionError:
                 event.clear()
@@ -883,8 +987,13 @@ class DateFormatterApp(ctk.CTk):
         self.run_btn.configure(state="normal")
         self.progress_bar.set(1.0)
         col_str = f"{n_cols} column{'s' if n_cols > 1 else ''}"
-        self.status_lbl.configure(
-            text=f"Done — {total:,} rows, {col_str}  |  {flagged:,} flagged")
+        if flagged:
+            text = (f"Done — {total:,} rows, {col_str}  |  "
+                    f"{flagged:,} flagged for review "
+                    f"(see 'Check ...' column)")
+        else:
+            text = f"Done — {total:,} rows, {col_str}  |  no rows flagged"
+        self.status_lbl.configure(text=text)
 
     def _error(self, msg):
         self.run_btn.configure(state="normal")

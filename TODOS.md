@@ -1,29 +1,16 @@
 # TODOs
 
-Ongoing and pinned items. See ACTION-PLAN.md for completed work.
+Indexed task list. Each task has an **ID**, **Importance** (1 = nice-to-have, 5 = critical), and an **Order** value (suggested execution sequence — lower runs first).
+
+See `CONVERSIONS.md` for the full input/output spec.
+See `DONE.md` for completed work.
+See `recommendations.md` for review notes (R-001 … R-007).
 
 ---
 
-## P0 — Bug Fixes (identified from test output analysis)
+## Active
 
-These are confirmed bugs with wrong or garbled output. Highest priority.
-
----
-- `convert_strange_named_ranges` does not fully normalize named month ranges when only one side includes a year (example: `June 1 1940 - July 2`). Current behavior should remain flagged (`Check ... = Yes`) until parser logic is fixed.
-
----
-
-## Next Phase
-
-### GUI
-Polish and package the GUI app for end users. Potential future work:
-- friendlier output naming and save-location controls
-- bundled Windows packaging if Python should not be installed separately
-- clearer help text for mode selection and flagged rows
-
----
-
-## Housekeeping
-
-### Suppress openpyxl deprecation warning during tests
-`openpyxl` emits a Python 3.13 deprecation warning (`datetime.utcnow()`) during fixture reads. Current workaround is to suppress it in the test command.
+| ID | Order | Importance | Title | Notes |
+|----|-------|------------|-------|-------|
+| T-001 | 1 | 4 | Deploy fixed `prod/date-formatter-gui.py` to `%USERPROFILE%\scripts\` on client machine | Validates fixes + GUI polish + logging + JSON settings sidecar in real Windows env. Smoke-test with `9200-W22.xlsx`. **Dependency upgrade** required on client machine: `pip install --upgrade openpyxl==3.1.5` (or `py -m pip install --upgrade openpyxl==3.1.5` if `pip` isn't on PATH). Verify with `py -c "import openpyxl; print(openpyxl.__version__)"`. After first launch the script creates `dates-formatter-settings.json` next to itself — that's expected. |
+| T-010 | 2 | 2 | Bundle as Windows installer (PyInstaller / similar) — **pinned for later** | So end users don't install Python separately. T-005 unblocked this — sidecar path uses `os.path.dirname(os.path.abspath(__file__))` which points into a PyInstaller temp extract dir when frozen. Will need a path switch to `%APPDATA%\date-formatter\dates-formatter-settings.json` at bundle time. |

@@ -61,3 +61,6 @@ $RECYCLE.BIN/
 *_range.csv
 *_dublin-core.xlsx
 *_dublin-core.csv
+
+# Runtime user settings (sidecar created by GUI)
+dates-formatter-settings.json

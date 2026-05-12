@@ -17,7 +17,11 @@
       "Bash(python3:*)",
       "Bash(./run-tests.sh)",
       "Bash(grep -n \"serial\\\\|\\\\d{4,5}\" /Users/baghead/code/leading-zeros-dates/src/gui.py)",
-      "Bash(grep -n \"fullmatch\\\\|\\\\d{4,5}\\\\|\\\\d{5}\" /Users/baghead/code/leading-zeros-dates/prod/date-formatter-range.py)"
+      "Bash(grep -n \"fullmatch\\\\|\\\\d{4,5}\\\\|\\\\d{5}\" /Users/baghead/code/leading-zeros-dates/prod/date-formatter-range.py)",
+      "Bash(./.venv/bin/python *)",
+      "Bash(git stash *)",
+      "Bash(./.venv/bin/pip index *)",
+      "Bash(./.venv/bin/pip install *)"
     ]
   }
 }
