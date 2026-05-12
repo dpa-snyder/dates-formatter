@@ -1516,7 +1516,16 @@ class DateFormatterApp(ctk.CTk):
 
     # ── Mode/column mismatch hint ──
 
-    def _detect_likely_mode(self, col_name):
+    # Range-capable modes both emit ranges when the input is a year, decade,
+    # range, etc. Single Date mode collapses ranges to their start date.
+    _MODE_GROUP = {
+        "Single Date": "single",
+        "Date Range":  "range",
+        "Dublin Core": "range",
+    }
+
+    def _detect_data_kind(self, col_name):
+        """Return 'range', 'single', or None based on the column's contents."""
         if self.df is None or col_name not in self.df.columns:
             return None
         samples = []
@@ -1529,25 +1538,33 @@ class DateFormatterApp(ctk.CTk):
         if not samples:
             return None
 
-        range_pat = re.compile(r'\d{1,2}/\d{1,2}/\d{4}\s*-\s*\d{1,2}/\d{1,2}/\d{4}')
-        single_pat = re.compile(r'^\d{1,2}/\d{1,2}/\d{4}$')
-        year_pat = re.compile(r'^\d{4}$')
-        iso_pat = re.compile(r'^\d{4}-\d{2}(-\d{2})?(/.+)?$')
+        range_pat       = re.compile(r'\d{1,2}/\d{1,2}/\d{4}\s*-\s*\d{1,2}/\d{1,2}/\d{4}')
+        single_pat      = re.compile(r'^\d{1,2}/\d{1,2}/\d{4}$')
+        year_pat        = re.compile(r'^\d{4}$')
+        decade_pat      = re.compile(r'^\d{4}s$')
+        year_range_pat  = re.compile(r'^\d{4}\s*-\s*\d{4}$')
+        iso_single_pat  = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+        iso_range_pat   = re.compile(r'^\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}$')
+        iso_partial_pat = re.compile(r'^\d{4}(-\d{2})?(/\d{4})')
+        fuzzy_pat       = re.compile(r'(?i)\b(circa|ca\.?|approx|before|after|pre|post|ante)\b')
 
-        ranges = sum(1 for s in samples if range_pat.search(s))
-        singles = sum(1 for s in samples if single_pat.match(s))
-        isos = sum(1 for s in samples if iso_pat.match(s))
-        years = sum(1 for s in samples if year_pat.match(s))
+        range_count = 0
+        single_count = 0
+        for s in samples:
+            if (range_pat.search(s) or year_range_pat.match(s)
+                    or iso_range_pat.match(s) or iso_partial_pat.match(s)):
+                range_count += 1
+            elif year_pat.match(s) or decade_pat.match(s) or fuzzy_pat.search(s):
+                # Years, decades, and fuzzy dates expand to ranges in range modes
+                range_count += 1
+            elif single_pat.match(s) or iso_single_pat.match(s):
+                single_count += 1
+
         total = len(samples)
-
-        if isos / total > 0.5:
-            return "Dublin Core"
-        if ranges / total > 0.4:
-            return "Date Range"
-        if years / total > 0.5:
-            return "Date Range"
-        if singles / total > 0.5:
-            return "Single Date"
+        if range_count / total > 0.4:
+            return "range"
+        if single_count / total > 0.5:
+            return "single"
         return None
 
     def _update_mismatch_hint(self):
@@ -1555,10 +1572,18 @@ class DateFormatterApp(ctk.CTk):
         cols = [c for c, v in self.col_vars.items() if v.get()]
         text = None
         if cols:
-            likely = self._detect_likely_mode(cols[0])
-            if likely and likely != mode:
-                text = (f"Heads up: values in '{cols[0]}' look like a better "
-                        f"fit for {likely} mode. Currently using {mode}.")
+            kind = self._detect_data_kind(cols[0])
+            mode_group = self._MODE_GROUP.get(mode)
+            if kind and mode_group and kind != mode_group:
+                if kind == "range":
+                    text = (f"Heads up: values in '{cols[0]}' look like "
+                            f"ranges. Consider using one of the range modes "
+                            f"(ArchivERA or Dublin Core). "
+                            f"Currently using {mode}.")
+                else:  # kind == "single"
+                    text = (f"Heads up: values in '{cols[0]}' look like "
+                            f"single dates. Consider using the Single Date "
+                            f"option. Currently using {mode}.")
 
         for lbl_name in ("_hint_label", "_modal_hint_label"):
             lbl = getattr(self, lbl_name, None)
