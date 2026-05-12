@@ -813,8 +813,9 @@ class DateFormatterApp(ctk.CTk):
 
         ctk.CTkLabel(
             parent, text="Standardize date columns in Excel and CSV spreadsheets.",
-            font=self._font(13), text_color=("gray45", "gray60")
-        ).grid(row=row, column=0, padx=28, pady=(38, 18), sticky="w")
+            font=self._font(13), text_color=("gray45", "gray60"),
+            wraplength=700, justify="left", anchor="w"
+        ).grid(row=row, column=0, padx=28, pady=(38, 18), sticky="ew")
 
     # ── Stepper (1 Mode → 2 File → 3 Columns → 4 Run) ──
 
@@ -928,14 +929,15 @@ class DateFormatterApp(ctk.CTk):
         out_lbl = ctk.CTkLabel(
             inner, text=MODE_OUTPUT_EXAMPLE[mode],
             font=self._mono_font(11),
-            text_color=("gray40", "gray60"))
-        out_lbl.pack(anchor="w")
+            text_color=("gray40", "gray60"),
+            wraplength=190, justify="left", anchor="w")
+        out_lbl.pack(anchor="w", fill="x")
         help_lbl = ctk.CTkLabel(
             inner, text=MODE_HELP[mode],
             font=self._font(11),
             text_color=("gray35", "gray65"),
-            wraplength=200, justify="left")
-        help_lbl.pack(anchor="w", pady=(8, 0))
+            wraplength=190, justify="left", anchor="w")
+        help_lbl.pack(anchor="w", pady=(8, 0), fill="x")
 
         def select(_e=None, m=mode):
             self.mode_var.set(m)
@@ -1046,8 +1048,8 @@ class DateFormatterApp(ctk.CTk):
         self._hint_label = ctk.CTkLabel(
             body, text="", font=self._font(11),
             text_color=("#b35900", "#f0a060"),
-            wraplength=600, justify="left")
-        self._hint_label.grid(row=2, column=0, sticky="w", pady=(8, 0))
+            wraplength=600, justify="left", anchor="w")
+        self._hint_label.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         self._hint_label.grid_remove()
 
     def _refresh_columns(self, *_):
@@ -1107,8 +1109,9 @@ class DateFormatterApp(ctk.CTk):
 
         self._output_hint = ctk.CTkLabel(
             body, text="", font=self._font(11),
-            text_color=("gray45", "gray60"))
-        self._output_hint.grid(row=1, column=0, sticky="w", pady=(8, 0))
+            text_color=("gray45", "gray60"),
+            wraplength=600, justify="left", anchor="w")
+        self._output_hint.grid(row=1, column=0, sticky="ew", pady=(8, 0))
         self._update_output_hint()
 
     def _update_output_hint(self):
@@ -1153,11 +1156,11 @@ class DateFormatterApp(ctk.CTk):
     def _build_status_panel(self, parent, row):
         body = self._make_card(parent, row, "Status", "📊")
         self.status_box = ctk.CTkTextbox(
-            body, height=90,
+            body, height=100,
             font=self._mono_font(11),
             fg_color=("gray96", "gray11"),
             border_width=1, border_color=("gray85", "gray22"),
-            wrap="none")
+            wrap="word")
         self.status_box.grid(row=0, column=0, sticky="ew")
         self.status_box.configure(state="disabled")
 
@@ -1557,7 +1560,7 @@ class DateFormatterApp(ctk.CTk):
         dlg = ctk.CTkToplevel(self)
         dlg.title("Conversion complete")
         dlg.transient(self)
-        dlg.resizable(False, False)
+        dlg.minsize(480, 360)
         try:
             dlg.grab_set()
         except Exception:
@@ -1587,11 +1590,13 @@ class DateFormatterApp(ctk.CTk):
         for i, (k, v) in enumerate(rows):
             ctk.CTkLabel(
                 body, text=k, font=self._font(11),
-                text_color=("gray45", "gray60")
+                text_color=("gray45", "gray60"),
+                anchor="w"
             ).grid(row=i, column=0, sticky="w", pady=3, padx=(0, 16))
             ctk.CTkLabel(
-                body, text=str(v), font=self._font(11)
-            ).grid(row=i, column=1, sticky="w", pady=3)
+                body, text=str(v), font=self._font(11),
+                wraplength=320, justify="left", anchor="w"
+            ).grid(row=i, column=1, sticky="ew", pady=3)
 
         if flagged:
             ctk.CTkLabel(
