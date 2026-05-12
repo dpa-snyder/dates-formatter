@@ -712,6 +712,14 @@ class DateFormatterApp(ctk.CTk):
         self._mode_cards = {}
         self._step_widgets = []
         self._geom_after = None
+        self._columns_modal = None
+        self._progress_modal = None
+        self._modal_status_box = None
+        self._modal_progress_bar = None
+        self._modal_title_lbl = None
+        self._modal_btn_row = None
+        self._modal_summary_body = None
+        self._cols_modal_search = None
 
         self._build_ui()
         self._update_stepper(1)
@@ -745,6 +753,46 @@ class DateFormatterApp(ctk.CTk):
         scaled = max(10, min(40, scaled))
         return ctk.CTkFont(family="TkFixedFont", size=scaled)
 
+    def _bind_mousewheel(self, root_widget, canvas):
+        """Recursively wire mousewheel + trackpad + Linux button-4/5 scroll
+        events to the given canvas, so scrolling works even when the cursor
+        is over a child widget that would otherwise swallow the event."""
+        def on_wheel(event):
+            try:
+                if sys.platform == "darwin":
+                    canvas.yview_scroll(-int(event.delta), "units")
+                else:
+                    canvas.yview_scroll(-int(event.delta / 120), "units")
+            except Exception:
+                pass
+            return "break"
+
+        def on_btn4(_e):
+            try:
+                canvas.yview_scroll(-1, "units")
+            except Exception:
+                pass
+            return "break"
+
+        def on_btn5(_e):
+            try:
+                canvas.yview_scroll(1, "units")
+            except Exception:
+                pass
+            return "break"
+
+        def attach(w):
+            try:
+                w.bind("<MouseWheel>", on_wheel, add="+")
+                w.bind("<Button-4>", on_btn4, add="+")
+                w.bind("<Button-5>", on_btn5, add="+")
+            except Exception:
+                pass
+            for child in w.winfo_children():
+                attach(child)
+
+        attach(root_widget)
+
     def _set_window_geometry(self):
         """Restore saved window state if any. Otherwise scale to desktop."""
         self.update_idletasks()
@@ -757,19 +805,19 @@ class DateFormatterApp(ctk.CTk):
             if m:
                 w, h, x, y = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
                 w = max(720, min(w, screen_w))
-                h = max(820, min(h, screen_h))
+                h = max(680, min(h, screen_h))
                 x = max(0, min(x, max(0, screen_w - 100)))
                 y = max(0, min(y, max(0, screen_h - 100)))
                 self.geometry(f"{w}x{h}+{x}+{y}")
-                self.minsize(720, 820)
+                self.minsize(720, 680)
                 return
 
-        width = max(760, min(1100, int(screen_w * 0.72)))
-        height = max(840, min(960, int(screen_h * 0.90)))
+        width = max(760, min(1080, int(screen_w * 0.62)))
+        height = max(720, min(820, int(screen_h * 0.78)))
         x = max(0, (screen_w - width) // 2)
         y = 0
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(720, 820)
+        self.minsize(720, 680)
 
     # ── Layout ───────────────────────────────────────────────────────────────
 
@@ -780,42 +828,62 @@ class DateFormatterApp(ctk.CTk):
         p = ctk.CTkScrollableFrame(self, fg_color="transparent")
         p.grid(row=0, column=0, sticky="nsew")
         p.grid_columnconfigure(0, weight=1)
+        self._main_scroll = p
+        try:
+            self._bind_mousewheel(p, p._parent_canvas)
+        except Exception:
+            pass
 
         self._build_header(p, row=0)
         self._build_stepper(p, row=1)
         self._build_mode_card(p, row=2)
         self._build_file_card(p, row=3)
-        self._build_columns_card(p, row=4)
+        self._build_columns_summary(p, row=4)
         self._build_output_card(p, row=5)
         self._build_run_section(p, row=6)
-        self._build_status_panel(p, row=7)
-        self._build_footer(p, row=8)
+        self._build_footer(p, row=7)
 
     # ── Header (title + subtitle + theme segmented) ──
 
     def _build_header(self, parent, row):
         bar = ctk.CTkFrame(parent, fg_color="transparent")
-        bar.grid(row=row, column=0, padx=28, pady=(24, 4), sticky="ew")
+        bar.grid(row=row, column=0, padx=28, pady=(22, 4), sticky="ew")
         bar.grid_columnconfigure(0, weight=1)
 
-        title = ctk.CTkLabel(
-            bar, text="Date Formatter",
-            font=self._font(26, "bold"))
-        title.grid(row=0, column=0, sticky="w")
+        title_col = ctk.CTkFrame(bar, fg_color="transparent")
+        title_col.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(
+            title_col, text="Date Formatter",
+            font=self._font(24, "bold")
+        ).pack(anchor="w")
+        ctk.CTkLabel(
+            title_col,
+            text="Standardize date columns in Excel and CSV spreadsheets.",
+            font=self._font(12), text_color=("gray45", "gray60"),
+            wraplength=520, justify="left", anchor="w"
+        ).pack(anchor="w", pady=(2, 0))
+
+        right = ctk.CTkFrame(bar, fg_color="transparent")
+        right.grid(row=0, column=1, sticky="e")
 
         self.theme_seg = ctk.CTkSegmentedButton(
-            bar, values=["Light", "Dark", "Auto"],
+            right, values=["Light", "Dark", "Auto"],
             command=self._on_theme_change,
             font=self._font(11))
         self.theme_seg.set(THEME_LABELS.get(THEME_MODE, "Dark"))
-        self.theme_seg.grid(row=0, column=1, sticky="e")
+        self.theme_seg.pack(side="left", padx=(0, 8))
         Tooltip(self.theme_seg, "Light, Dark, or Auto (follow system).")
 
-        ctk.CTkLabel(
-            parent, text="Standardize date columns in Excel and CSV spreadsheets.",
-            font=self._font(13), text_color=("gray45", "gray60"),
-            wraplength=700, justify="left", anchor="w"
-        ).grid(row=row, column=0, padx=28, pady=(38, 18), sticky="ew")
+        manual_btn = ctk.CTkButton(
+            right, text="📖  Manual",
+            height=28, width=92,
+            fg_color="transparent", border_width=1,
+            text_color=("gray20", "gray80"),
+            hover_color=("gray85", "gray25"),
+            font=self._font(11),
+            command=self._open_manual)
+        manual_btn.pack(side="left")
+        Tooltip(manual_btn, "Open the User Manual in your default browser.")
 
     # ── Stepper (1 Mode → 2 File → 3 Columns → 4 Run) ──
 
@@ -991,70 +1059,207 @@ class DateFormatterApp(ctk.CTk):
 
     # ── Columns card (search + checkbox list) ──
 
-    def _build_columns_card(self, parent, row):
+    def _build_columns_summary(self, parent, row):
         body = self._make_card(parent, row, "Columns to Format", "☑")
+        body.grid_columnconfigure(0, weight=1)
 
-        # Search bar: icon + entry + result count, visually distinct
+        self._cols_summary_lbl = ctk.CTkLabel(
+            body, text="Load a file to begin.",
+            font=self._font(12),
+            text_color=("gray35", "gray70"),
+            wraplength=520, justify="left", anchor="w")
+        self._cols_summary_lbl.grid(row=0, column=0, sticky="ew", padx=(0, 12))
+
+        self._choose_cols_btn = ctk.CTkButton(
+            body, text="Choose Columns",
+            width=140, height=32,
+            state="disabled",
+            command=self._open_columns_modal)
+        self._choose_cols_btn.grid(row=0, column=1, sticky="e")
+        Tooltip(self._choose_cols_btn,
+                "Open a window with the full column list, "
+                "search, and checkboxes.")
+
+        self._hint_label = ctk.CTkLabel(
+            body, text="", font=self._font(11),
+            text_color=("#b35900", "#f0a060"),
+            wraplength=600, justify="left", anchor="w")
+        self._hint_label.grid(row=1, column=0, columnspan=2,
+                              sticky="ew", pady=(8, 0))
+        self._hint_label.grid_remove()
+
+    def _update_columns_summary(self):
+        if self.df is None:
+            self._cols_summary_lbl.configure(
+                text="Load a file to begin.",
+                text_color=("gray35", "gray70"))
+            self._choose_cols_btn.configure(state="disabled")
+            return
+
+        selected = [c for c, v in self.col_vars.items() if v.get()]
+        total = len(self.col_vars)
+        self._choose_cols_btn.configure(state="normal")
+
+        if not selected:
+            self._cols_summary_lbl.configure(
+                text=f"{total} columns available. No columns selected yet.",
+                text_color=("#b35900", "#f0a060"))
+        else:
+            preview = selected[:3]
+            extra = len(selected) - len(preview)
+            preview_text = ", ".join(preview)
+            if extra > 0:
+                preview_text += f", +{extra} more"
+            self._cols_summary_lbl.configure(
+                text=f"{len(selected)} of {total} columns selected: {preview_text}",
+                text_color=("gray20", "gray85"))
+
+    # ── Columns modal ──
+
+    def _open_columns_modal(self):
+        if self.df is None or self._columns_modal is not None:
+            return
+
+        # Snapshot current selection so Cancel can restore
+        snapshot = {c: v.get() for c, v in self.col_vars.items()}
+
+        dlg = ctk.CTkToplevel(self)
+        dlg.title("Choose Date Columns")
+        dlg.transient(self)
+        dlg.minsize(440, 540)
+        try:
+            dlg.grab_set()
+        except Exception:
+            pass
+
+        outer = ctk.CTkFrame(dlg, fg_color="transparent")
+        outer.pack(fill="both", expand=True, padx=18, pady=14)
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_rowconfigure(2, weight=1)
+
+        ctk.CTkLabel(
+            outer,
+            text="Tick the columns that contain dates.",
+            font=self._font(12),
+            text_color=("gray35", "gray70"),
+            anchor="w"
+        ).grid(row=0, column=0, sticky="ew", pady=(0, 10))
+
+        # Search row
         search_row = ctk.CTkFrame(
-            body, fg_color=("gray94", "gray18"),
+            outer, fg_color=("gray94", "gray18"),
             border_width=1, border_color=("gray80", "gray28"),
             corner_radius=8, height=36)
-        search_row.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        search_row.grid(row=1, column=0, sticky="ew", pady=(0, 8))
         search_row.grid_columnconfigure(1, weight=1)
         search_row.grid_propagate(False)
 
         ctk.CTkLabel(
-            search_row, text="🔍",
-            font=self._font(13),
+            search_row, text="🔍", font=self._font(13),
             text_color=("gray45", "gray60")
         ).grid(row=0, column=0, padx=(12, 6), pady=4)
 
         self.search_entry = ctk.CTkEntry(
             search_row,
             placeholder_text="Search columns by name. Live results.",
-            fg_color="transparent", border_width=0,
-            height=28)
+            fg_color="transparent", border_width=0, height=28)
         self.search_entry.grid(row=0, column=1, sticky="ew", padx=(0, 6), pady=2)
-        # CTkEntry wraps an internal tk.Entry. Bind both layers so KeyRelease
-        # always fires regardless of which widget actually receives the event.
         inner_entry = getattr(self.search_entry, "_entry", self.search_entry)
         for target in (self.search_entry, inner_entry):
             try:
                 target.bind("<KeyRelease>", self._refresh_columns, add="+")
             except Exception:
                 pass
-        # Defensive: poll the entry value 4x/second so the filter still updates
-        # even if no KeyRelease event reaches us (placeholder mode, IME, etc.).
         self._last_search_text = ""
         self.after(250, self._poll_search)
-        Tooltip(self.search_entry,
-                "Type to filter the column list below. Case-insensitive. "
-                "Matches anywhere in the column name.")
 
         self._search_count = ctk.CTkLabel(
-            search_row, text="",
-            font=self._font(11),
+            search_row, text="", font=self._font(11),
             text_color=("gray45", "gray60"))
         self._search_count.grid(row=0, column=2, padx=(0, 12), pady=4)
 
-        self.col_frame = ctk.CTkScrollableFrame(body, height=140)
-        self.col_frame.grid(row=1, column=0, sticky="ew")
-        self.col_frame.grid_columnconfigure(0, weight=1)
-        self._col_placeholder = ctk.CTkLabel(
-            self.col_frame, text="Load a file first.",
-            text_color=("gray45", "gray60"))
-        self._col_placeholder.grid(row=0, column=0, pady=6, sticky="w")
+        # Scrollable column list
+        scroll = ctk.CTkScrollableFrame(outer, height=320)
+        scroll.grid(row=2, column=0, sticky="nsew")
+        scroll.grid_columnconfigure(0, weight=1)
+        self.col_frame = scroll
+        self._col_checkboxes = {}
 
-        self._hint_label = ctk.CTkLabel(
-            body, text="", font=self._font(11),
+        for i, col in enumerate(self.col_vars.keys()):
+            var = self.col_vars[col]
+            cb = ctk.CTkCheckBox(
+                scroll, text=col, variable=var,
+                command=self._on_state_change)
+            cb.grid(row=i, column=0, sticky="w", pady=2)
+            self._col_checkboxes[col] = cb
+
+        # Make wheel/trackpad scrolling work over child widgets
+        try:
+            self._bind_mousewheel(scroll, scroll._parent_canvas)
+        except Exception:
+            pass
+
+        self._refresh_columns()
+
+        # Mismatch hint inside modal
+        modal_hint = ctk.CTkLabel(
+            outer, text="", font=self._font(11),
             text_color=("#b35900", "#f0a060"),
-            wraplength=600, justify="left", anchor="w")
-        self._hint_label.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        self._hint_label.grid_remove()
+            wraplength=400, justify="left", anchor="w")
+        modal_hint.grid(row=3, column=0, sticky="ew", pady=(8, 0))
+        modal_hint.grid_remove()
+        self._modal_hint_label = modal_hint
+        self._update_mismatch_hint()
+
+        # Buttons
+        btn_row = ctk.CTkFrame(outer, fg_color="transparent")
+        btn_row.grid(row=4, column=0, sticky="ew", pady=(12, 0))
+        btn_row.grid_columnconfigure(0, weight=1)
+
+        def on_cancel():
+            for c, prev in snapshot.items():
+                if c in self.col_vars:
+                    self.col_vars[c].set(prev)
+            close_modal()
+
+        def on_done():
+            close_modal()
+
+        def close_modal():
+            self._cols_modal_search = None
+            self._modal_hint_label = None
+            try:
+                dlg.grab_release()
+            except Exception:
+                pass
+            dlg.destroy()
+            self._columns_modal = None
+            self._on_state_change()
+
+        ctk.CTkButton(
+            btn_row, text="Cancel", width=100,
+            fg_color="transparent", border_width=1,
+            text_color=("gray20", "gray80"),
+            hover_color=("gray85", "gray25"),
+            command=on_cancel
+        ).grid(row=0, column=0, sticky="e", padx=(0, 8))
+        ctk.CTkButton(
+            btn_row, text="Done", width=110,
+            command=on_done
+        ).grid(row=0, column=1, sticky="e")
+
+        dlg.protocol("WM_DELETE_WINDOW", on_cancel)
+        self._columns_modal = dlg
+        self._center_dialog(dlg)
+        self.search_entry.focus_set()
 
     def _refresh_columns(self, *_):
         if not self._col_checkboxes:
-            self._search_count.configure(text="")
+            if hasattr(self, "_search_count") and self._search_count is not None:
+                try:
+                    self._search_count.configure(text="")
+                except Exception:
+                    pass
             self._last_search_text = ""
             return
         try:
@@ -1070,20 +1275,33 @@ class DateFormatterApp(ctk.CTk):
             else:
                 cb.grid_remove()
         total = len(self._col_checkboxes)
-        if q:
-            self._search_count.configure(text=f"{visible} / {total}")
-        else:
-            self._search_count.configure(text=f"{total} columns")
+        if hasattr(self, "_search_count") and self._search_count is not None:
+            try:
+                if q:
+                    self._search_count.configure(text=f"{visible} / {total}")
+                else:
+                    self._search_count.configure(text=f"{total} columns")
+            except Exception:
+                pass
 
     def _poll_search(self):
-        """Fallback polling for the search entry, in case KeyRelease bind doesn't fire."""
+        if self._columns_modal is None:
+            return
         try:
             current = self.search_entry.get().strip().lower()
             if current != self._last_search_text:
                 self._refresh_columns()
         except Exception:
-            pass
+            return
         self.after(250, self._poll_search)
+
+    def _center_dialog(self, dlg):
+        dlg.update_idletasks()
+        w = dlg.winfo_width() or 480
+        h = dlg.winfo_height() or 540
+        x = self.winfo_rootx() + max(0, (self.winfo_width() - w) // 2)
+        y = self.winfo_rooty() + max(0, (self.winfo_height() - h) // 3)
+        dlg.geometry(f"+{x}+{y}")
 
     # ── Output card (overwrite vs save copy) ──
 
@@ -1147,38 +1365,11 @@ class DateFormatterApp(ctk.CTk):
             "Process the selected columns. Disabled until a file and "
             "at least one column are selected.")
 
-        self.progress_bar = ctk.CTkProgressBar(wrap, height=8)
-        self.progress_bar.set(0)
-        self.progress_bar.grid(row=1, column=0, sticky="ew", pady=(12, 0))
-
-    # ── Status panel (rolling log) ──
-
-    def _build_status_panel(self, parent, row):
-        body = self._make_card(parent, row, "Status", "📊")
-        self.status_box = ctk.CTkTextbox(
-            body, height=100,
-            font=self._mono_font(11),
-            fg_color=("gray96", "gray11"),
-            border_width=1, border_color=("gray85", "gray22"),
-            wrap="word")
-        self.status_box.grid(row=0, column=0, sticky="ew")
-        self.status_box.configure(state="disabled")
-
-    def _log(self, text, level="info"):
-        prefix = {"info": "  ", "ok": "✓ ", "warn": "⚠ ", "err": "✕ "}.get(level, "  ")
-        try:
-            self.status_box.configure(state="normal")
-            self.status_box.insert("end", f"{prefix}{text}\n")
-            self.status_box.see("end")
-            self.status_box.configure(state="disabled")
-        except Exception:
-            pass
-
-    # ── Footer ──
+    # ── Footer (version only) ──
 
     def _build_footer(self, parent, row):
         footer = ctk.CTkFrame(parent, fg_color="transparent")
-        footer.grid(row=row, column=0, padx=28, pady=(2, 24), sticky="ew")
+        footer.grid(row=row, column=0, padx=28, pady=(8, 18), sticky="ew")
         footer.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -1187,14 +1378,22 @@ class DateFormatterApp(ctk.CTk):
             text_color=("gray55", "gray45")
         ).grid(row=0, column=0, sticky="w")
 
-        ctk.CTkButton(
-            footer, text="📖  View User Manual",
-            height=32, fg_color="transparent", border_width=1,
-            text_color=("gray20", "gray80"),
-            hover_color=("gray85", "gray25"),
-            font=self._font(12),
-            command=self._open_manual
-        ).grid(row=0, column=1, sticky="e")
+    def _log(self, text, level="info"):
+        """Append to the progress modal log if open. Always also log to file."""
+        try:
+            logging.info("[%s] %s", level, text)
+        except Exception:
+            pass
+        if self._modal_status_box is None:
+            return
+        prefix = {"info": "  ", "ok": "✓ ", "warn": "⚠ ", "err": "✕ "}.get(level, "  ")
+        try:
+            self._modal_status_box.configure(state="normal")
+            self._modal_status_box.insert("end", f"{prefix}{text}\n")
+            self._modal_status_box.see("end")
+            self._modal_status_box.configure(state="disabled")
+        except Exception:
+            pass
 
     # ── Callbacks ────────────────────────────────────────────────────────────
 
@@ -1258,6 +1457,7 @@ class DateFormatterApp(ctk.CTk):
         else:
             self._update_stepper(4)
 
+        self._update_columns_summary()
         self._update_mismatch_hint()
         self._update_output_hint()
 
@@ -1289,29 +1489,16 @@ class DateFormatterApp(ctk.CTk):
         self.file_entry.insert(0, os.path.basename(path))
         self.file_entry.configure(state="disabled")
 
-        # Rebuild column checkboxes
-        for widget in self.col_frame.winfo_children():
-            widget.destroy()
-        self.col_vars = {}
+        # Column selection vars only. Checkboxes are built when the modal opens.
+        self.col_vars = {col: ctk.BooleanVar(value=False) for col in df.columns}
         self._col_checkboxes = {}
-        for i, col in enumerate(df.columns):
-            var = ctk.BooleanVar(value=False)
-            self.col_vars[col] = var
-            cb = ctk.CTkCheckBox(
-                self.col_frame, text=col,
-                variable=var, command=self._on_state_change)
-            cb.grid(row=i, column=0, pady=2, sticky="w")
-            self._col_checkboxes[col] = cb
-        try:
-            self.search_entry.delete(0, "end")
-        except Exception:
-            pass
-        self._refresh_columns()
 
-        self._log(f"Loaded {os.path.basename(path)} ({len(df):,} rows, "
-                  f"{len(df.columns)} columns).", "ok")
+        logging.info("Loaded %s (%d rows, %d cols)",
+                     path, len(df), len(df.columns))
         self._on_state_change()
-        self.progress_bar.set(0)
+
+        # Auto-open the columns picker so the user can immediately tick columns
+        self.after(150, self._open_columns_modal)
 
     def _open_path(self, path):
         if not path:
@@ -1364,32 +1551,123 @@ class DateFormatterApp(ctk.CTk):
         return None
 
     def _update_mismatch_hint(self):
-        if not hasattr(self, "_hint_label"):
-            return
         mode = self.mode_var.get()
         cols = [c for c, v in self.col_vars.items() if v.get()]
-        if not cols:
-            self._hint_label.grid_remove()
-            return
-        likely = self._detect_likely_mode(cols[0])
-        if likely and likely != mode:
-            self._hint_label.configure(
-                text=(f"Heads up: values in '{cols[0]}' look like a better "
-                      f"fit for {likely} mode. Currently using {mode}."))
-            self._hint_label.grid()
-        else:
-            self._hint_label.grid_remove()
+        text = None
+        if cols:
+            likely = self._detect_likely_mode(cols[0])
+            if likely and likely != mode:
+                text = (f"Heads up: values in '{cols[0]}' look like a better "
+                        f"fit for {likely} mode. Currently using {mode}.")
+
+        for lbl_name in ("_hint_label", "_modal_hint_label"):
+            lbl = getattr(self, lbl_name, None)
+            if lbl is None:
+                continue
+            try:
+                if text:
+                    lbl.configure(text=text)
+                    lbl.grid()
+                else:
+                    lbl.grid_remove()
+            except Exception:
+                pass
 
     def _run(self):
         mode    = self.mode_var.get()
         columns = [col for col, var in self.col_vars.items() if var.get()]
         if not columns:
             return
+        # If the columns modal is open, close it before starting the run
+        if self._columns_modal is not None:
+            try:
+                self._columns_modal.grab_release()
+                self._columns_modal.destroy()
+            except Exception:
+                pass
+            self._columns_modal = None
         self.run_btn.configure(state="disabled")
-        self.progress_bar.set(0)
-        self._log(f"Run start. Mode: {mode}. Columns: {', '.join(columns)}.")
+        self._show_progress_modal()
+        self._log(f"Run start. Mode: {mode}. "
+                  f"Columns: {', '.join(columns)}.", "info")
         threading.Thread(
             target=self._run_all, args=(columns, mode), daemon=True).start()
+
+    # ── Progress modal ──
+
+    def _show_progress_modal(self):
+        if self._progress_modal is not None:
+            return
+        dlg = ctk.CTkToplevel(self)
+        dlg.title("Running")
+        dlg.transient(self)
+        dlg.minsize(520, 420)
+        try:
+            dlg.grab_set()
+        except Exception:
+            pass
+
+        self._modal_can_close = False
+
+        def on_close():
+            if not self._modal_can_close:
+                return
+            try:
+                dlg.grab_release()
+            except Exception:
+                pass
+            dlg.destroy()
+            self._progress_modal = None
+            self._modal_status_box = None
+            self._modal_progress_bar = None
+            self._modal_title_lbl = None
+            self._modal_btn_row = None
+            self._modal_summary_body = None
+
+        dlg.protocol("WM_DELETE_WINDOW", on_close)
+        self._on_modal_close = on_close
+
+        outer = ctk.CTkFrame(dlg, fg_color="transparent")
+        outer.pack(fill="both", expand=True, padx=20, pady=18)
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_rowconfigure(2, weight=1)
+
+        self._modal_title_lbl = ctk.CTkLabel(
+            outer, text="Running conversion…",
+            font=self._font(16, "bold"), anchor="w")
+        self._modal_title_lbl.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+
+        self._modal_progress_bar = ctk.CTkProgressBar(outer, height=10)
+        self._modal_progress_bar.set(0)
+        self._modal_progress_bar.grid(row=1, column=0, sticky="ew", pady=(0, 12))
+
+        self._modal_status_box = ctk.CTkTextbox(
+            outer, height=220,
+            font=self._mono_font(11),
+            fg_color=("gray96", "gray11"),
+            border_width=1, border_color=("gray85", "gray22"),
+            wrap="word")
+        self._modal_status_box.grid(row=2, column=0, sticky="nsew")
+        self._modal_status_box.configure(state="disabled")
+
+        self._modal_summary_body = ctk.CTkFrame(outer, fg_color="transparent")
+        self._modal_summary_body.grid(row=3, column=0, sticky="ew", pady=(12, 0))
+        self._modal_summary_body.grid_remove()
+
+        self._modal_btn_row = ctk.CTkFrame(outer, fg_color="transparent")
+        self._modal_btn_row.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        self._modal_btn_row.grid_columnconfigure(0, weight=1)
+        self._modal_btn_row.grid_remove()
+
+        self._progress_modal = dlg
+        self._center_dialog(dlg)
+
+    def _set_progress(self, value):
+        if self._modal_progress_bar is not None:
+            try:
+                self._modal_progress_bar.set(value)
+            except Exception:
+                pass
 
     # ── Processing (background thread) ───────────────────────────────────────
 
@@ -1417,7 +1695,7 @@ class DateFormatterApp(ctk.CTk):
 
             self.after(0, self._log,
                        f"Saving to {os.path.basename(out_path)}…", "info")
-            self.after(0, self.progress_bar.set, 0.97)
+            self.after(0, self._set_progress, 0.97)
             self._save_with_retry(df, out_path)
             elapsed = time.monotonic() - start
             logging.info("Run done: rows=%d flagged=%d", len(df), total_flagged)
@@ -1426,7 +1704,7 @@ class DateFormatterApp(ctk.CTk):
         except RuntimeError as e:
             logging.warning("Run cancelled or non-fatal: %s", e)
             self.after(0, self._log, str(e), "warn")
-            self.after(0, self.progress_bar.set, 0)
+            self.after(0, self._set_progress, 0)
             self.after(0, lambda: self.run_btn.configure(state="normal"))
         except Exception as e:
             logging.error("Unhandled exception during run:\n%s",
@@ -1444,7 +1722,7 @@ class DateFormatterApp(ctk.CTk):
         p_range = p_end - p_start
 
         def progress(frac):
-            self.after(0, self.progress_bar.set, p_start + frac * p_range)
+            self.after(0, self._set_progress, p_start + frac * p_range)
 
         # ── Single Date ──────────────────────────────────────────────────────
         if mode == "Single Date":
@@ -1549,94 +1827,121 @@ class DateFormatterApp(ctk.CTk):
 
     def _finish_all(self, mode, flagged, total, n_cols, out_path, elapsed):
         self.run_btn.configure(state="normal")
-        self.progress_bar.set(1.0)
+        if self._modal_progress_bar is not None:
+            try:
+                self._modal_progress_bar.set(1.0)
+            except Exception:
+                pass
         if flagged:
             self._log(f"Done. {flagged:,} of {total:,} rows flagged for review.", "warn")
         else:
             self._log(f"Done. {total:,} rows processed, no rows flagged.", "ok")
-        self._show_completion_dialog(mode, flagged, total, n_cols, out_path, elapsed)
 
-    def _show_completion_dialog(self, mode, flagged, total, n_cols, out_path, elapsed):
-        dlg = ctk.CTkToplevel(self)
-        dlg.title("Conversion complete")
-        dlg.transient(self)
-        dlg.minsize(480, 360)
-        try:
-            dlg.grab_set()
-        except Exception:
-            pass
+        # Transform the progress modal into a completion view
+        if self._modal_title_lbl is not None:
+            try:
+                self._modal_title_lbl.configure(
+                    text="✓  Conversion complete",
+                    text_color=("#1f8a3d", "#3fc35f"))
+            except Exception:
+                pass
 
-        ctk.CTkLabel(
-            dlg, text="✓", font=self._font(36),
-            text_color=("#1f8a3d", "#3fc35f")
-        ).pack(pady=(20, 4))
-        ctk.CTkLabel(
-            dlg, text="Conversion complete",
-            font=self._font(18, "bold")
-        ).pack(pady=(0, 12))
+        summary = self._modal_summary_body
+        if summary is not None:
+            for w in summary.winfo_children():
+                try:
+                    w.destroy()
+                except Exception:
+                    pass
+            summary.grid_columnconfigure(1, weight=1)
+            rows = [
+                ("Mode", mode),
+                ("Rows processed", f"{total:,}"),
+                ("Columns processed", f"{n_cols}"),
+                ("Flagged for review", f"{flagged:,}"),
+                ("Time elapsed", f"{elapsed:.1f}s"),
+                ("Output file", os.path.basename(out_path)),
+            ]
+            for i, (k, v) in enumerate(rows):
+                ctk.CTkLabel(
+                    summary, text=k, font=self._font(11),
+                    text_color=("gray45", "gray60"), anchor="w"
+                ).grid(row=i, column=0, sticky="w", pady=2, padx=(0, 16))
+                ctk.CTkLabel(
+                    summary, text=str(v), font=self._font(11),
+                    wraplength=320, justify="left", anchor="w"
+                ).grid(row=i, column=1, sticky="ew", pady=2)
+            try:
+                summary.grid()
+            except Exception:
+                pass
 
-        body = ctk.CTkFrame(dlg, fg_color="transparent")
-        body.pack(fill="x", padx=28, pady=(0, 12))
-        body.grid_columnconfigure(1, weight=1)
+        btn_row = self._modal_btn_row
+        if btn_row is not None:
+            for w in btn_row.winfo_children():
+                try:
+                    w.destroy()
+                except Exception:
+                    pass
+            ctk.CTkButton(
+                btn_row, text="Open File", width=110,
+                command=lambda: (self._open_path(out_path),
+                                 self._on_modal_close())
+            ).pack(side="right", padx=4)
+            ctk.CTkButton(
+                btn_row, text="Open Folder", width=130,
+                command=lambda: self._open_path(os.path.dirname(out_path))
+            ).pack(side="right", padx=4)
+            ctk.CTkButton(
+                btn_row, text="Close", width=90,
+                fg_color="transparent", border_width=1,
+                text_color=("gray20", "gray80"),
+                hover_color=("gray85", "gray25"),
+                command=self._on_modal_close
+            ).pack(side="right", padx=4)
+            try:
+                btn_row.grid()
+            except Exception:
+                pass
 
-        rows = [
-            ("Mode", mode),
-            ("Rows processed", f"{total:,}"),
-            ("Columns processed", f"{n_cols}"),
-            ("Flagged for review", f"{flagged:,}"),
-            ("Time elapsed", f"{elapsed:.1f}s"),
-            ("Output file", os.path.basename(out_path)),
-        ]
-        for i, (k, v) in enumerate(rows):
-            ctk.CTkLabel(
-                body, text=k, font=self._font(11),
-                text_color=("gray45", "gray60"),
-                anchor="w"
-            ).grid(row=i, column=0, sticky="w", pady=3, padx=(0, 16))
-            ctk.CTkLabel(
-                body, text=str(v), font=self._font(11),
-                wraplength=320, justify="left", anchor="w"
-            ).grid(row=i, column=1, sticky="ew", pady=3)
-
-        if flagged:
-            ctk.CTkLabel(
-                dlg, text=f"Review rows where the 'Check {{column}}' is set to Yes.",
-                font=self._font(11),
-                text_color=("#b35900", "#f0a060"),
-                wraplength=380, justify="center"
-            ).pack(padx=24, pady=(0, 10))
-
-        btn_row = ctk.CTkFrame(dlg, fg_color="transparent")
-        btn_row.pack(pady=(4, 20))
-
-        ctk.CTkButton(
-            btn_row, text="Open File", width=110,
-            command=lambda: (self._open_path(out_path), dlg.destroy())
-        ).pack(side="left", padx=4)
-        ctk.CTkButton(
-            btn_row, text="Open Folder", width=110,
-            command=lambda: self._open_path(os.path.dirname(out_path))
-        ).pack(side="left", padx=4)
-        ctk.CTkButton(
-            btn_row, text="Close", width=80,
-            fg_color="transparent", border_width=1,
-            text_color=("gray20", "gray80"),
-            hover_color=("gray85", "gray25"),
-            command=dlg.destroy
-        ).pack(side="left", padx=4)
-
-        dlg.update_idletasks()
-        w = dlg.winfo_width() or 460
-        h = dlg.winfo_height() or 360
-        x = self.winfo_rootx() + max(0, (self.winfo_width() - w) // 2)
-        y = self.winfo_rooty() + max(0, (self.winfo_height() - h) // 3)
-        dlg.geometry(f"+{x}+{y}")
+        self._modal_can_close = True
 
     def _error(self, msg):
         self.run_btn.configure(state="normal")
-        self.progress_bar.set(0)
-        self._log("Error. See dialog for details.", "err")
-        messagebox.showerror("Error", msg)
+        self._log("Error during run.", "err")
+        # If the progress modal is open, turn it into an error view.
+        if self._progress_modal is not None:
+            if self._modal_title_lbl is not None:
+                try:
+                    self._modal_title_lbl.configure(
+                        text="✕  Error",
+                        text_color=("#b3261e", "#f47b6e"))
+                except Exception:
+                    pass
+            self._log(msg, "err")
+            btn_row = self._modal_btn_row
+            if btn_row is not None:
+                for w in btn_row.winfo_children():
+                    try:
+                        w.destroy()
+                    except Exception:
+                        pass
+                ctk.CTkButton(
+                    btn_row, text="Open Log",
+                    width=110,
+                    command=lambda: self._open_path(LOG_PATH)
+                ).pack(side="right", padx=4)
+                ctk.CTkButton(
+                    btn_row, text="Close", width=90,
+                    command=self._on_modal_close
+                ).pack(side="right", padx=4)
+                try:
+                    btn_row.grid()
+                except Exception:
+                    pass
+            self._modal_can_close = True
+        else:
+            messagebox.showerror("Error", msg)
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
