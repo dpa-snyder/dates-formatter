@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Date Formatter — User Manual</title>
+<title>Date Formatter: User Manual</title>
 <style>
   :root {
     --bg: #fafafa;
@@ -62,9 +62,7 @@
       padding: 0 32px;
     }
   }
-  aside {
-    display: none;
-  }
+  aside { display: none; }
   @media (min-width: 1024px) {
     aside {
       display: block;
@@ -83,12 +81,7 @@
       margin: 0 0 12px;
       font-weight: 600;
     }
-    aside ol {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      font-size: 14px;
-    }
+    aside ol { list-style: none; padding: 0; margin: 0; font-size: 14px; }
     aside ol li { margin: 6px 0; }
     aside a {
       color: var(--text);
@@ -104,10 +97,7 @@
       border-left-color: var(--accent);
     }
   }
-  main {
-    max-width: var(--max-width);
-    padding: 40px 0 80px;
-  }
+  main { max-width: var(--max-width); padding: 40px 0 80px; }
   header.hero {
     border-bottom: 1px solid var(--border);
     padding-bottom: 24px;
@@ -140,11 +130,7 @@
     border-bottom: 1px solid var(--border);
     scroll-margin-top: 24px;
   }
-  h3 {
-    font-size: 17px;
-    margin: 28px 0 8px;
-    color: var(--text);
-  }
+  h3 { font-size: 17px; margin: 28px 0 8px; color: var(--text); }
   p { margin: 12px 0; }
   ul, ol { padding-left: 24px; }
   li { margin: 4px 0; }
@@ -168,12 +154,7 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  pre code {
-    background: transparent;
-    border: none;
-    padding: 0;
-    white-space: pre;
-  }
+  pre code { background: transparent; border: none; padding: 0; white-space: pre; }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -220,11 +201,7 @@
     letter-spacing: 0.04em;
     border: 1px solid currentColor;
   }
-  hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 40px 0;
-  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
   footer {
     margin-top: 64px;
     padding-top: 24px;
@@ -232,7 +209,6 @@
     color: var(--muted);
     font-size: 14px;
   }
-  /* Print friendliness */
   @media print {
     aside { display: none; }
     main { max-width: 100%; padding: 0; }
@@ -249,18 +225,18 @@
   <ol>
     <li><a href="#overview">What this app does</a></li>
     <li><a href="#launching">Launching the app</a></li>
-    <li><a href="#tour">A quick tour</a></li>
+    <li><a href="#tour">The window at a glance</a></li>
     <li><a href="#mode">Pick a mode</a></li>
     <li><a href="#file">Open your file</a></li>
     <li><a href="#columns">Pick date columns</a></li>
     <li><a href="#run">Run it</a></li>
-    <li><a href="#output">Understanding output</a></li>
+    <li><a href="#output">Understanding the output</a></li>
     <li><a href="#special">Special outputs</a></li>
-    <li><a href="#columns-preserved">What's preserved</a></li>
+    <li><a href="#columns-preserved">What stays the same</a></li>
     <li><a href="#patterns">Patterns recognized</a></li>
     <li><a href="#troubleshooting">If something goes wrong</a></li>
     <li><a href="#tips">Tips</a></li>
-    <li><a href="#help">Need help?</a></li>
+    <li><a href="#help">Need help</a></li>
   </ol>
 </aside>
 
@@ -269,166 +245,166 @@
 <header class="hero">
   <div class="eyebrow">User Manual</div>
   <h1>Date Formatter</h1>
-  <p class="lead">A guide to cleaning up date columns in your archival spreadsheets — what the app does, how to drive it, and how to read the output.</p>
+  <p class="lead">Standardize date columns in archival Excel and CSV spreadsheets.</p>
 </header>
 
 <div class="callout">
-  <strong>Tip:</strong> press <code>Ctrl-F</code> (Windows) or <code>⌘-F</code> (Mac) any time to search this manual.
+  <strong>Tip:</strong> press <code>Ctrl-F</code> on Windows or <code>⌘-F</code> on Mac to search this page.
 </div>
 
 <section id="overview">
 <h2>What this app does</h2>
-<p>Archival spreadsheets often have dates entered in many different ways — <code>5/8/2026</code>, <code>May 8, 2026</code>, <code>2026-05-08</code>, <code>circa 2026</code>, <code>1960s</code>, <code>n.d.</code>, blank cells, and so on. The Date Formatter reads each value in a column you choose, figures out what was meant, and rewrites it in a single consistent format. Anything it can't confidently parse is left alone and <strong>flagged for review</strong>, so a human can take a quick look.</p>
-<p>You stay in control: you pick the file, you pick the columns, and the app shows you exactly which rows it wasn't sure about.</p>
+<p>Archival spreadsheets often contain dates entered in many different ways: <code>5/8/2026</code>, <code>May 8, 2026</code>, <code>2026-05-08</code>, <code>circa 2026</code>, <code>1960s</code>, <code>n.d.</code>, and so on. The Date Formatter reads each value in a column you choose and rewrites it in a single consistent format. Values it cannot confidently parse are left alone and flagged for review.</p>
+<p>You select the file, you select the columns, and the app shows you which rows it was uncertain about.</p>
 </section>
 
 <section id="launching">
 <h2>Launching the app</h2>
 
-<h3>If your IT Admin set this up for you</h3>
-<p>You'll have a <strong>desktop shortcut</strong> (a <code>.bat</code> file, usually called <code>date-formatter-gui.bat</code>). Just double-click it. A window will open with the Date Formatter ready to use. No command line, no setup — that's it.</p>
-<p>If the shortcut isn't on your desktop, ask your IT Admin where they placed it.</p>
+<h3>If your IT Admin set this up</h3>
+<p>You have a desktop shortcut, typically called <code>date-formatter-gui.bat</code>. Double-click it to launch the app.</p>
+<p>If the shortcut is not on your desktop, ask your IT Admin where they placed it.</p>
 
-<h3>If you're launching it manually</h3>
+<h3>Manual launch</h3>
 <p>Open Command Prompt and run:</p>
 <pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
-<p>(Your IT Admin may have configured a different path — check with them if this doesn't work.)</p>
+<p>Your IT Admin may have configured a different path.</p>
 </section>
 
 <section id="tour">
-<h2>A quick tour of the window</h2>
-<p>When the app opens, you'll see five sections from top to bottom:</p>
+<h2>The window at a glance</h2>
+<p>The app window contains five sections from top to bottom.</p>
 <ol>
-  <li><strong>Conversion Type</strong> — three radio buttons. Pick one based on what kind of output you need.</li>
-  <li><strong>File</strong> — a Browse button to pick the Excel or CSV file you want to clean up.</li>
-  <li><strong>Columns to Format</strong> — once a file is loaded, every column shows up here as a checkbox. Tick the ones containing dates.</li>
-  <li><strong>Run</strong> — kicks off the conversion.</li>
-  <li><strong>Progress bar + status text</strong> — shows what the app is doing and how many rows ended up flagged.</li>
+  <li><strong>Conversion Type.</strong> Three radio buttons. Select the output style you need.</li>
+  <li><strong>File.</strong> A Browse button to select an Excel or CSV file.</li>
+  <li><strong>Columns to Format.</strong> Checkboxes for every column in the loaded file. Tick the columns containing dates.</li>
+  <li><strong>Run.</strong> Starts the conversion.</li>
+  <li><strong>Progress bar and status text.</strong> Shows progress and the number of flagged rows.</li>
 </ol>
-<p>There's also a <strong>sun/moon switch</strong> in the top right corner to toggle between light and dark mode. Your choice is remembered between launches.</p>
+<p>A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.</p>
 </section>
 
 <section id="mode">
-<h2>Step 1 — Pick a conversion mode</h2>
-<p>The three modes produce different output styles. Pick whichever matches the system you're feeding the cleaned data into.</p>
+<h2>Step 1: Pick a conversion mode</h2>
+<p>The three modes produce different output styles. Pick the one that matches the system you are feeding the cleaned data into.</p>
 
-<h3>Single Date Conversion → <code>MM/DD/YYYY</code></h3>
-<p>Best when each row should resolve to <strong>one</strong> specific date.</p>
+<h3>Single Date Conversion: <code>MM/DD/YYYY</code></h3>
+<p>Use this when each row should resolve to a single date.</p>
 <ul>
-  <li><code>5/8/2026</code> becomes <code>05/08/2026</code></li>
-  <li><code>May 8, 2026</code> becomes <code>05/08/2026</code></li>
-  <li>If the original value was a range (<code>01/01/1962 - 12/31/1962</code>), it collapses to the <strong>start</strong> date (<code>01/01/1962</code>).</li>
-  <li>Vague values (<code>circa 1962</code>, <code>1960s</code>, <code>before 1991</code>, <code>undated</code>) become <strong>empty</strong> and get flagged for review.</li>
+  <li><code>5/8/2026</code> becomes <code>05/08/2026</code>.</li>
+  <li><code>May 8, 2026</code> becomes <code>05/08/2026</code>.</li>
+  <li>If the original value is a range like <code>01/01/1962 - 12/31/1962</code>, the output is the start date <code>01/01/1962</code>.</li>
+  <li>Vague values such as <code>circa 1962</code>, <code>1960s</code>, <code>before 1991</code>, or <code>undated</code> produce an empty result and are flagged for review.</li>
 </ul>
 
-<h3>ArchivERA / Date Range Conversion → <code>MM/DD/YYYY - MM/DD/YYYY</code></h3>
-<p>Best when each row represents a span of time. This is the mode designed for ArchivERA-style imports.</p>
+<h3>ArchivERA / Date Range Conversion: <code>MM/DD/YYYY - MM/DD/YYYY</code></h3>
+<p>Use this when each row represents a span of time. This mode is designed for ArchivERA imports.</p>
 <ul>
-  <li>A year like <code>1962</code> becomes the full year range <code>01/01/1962 - 12/31/1962</code>.</li>
-  <li>A month like <code>Jun 1962</code> becomes <code>06/01/1962 - 06/30/1962</code>.</li>
-  <li>A decade like <code>1960s</code> becomes <code>01/01/1960 - 12/31/1969</code>.</li>
-  <li>A single date like <code>5/8/2026</code> stays as <code>05/08/2026</code>.</li>
-  <li>Fuzzy values stay readable: <code>circa 1962</code>, <code>before 10/15/1991</code>, <code>after 1991</code>, <code>undated</code> — all preserved and flagged.</li>
+  <li><code>1962</code> becomes <code>01/01/1962 - 12/31/1962</code>.</li>
+  <li><code>Jun 1962</code> becomes <code>06/01/1962 - 06/30/1962</code>.</li>
+  <li><code>1960s</code> becomes <code>01/01/1960 - 12/31/1969</code>.</li>
+  <li><code>5/8/2026</code> stays as <code>05/08/2026</code>.</li>
+  <li>Fuzzy values are preserved and flagged: <code>circa 1962</code>, <code>before 10/15/1991</code>, <code>after 1991</code>, <code>undated</code>.</li>
 </ul>
 
 <h3>Dublin Core Conversion</h3>
-<p>Best when you're converting Dublin Core / ISO-style inputs (<code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>) into our standard MM/DD/YYYY format.</p>
+<p>Use this when converting Dublin Core or ISO inputs (<code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>) into the standard MM/DD/YYYY format.</p>
 
 <div class="callout"><strong>Not sure?</strong> Use <strong>Date Range</strong>. It handles the widest variety of inputs.</div>
 </section>
 
 <section id="file">
-<h2>Step 2 — Open your file</h2>
-<p>Click <strong>Browse</strong> and pick the Excel (<code>.xlsx</code>) or CSV file you want to clean up. Once loaded:</p>
+<h2>Step 2: Open your file</h2>
+<p>Click <strong>Browse</strong> and select the Excel (<code>.xlsx</code>) or CSV file. Once loaded:</p>
 <ul>
-  <li>The filename appears in the box.</li>
-  <li>The Columns section fills up with one checkbox per column.</li>
-  <li>The status bar tells you how many rows were loaded.</li>
+  <li>The filename appears in the file box.</li>
+  <li>The Columns section fills with one checkbox per column.</li>
+  <li>The status bar shows the row count.</li>
 </ul>
-<p>The app reads everything as <strong>text</strong>. This is important: it means leading zeros, codes like <code>001.001</code>, and Folder Numbers like <code>04</code> are preserved exactly as they appear in the source file. Nothing gets converted to a number behind your back.</p>
+<p>The app reads every column as text. Leading zeros, codes like <code>001.001</code>, and folder numbers like <code>04</code> are preserved exactly as they appear in the source.</p>
 </section>
 
 <section id="columns">
-<h2>Step 3 — Pick your date columns</h2>
-<p>Tick every column you want converted. You can pick more than one — for example, both <strong>Full Date</strong> and <strong>Date Checked</strong> in the same run. Each column gets processed independently in the order you ticked them.</p>
-<p>You don't need to worry about non-date columns. Everything you <strong>don't</strong> tick is left exactly as it was.</p>
+<h2>Step 3: Pick your date columns</h2>
+<p>Tick every column you want converted. You can pick more than one in a single run, for example both <strong>Full Date</strong> and <strong>Date Checked</strong>. Each column is processed independently in the order ticked.</p>
+<p>Columns you do not tick are left exactly as they were.</p>
 </section>
 
 <section id="run">
-<h2>Step 4 — Run it</h2>
-<p>Click <strong>Run</strong>. The progress bar will move as the app works through each column. The status line tells you which row and column it's currently on.</p>
-<div class="callout"><strong>Important:</strong> when it finishes, your <strong>original file is overwritten</strong> with the cleaned version. So before running, make a backup copy if you want to keep the raw input.</div>
-<p>If the file is open in Excel when the app tries to save, you'll get a "File in use" prompt. Close Excel and click Retry.</p>
+<h2>Step 4: Run it</h2>
+<p>Click <strong>Run</strong>. The progress bar advances as the app works through each column. The status line shows the current row and column.</p>
+<div class="callout"><strong>Important:</strong> when the run finishes, your original file is overwritten with the cleaned version. Make a backup copy before running if you want to keep the raw input.</div>
+<p>If the file is open in Excel when the app tries to save, you will see a "File in use" prompt. Close Excel and click Retry.</p>
 </section>
 
 <section id="output">
 <h2>Understanding the output</h2>
-<p>For every column you ticked, the app adds <strong>two new columns</strong> right next to it:</p>
+<p>For every column you ticked, the app adds two new columns next to it.</p>
 
 <table>
-  <thead><tr><th>Column</th><th>What it contains</th></tr></thead>
+  <thead><tr><th>Column</th><th>Contents</th></tr></thead>
   <tbody>
-    <tr><td><code>{your column}</code></td><td>The cleaned, formatted date — this <strong>replaces</strong> the original value in place.</td></tr>
-    <tr><td><code>Original_{your column}</code></td><td>The raw original value, kept so you can compare or restore.</td></tr>
-    <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app wasn't sure and you should look at this row. Blank otherwise.</td></tr>
+    <tr><td><code>{your column}</code></td><td>The cleaned, formatted date. Replaces the original value in place.</td></tr>
+    <tr><td><code>Original_{your column}</code></td><td>The raw original value.</td></tr>
+    <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app was uncertain about the row. Blank otherwise.</td></tr>
   </tbody>
 </table>
 
-<p>For example, if you ticked <strong>Full Date</strong>, after running you'll see:</p>
+<p>For example, if you ticked <strong>Full Date</strong>, the result looks like:</p>
 <pre><code>... | Full Date | Original_Full Date | Check Full Date | ...</code></pre>
 
-<p>When the run finishes, the status bar tells you how many rows got flagged. A row gets flagged for any of these reasons:</p>
+<p>When the run finishes, the status bar reports the number of flagged rows. A row is flagged when:</p>
 <ul>
   <li>The original value was vague (<code>circa 1962</code>, <code>before 1991</code>).</li>
-  <li>The app couldn't recognize the format.</li>
+  <li>The app could not recognize the format.</li>
   <li>The original cell contained multiple values separated by semicolons.</li>
-  <li>The result didn't match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
+  <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
 </ul>
-<p>Flagged rows aren't errors — they're invitations to glance at the row and decide what to do.</p>
+<p>Flagged rows are not errors. They are rows that benefit from a human glance.</p>
 </section>
 
 <section id="special">
-<h2>Special outputs you might see</h2>
-<p>These show up when the input expressed something more nuanced than a plain date or range. They are always flagged for review.</p>
+<h2>Special outputs</h2>
+<p>These values appear when the input expresses something more nuanced than a plain date or range. They are always flagged.</p>
 
 <table>
-  <thead><tr><th>Output</th><th>What it means</th></tr></thead>
+  <thead><tr><th>Output</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><code>undated</code></td><td>The original said "n.d.", "no date", "not dated", etc.</td></tr>
-    <tr><td><code>circa 1962</code></td><td>The original said "circa 1962", "ca. 1962", "approx. 1962", etc.</td></tr>
-    <tr><td><code>before 01/01/1991</code></td><td>The original said "before 1991", "pre-1991", or "ante 1991".</td></tr>
-    <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date and asked for "before" that date.</td></tr>
-    <tr><td><code>after 12/31/1991</code></td><td>The original said "after 1991" or "post-1991".</td></tr>
-    <tr><td><code>after 10/15/1991</code></td><td>The original gave a specific date and asked for "after" that date.</td></tr>
+    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, etc.</td></tr>
+    <tr><td><code>circa 1962</code></td><td>The original said <code>circa 1962</code>, <code>ca. 1962</code>, <code>approx. 1962</code>, etc.</td></tr>
+    <tr><td><code>before 01/01/1991</code></td><td>The original said <code>before 1991</code>, <code>pre-1991</code>, or <code>ante 1991</code>.</td></tr>
+    <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date with "before".</td></tr>
+    <tr><td><code>after 12/31/1991</code></td><td>The original said <code>after 1991</code> or <code>post-1991</code>.</td></tr>
+    <tr><td><code>after 10/15/1991</code></td><td>The original gave a specific cutoff date with "after".</td></tr>
   </tbody>
 </table>
 
-<p>For year-only inputs, "before" lands on <strong>January 1</strong> of that year (a tight bound — anything before that point excludes the year itself). "After" lands on <strong>December 31</strong>, with the same logic.</p>
+<p>For year-only inputs, "before" lands on January 1 of that year and "after" lands on December 31. This is a tight bound: the named year is excluded from the range.</p>
 </section>
 
 <section id="columns-preserved">
 <h2>What gets cleaned vs. what stays the same</h2>
 
-<h3>Always cleaned (regardless of mode)</h3>
-<p>These archival ID columns get their leading zeros restored on every save, no matter which mode you picked:</p>
+<h3>Always cleaned, regardless of mode</h3>
+<p>The following archival ID columns have their leading zeros restored on every save.</p>
 
 <table>
-  <thead><tr><th>Column header (any variant works)</th><th>Format</th></tr></thead>
+  <thead><tr><th>Column header (any variant)</th><th>Format</th></tr></thead>
   <tbody>
-    <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits — <code>200</code> becomes <code>0200</code>, <code>9200</code> stays <code>9200</code>.</td></tr>
-    <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters — <code>22</code> becomes <code>022</code>, <code>W22</code> stays <code>W22</code>, single-letter prefix preserved.</td></tr>
+    <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits. <code>200</code> becomes <code>0200</code>. <code>9200</code> stays <code>9200</code>.</td></tr>
+    <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters. <code>22</code> becomes <code>022</code>. <code>W22</code> stays <code>W22</code>. Single-letter prefix is preserved.</td></tr>
     <tr><td><code>Series</code>, <code>Series Number</code></td><td>Same as SG.</td></tr>
     <tr><td><code>SubSeries Number</code></td><td>Same as SG.</td></tr>
   </tbody>
 </table>
 
 <h3>Left alone</h3>
-<p>Every other column in your spreadsheet — Folder Number, Sequential Box Number, Title, Description, Container Barcode, anything else — is preserved exactly as it appeared in the source. Leading zeros stay, codes like <code>001.001</code> stay, no surprises.</p>
+<p>Every other column in your spreadsheet, including Folder Number, Sequential Box Number, Title, Description, and Container Barcode, is preserved exactly as it appeared in the source. Leading zeros are kept and codes like <code>001.001</code> are not converted to numbers.</p>
 </section>
 
 <section id="patterns">
 <h2>Patterns the app recognizes</h2>
-<p>The conversion engine tries many input formats. Here are the most common ones you'll encounter, grouped by type.</p>
+<p>The conversion engine tries many input formats. Below are the most common patterns grouped by type.</p>
 
 <h3>Already-formatted dates</h3>
 <table>
@@ -436,7 +412,7 @@
   <tbody>
     <tr><td><code>05/31/1964</code></td><td><code>05/31/1964</code></td></tr>
     <tr><td><code>01/01/1962 - 12/31/1962</code></td><td><code>01/01/1962 - 12/31/1962</code></td></tr>
-    <tr><td><code>5/8/2026</code></td><td><code>05/08/2026</code> (leading zeros added)</td></tr>
+    <tr><td><code>5/8/2026</code></td><td><code>05/08/2026</code></td></tr>
   </tbody>
 </table>
 
@@ -457,7 +433,7 @@
   <tbody>
     <tr><td><code>June 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>Jun 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code> (2-digit year auto-expanded)</td></tr>
+    <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>June 5, 1964</code></td><td><code>06/05/1964</code></td></tr>
     <tr><td><code>June 5th, 1964</code></td><td><code>06/05/1964</code></td></tr>
   </tbody>
@@ -473,18 +449,18 @@
   </tbody>
 </table>
 
-<h3>ISO / Dublin Core formats <span class="flag" style="font-size:11px">use Dublin Core mode</span></h3>
+<h3>ISO and Dublin Core formats <span class="flag" style="font-size:11px">use Dublin Core mode</span></h3>
 <table>
   <thead><tr><th>Input</th><th>Output</th></tr></thead>
   <tbody>
     <tr><td><code>2026-05-08</code></td><td><code>05/08/2026</code></td></tr>
-    <tr><td><code>2026-05-08 14:30:00</code></td><td><code>05/08/2026</code> (time portion dropped)</td></tr>
+    <tr><td><code>2026-05-08 14:30:00</code></td><td><code>05/08/2026</code></td></tr>
     <tr><td><code>1962-06/1965-08</code></td><td><code>06/01/1962 - 08/31/1965</code></td></tr>
     <tr><td><code>1962-06-05/1965-08-12</code></td><td><code>06/05/1962 - 08/12/1965</code></td></tr>
   </tbody>
 </table>
 
-<h3>Fuzzy / approximate dates <span class="flag">always flagged</span></h3>
+<h3>Fuzzy and approximate dates <span class="flag">always flagged</span></h3>
 <table>
   <thead><tr><th>Input</th><th>Output</th></tr></thead>
   <tbody>
@@ -497,7 +473,7 @@
     <tr><td><code>before 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
     <tr><td><code>after 1991</code></td><td><code>after 12/31/1991</code></td></tr>
     <tr><td><code>post-1991</code></td><td><code>after 12/31/1991</code></td></tr>
-    <tr><td><code>n.d.</code> / <code>N.D.</code> / <code>no date</code> / <code>undated</code></td><td><code>undated</code></td></tr>
+    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>undated</code></td><td><code>undated</code></td></tr>
   </tbody>
 </table>
 
@@ -513,16 +489,16 @@
 </table>
 
 <h3>Excel serial numbers</h3>
-<p>Sometimes pasted from old workbooks:</p>
+<p>Sometimes pasted from older workbooks.</p>
 <table>
   <thead><tr><th>Input</th><th>Output</th></tr></thead>
   <tbody>
-    <tr><td><code>44197</code></td><td><code>01/01/2021</code> (decoded from Excel's internal date number)</td></tr>
+    <tr><td><code>44197</code></td><td><code>01/01/2021</code></td></tr>
   </tbody>
 </table>
 
-<h3>Inputs the app doesn't recognize</h3>
-<p>If the app sees something it doesn't have a pattern for, it leaves the value as-is and sets the <code>Check</code> column to <span class="flag">Yes</span>. Examples:</p>
+<h3>Unrecognized inputs</h3>
+<p>If the app does not have a pattern for the input, the value is left as-is and the <code>Check</code> column is set to <span class="flag">Yes</span>.</p>
 <table>
   <thead><tr><th>Input</th><th>Output</th><th>Check</th></tr></thead>
   <tbody>
@@ -531,43 +507,43 @@
     <tr><td>Any free-text comment</td><td>passed through</td><td><span class="flag">Yes</span></td></tr>
   </tbody>
 </table>
-<p>This is intentional — better to flag than to guess wrong.</p>
+<p>The app flags rather than guesses.</p>
 </section>
 
 <section id="troubleshooting">
 <h2>If something goes wrong</h2>
 
-<h3>The app shows an error dialog</h3>
-<p>Click OK. The app keeps a log file at <code>%TEMP%\date-formatter.log</code> (your system's temp folder). Open it in Notepad to see what happened. Share that log with your IT Admin if you need help.</p>
+<h3>Error dialog</h3>
+<p>Click OK. The app writes a log file to <code>%TEMP%\date-formatter.log</code>. Open it in Notepad to see details. Share the log with your IT Admin if you need help.</p>
 
 <h3>"File in use" prompt</h3>
-<p>Close the spreadsheet in Excel (or whatever has it open) and click Retry.</p>
+<p>Close the spreadsheet in Excel or whatever has it open, then click Retry.</p>
 
-<h3>The app won't open at all</h3>
-<p>This usually means Python isn't installed or the script path moved. Contact your IT Admin.</p>
+<h3>The app does not open</h3>
+<p>Python may not be installed, or the script path may have changed. Contact your IT Admin.</p>
 
-<h3>A row got flagged that shouldn't have</h3>
-<p>Check the <code>Original_</code> column — that's the raw value the app saw. If it was an unusual format the app doesn't know, you have two options: clean up the source value and re-run, or just edit the formatted column directly to whatever is correct.</p>
+<h3>A row was flagged that should not have been</h3>
+<p>Check the <code>Original_</code> column for the raw value the app saw. If the format is one the app does not recognize, you can either clean up the source value and re-run, or edit the formatted column directly.</p>
 </section>
 
 <section id="tips">
-<h2>Tips and good practices</h2>
+<h2>Tips</h2>
 <ul>
-  <li><strong>Always make a backup copy of your spreadsheet before running.</strong> The app overwrites your file in place.</li>
-  <li>Run on <strong>one column at a time</strong> until you're comfortable with the output, then batch larger jobs.</li>
-  <li>After a run, <strong>sort by the <code>Check</code> column</strong> to bring all flagged rows to the top — much faster than scanning the whole sheet.</li>
-  <li>The app handles <code>.xlsx</code> and <code>.csv</code>. If your file is in <code>.xls</code> (old format), save it as <code>.xlsx</code> first.</li>
-  <li>Light mode and dark mode are both fine for your eyes — pick whichever you prefer. Your choice is remembered.</li>
+  <li>Make a backup copy of your spreadsheet before running. The app overwrites your file in place.</li>
+  <li>Run on one column at a time until you are comfortable with the output, then batch larger jobs.</li>
+  <li>After a run, sort by the <code>Check</code> column to bring flagged rows to the top.</li>
+  <li>The app handles <code>.xlsx</code> and <code>.csv</code>. Save older <code>.xls</code> files as <code>.xlsx</code> first.</li>
+  <li>Light mode and dark mode are both supported. Your preference is saved.</li>
 </ul>
 </section>
 
 <section id="help">
-<h2>Need help?</h2>
-<p>Contact your IT Admin or whoever provided this app. Include the log file from <code>%TEMP%\date-formatter.log</code> if you ran into a specific error — that file has the technical details they'll need.</p>
+<h2>Need help</h2>
+<p>Contact your IT Admin or whoever provided this app. Include the log file from <code>%TEMP%\date-formatter.log</code> if you encountered a specific error.</p>
 </section>
 
 <footer>
-  Date Formatter — User Manual. Press <code>Ctrl-F</code> / <code>⌘-F</code> to search this page.
+  Date Formatter User Manual. Press <code>Ctrl-F</code> or <code>⌘-F</code> to search this page.
 </footer>
 
 </main>

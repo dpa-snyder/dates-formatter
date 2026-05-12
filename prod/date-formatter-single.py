@@ -424,7 +424,7 @@ def custom_format_date(date_str):
 
 # Single-date formatter: returns MM/DD/YYYY or '' if unparseable
 def format_single_date(date_str: str) -> str:
-    """Return MM/DD/YYYY — first date of any range, or '' if not parseable."""
+    """Return MM/DD/YYYY for the first date of any range, or '' if not parseable."""
     if date_str is None:
         return ''
     s = str(date_str).strip()

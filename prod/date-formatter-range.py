@@ -135,7 +135,7 @@ def custom_format_date(date_str):
             # If it's a valid date range, return it as-is
             return (date_str, '')
 
-        # Standalone 5-digit Excel serial (no dash — would otherwise fall through to year pattern)
+        # Standalone 5-digit Excel serial (no dash, would otherwise fall through to year pattern)
         if re.fullmatch(r'\d{5}', date_str):
             serial_int = int(date_str)
             current_os = platform.system()

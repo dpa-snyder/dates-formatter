@@ -129,7 +129,7 @@ def excel_serial_to_date(serial_text):
 # ─── Single-date pipeline ─────────────────────────────────────────────────────
 
 def format_single_date(date_str):
-    """Return MM/DD/YYYY — first date of any range, or '' if not parseable."""
+    """Return MM/DD/YYYY for the first date of any range, or '' if not parseable."""
     if date_str is None:
         return ''
     s = str(date_str).strip()
@@ -578,9 +578,9 @@ def reorder_columns(df, column, original_col, check_col):
 MODES = ["Single Date", "Date Range", "Dublin Core"]
 
 MODE_LABELS = {
-    "Single Date": "Single Date Conversion — MM/DD/YYYY",
-    "Date Range":  "ArchivERA Conversion — MM/DD/YYYY to MM/DD/YYYY",
-    "Dublin Core": "DublinCore Conversion — formats non-DC inputs",
+    "Single Date": "Single Date Conversion: MM/DD/YYYY",
+    "Date Range":  "ArchivERA Conversion: MM/DD/YYYY to MM/DD/YYYY",
+    "Dublin Core": "Dublin Core Conversion: formats non-DC inputs",
 }
 
 MODE_HELP = {
@@ -676,7 +676,7 @@ class DateFormatterApp(ctk.CTk):
                      font=self._font(13), text_color="gray"
                      ).grid(row=1, column=0, padx=30, pady=(0, 20), sticky="w")
 
-        # ── Conversion type (radio — single selection) ──
+        # ── Conversion type (radio, single selection) ──
         ctk.CTkLabel(p, text="Conversion Type",
                      font=self._font(13, "bold")
                      ).grid(row=2, column=0, padx=30, pady=(0, 8), sticky="w")
@@ -821,7 +821,7 @@ class DateFormatterApp(ctk.CTk):
             ).grid(row=i, column=0, pady=2, sticky="w")
 
         self._check_run_state()
-        self._set_status(0, f"{len(df):,} rows loaded — ready.")
+        self._set_status(0, f"{len(df):,} rows loaded. Ready.")
 
     def _run(self):
         mode    = self.mode_var.get()
@@ -882,7 +882,7 @@ class DateFormatterApp(ctk.CTk):
                 results.append(format_single_date(val) if val else '')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
-                             f"[Single] {column} — row {i+1:,} of {total:,}…")
+                             f"[Single] {column}: row {i+1:,} of {total:,}…")
             df[column] = results
             pat = re.compile(r'^\d{2}/\d{2}/\d{4}$')
             df[check_col] = df[column].apply(
@@ -897,14 +897,14 @@ class DateFormatterApp(ctk.CTk):
                 flags.append(f)
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.55,
-                             f"[Range] {column} — row {i+1:,} of {total:,}…")
+                             f"[Range] {column}: row {i+1:,} of {total:,}…")
             df[column]    = formatted
             df[check_col] = flags
 
-            progress(0.65, f"[Range] {column} — resolving named ranges…")
+            progress(0.65, f"[Range] {column}: resolving named ranges…")
             df[column] = df[column].apply(convert_strange_named_ranges)
 
-            progress(0.75, f"[Range] {column} — checking chronological order…")
+            progress(0.75, f"[Range] {column}: checking chronological order…")
             df[column] = df[column].apply(ensure_chronological_order)
 
             df[check_col] = df.apply(
@@ -924,7 +924,7 @@ class DateFormatterApp(ctk.CTk):
                         convert_date_pattern(val)) if val else 'undated')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80,
-                             f"[Dublin Core] {column} — row {i+1:,} of {total:,}…")
+                             f"[Dublin Core] {column}: row {i+1:,} of {total:,}…")
             df[column] = results
             dc_valid = [
                 r'^\d{2}/\d{2}/\d{4}$',
@@ -934,10 +934,10 @@ class DateFormatterApp(ctk.CTk):
             df[check_col] = df[column].apply(
                 lambda s: 'Yes' if not any(re.match(p, str(s)) for p in dc_valid) else '')
 
-        progress(0.88, f"[{mode}] {column} — reordering columns…")
+        progress(0.88, f"[{mode}] {column}: reordering columns…")
         df = reorder_columns(df, column, original_col, check_col)
 
-        progress(0.93, f"[{mode}] {column} — applying leading zeros…")
+        progress(0.93, f"[{mode}] {column}: applying leading zeros…")
         df = apply_leading_zeros(df)
 
         flagged = int((df[check_col] == 'Yes').sum())
@@ -988,16 +988,16 @@ class DateFormatterApp(ctk.CTk):
         self.progress_bar.set(1.0)
         col_str = f"{n_cols} column{'s' if n_cols > 1 else ''}"
         if flagged:
-            text = (f"Done — {total:,} rows, {col_str}  |  "
+            text = (f"Done. {total:,} rows, {col_str}.  "
                     f"{flagged:,} flagged for review "
-                    f"(see 'Check ...' column)")
+                    f"(see 'Check ...' column).")
         else:
-            text = f"Done — {total:,} rows, {col_str}  |  no rows flagged"
+            text = f"Done. {total:,} rows, {col_str}. No rows flagged."
         self.status_lbl.configure(text=text)
 
     def _error(self, msg):
         self.run_btn.configure(state="normal")
-        self._set_status(0, "Error — see dialog.")
+        self._set_status(0, "Error. See dialog.")
         messagebox.showerror("Error", msg)
 
 

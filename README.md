@@ -1,60 +1,65 @@
 # Dates Formatter
 
-A GUI-based Python app for normalizing inconsistent date formats in Excel and CSV spreadsheets. It is designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized before import or export.
+A GUI-based Python app for normalizing inconsistent date formats in Excel and CSV spreadsheets. Designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized before import or export.
 
----
+## App modes
 
-## App Modes
+The app provides three conversion options in a single interface.
 
-The deployed app provides three conversion options in one interface:
+| Mode | Output | Use case |
+|------|--------|----------|
+| Single Date Conversion | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
+| ArchivERA Conversion | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
+| Dublin Core Conversion | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
 
-| Mode | Output | Use Case |
-| ------ | -------- | ---------- |
-| `Single Date Conversion` | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
-| `ArchivERA Conversion` | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
-| `DublinCore Conversion` | Converts common non-DC inputs into DC-friendly output | Mixed-input Dublin Core cleanup |
+## Column output
 
----
-
-## Column Output
-
-After running any script, three columns appear together in the spreadsheet:
+After running any mode, three columns appear together in the spreadsheet.
 
 | Column | Description |
-| -------- | ----------- |
-| `{chosen column}` | Formatted date output (replaces original in-place) |
+|--------|-------------|
+| `{chosen column}` | Formatted date output. Replaces the original value in place. |
 | `Original_{chosen column}` | Original raw value preserved for review |
 | `Check {chosen column}` | `Yes` if the output needs manual review |
 
----
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `MANUAL.md` and `user-manual.html` | End-user guide. The HTML version is opened from the app's "View User Manual" button. |
+| `CONVERSIONS.md` | Technical reference. Per-mode input/output tables in parser order. |
+| `TODOS.md` | Active task list. |
+| `DONE.md` | Completed work archive. |
+| `recommendations.md` | Review notes and findings (IDs `R-001`+). |
 
 ## Structure
 
 ```text
-prod/                        # Stable, deployment-ready scripts
+prod/                          # Stable, deployment-ready scripts
   date-formatter-gui.py
   date-formatter-gui.bat
-  date-formatter-single.py           # Legacy single-mode script
-  date-formatter-range.py            # Legacy range-mode script
-  dublin-core-date-convert.py        # Legacy dublin-core script
+  user-manual.html             # Opened by the in-app "View User Manual" button
+  date-formatter-single.py     # Legacy single-mode script
+  date-formatter-range.py      # Legacy range-mode script
+  dublin-core-date-convert.py  # Legacy Dublin Core script
 
-src/                         # Active development
+src/                           # Active development
   date-formatter-gui.py
+  user-manual.html
 
-test-files/                  # Sample/test spreadsheets
+test-files/                    # Sample spreadsheets
+tests/                         # unittest suite
 
-ASSOCIATIONS.md              # Launcher/deployment reference
+ASSOCIATIONS.md                # Launcher and deployment reference
 requirements.txt
 ```
-
----
 
 ## Requirements
 
 ```text
 customtkinter==5.2.2
 pandas==2.2.2
-openpyxl==3.1.2
+openpyxl==3.1.5
 ```
 
 Install with:
@@ -63,35 +68,27 @@ Install with:
 pip install -r requirements.txt
 ```
 
----
-
 ## Deploying to Windows
 
-Copy `date-formatter-gui.py` from `prod/` to:
+Copy `date-formatter-gui.py` and `user-manual.html` from `prod/` to:
+
+```text
+%USERPROFILE%\scripts\
+```
+
+Both files must live in the same folder so the "View User Manual" button can find the HTML.
+
+The batch launcher can live anywhere convenient, including the Desktop. It points back to:
 
 ```text
 %USERPROFILE%\scripts\date-formatter-gui.py
 ```
 
-The batch launcher can live anywhere convenient, including the Desktop. It always points back to:
+To install the desktop launcher, copy `date-formatter-gui.bat` from `prod/` to the Desktop and launch it.
 
-```text
-%USERPROFILE%\scripts\date-formatter-gui.py
-```
+## Automated tests
 
-If you want a Desktop shortcut/workflow, copy this file from `prod/` to the Desktop:
-
-```bat
-date-formatter-gui.bat
-```
-
-Then launch `date-formatter-gui.bat`. The batch file already points at `%USERPROFILE%\scripts\gui.py`.
-
----
-
-## Automated Tests
-
-The repo now includes a small `unittest` suite that reads cases directly from the Excel fixtures in `test-files/`.
+The repo includes a small `unittest` suite that reads cases directly from the Excel fixtures in `test-files/`.
 
 Run everything with:
 
@@ -102,12 +99,7 @@ Run everything with:
 Or run the underlying command directly:
 
 ```bash
-python3 -W ignore::DeprecationWarning -m unittest discover -s tests -q
+python3 -m unittest discover -s tests -q
 ```
 
-The suite is split into:
-
-- smoke tests for fixture rows that should already work
-- expected-failure regression tests for known TODO bugs
-
-When we fix a TODO item, we can remove that test's `expectedFailure` marker and keep the fixture row as a permanent regression check.
+The suite is split into smoke tests for fixture rows that should already work, and expected-failure regression tests for known TODO bugs. When a TODO is fixed, remove that test's `expectedFailure` marker and keep the fixture row as a permanent regression check.
