@@ -283,3 +283,17 @@ Check the `Original_` column for the raw value the app saw. If the format is one
 ## Need help
 
 Contact your IT Admin or whoever provided this app. Include the log file from `%TEMP%\date-formatter.log` if you encountered a specific error.
+
+## About this app
+
+Diagnostic info you may be asked to share with your IT Admin.
+
+| Item | Where to find it |
+|------|------------------|
+| App version | Shown at the bottom-left of the app window. |
+| Log file | `%TEMP%\date-formatter.log` on Windows. Records run history and any errors. |
+| Settings file | `dates-formatter-settings.json` in the same folder as the script. Stores theme, window position, recent files, and output preference. |
+| User manual file | `user-manual.html` in the same folder as the script. |
+| Python dependencies | `customtkinter 5.2.2`, `pandas 2.2.2`, `openpyxl 3.1.5`. |
+
+To reset the app to defaults, close the app, delete `dates-formatter-settings.json`, and relaunch.
