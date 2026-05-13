@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web UI Migration Plan — Dates Formatter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────── */
+    :root {
+      color-scheme: light;
+      --blue:       #235194;
+      --blue-mid:   #2d6ac0;
+      --orange:     #e5842a;
+      --green:      #1b7a4b;
+      --green-bg:   #dff3e7;
+      --green-ink:  #19613b;
+      --amber:      #c97b00;
+      --amber-bg:   #fff3d6;
+      --amber-ink:  #7a4800;
+      --red-bg:     #fde8e8;
+      --red-ink:    #8a1a1a;
+      --bg:         #f2f6fc;
+      --bg-alt:     #e8eef8;
+      --panel:      #ffffff;
+      --ink:        #19263e;
+      --muted:      #5a6880;
+      --line:       #cfd8e7;
+      --shadow:     0 8px 24px rgba(28,45,74,0.09);
+      --shadow-lg:  0 16px 44px rgba(28,45,74,0.13);
+      --hero-grad:  linear-gradient(135deg, #235194 0%, #2d6ac0 58%, #e5842a 100%);
+      --chip-bg:    #edf3ff;
+      --chip-line:  #c6d7f5;
+      --chip-ink:   #1d4080;
+      --code-bg:    #f0f5ff;
+      --code-ink:   #233559;
+      --mono:       "IBM Plex Mono", "Fira Code", monospace;
+      --serif:      "IBM Plex Serif", Georgia, serif;
+      --sans:       "IBM Plex Sans", "Segoe UI", sans-serif;
+      --sidebar-w:  228px;
+      --radius:     12px;
+      --radius-sm:  8px;
+    }
+
+    body[data-theme="dark"] {
+      color-scheme: dark;
+      --bg:         #0c1423;
+      --bg-alt:     #101b2f;
+      --panel:      #111d33;
+      --ink:        #e8efff;
+      --muted:      #9fb0d3;
+      --line:       #243554;
+      --shadow:     0 8px 24px rgba(0,0,0,0.32);
+      --shadow-lg:  0 16px 44px rgba(0,0,0,0.45);
+      --hero-grad:  linear-gradient(135deg, #173764 0%, #235194 62%, #e5842a 100%);
+      --chip-bg:    #152640;
+      --chip-line:  #2a4370;
+      --chip-ink:   #8ab4f8;
+      --code-bg:    #0f1a2e;
+      --code-ink:   #dce7ff;
+      --green-bg:   #133a29;
+      --green-ink:  #84e0b0;
+      --amber-bg:   #3b2a14;
+      --amber-ink:  #ffc27a;
+      --red-bg:     #3a1414;
+      --red-ink:    #f8a0a0;
+    }
+
+    /* ── Reset + Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--bg);
+      transition: background-color .2s, color .2s;
+    }
+
+    a { color: var(--blue); text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+    code {
+      font-family: var(--mono);
+      font-size: .82em;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+    strong { font-weight: 600; }
+
+    /* ── Hero ───────────────────────────────────────────────────── */
+    .hero {
+      background: var(--hero-grad);
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.18);
+      padding: 36px 28px 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .hero-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero-left { display: flex; align-items: center; gap: 18px; }
+
+    .hero-eyebrow {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      opacity: .75;
+      margin-bottom: 4px;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: .01em;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .hero-pill {
+      font-size: .7rem;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .hero-pill.stretch { background: rgba(229,132,42,.28); border-color: rgba(229,132,42,.5); }
+
+    .hero-actions { display: flex; gap: 8px; align-items: center; }
+
+    .btn-ghost {
+      font-family: var(--sans);
+      font-size: .74rem;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,.32);
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      border-radius: 999px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.24); }
+
+    /* ── Shell ──────────────────────────────────────────────────── */
+    .shell {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      gap: 0;
+      min-height: calc(100vh - 110px);
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────── */
+    .sidebar {
+      position: sticky;
+      top: 110px;
+      height: calc(100vh - 126px);
+      overflow-y: auto;
+      padding: 24px 16px 24px 20px;
+      border-right: 1px solid var(--line);
+    }
+
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+
+    .nav-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 14px 0 6px;
+    }
+    .nav-label:first-child { padding-top: 0; }
+
+    .phase-nav { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+
+    .phase-nav a {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: background .13s, color .13s;
+    }
+    .phase-nav a:hover { background: var(--bg-alt); color: var(--ink); }
+    .phase-nav a.active { background: var(--chip-bg); color: var(--blue); font-weight: 600; }
+    .phase-nav a.stretch-link { color: var(--amber); }
+    .phase-nav a.stretch-link:hover { background: var(--amber-bg); color: var(--amber); }
+    .phase-nav a.stretch-link.active { background: var(--amber-bg); color: var(--amber); }
+
+    .nav-num {
+      font-family: var(--mono);
+      font-size: .68rem;
+      background: var(--chip-bg);
+      color: var(--chip-ink);
+      border: 1px solid var(--chip-line);
+      border-radius: 4px;
+      padding: 1px 5px;
+      min-width: 26px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .stretch-link .nav-num { background: var(--amber-bg); color: var(--amber-ink); border-color: rgba(229,132,42,.3); }
+
+    .sidebar-stats {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+    }
+
+    .sstat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .74rem;
+    }
+    .sstat-label { color: var(--muted); }
+    .sstat-val { font-weight: 700; font-family: var(--mono); color: var(--ink); }
+
+    /* ── Main Content ───────────────────────────────────────────── */
+    .content {
+      padding: 28px 32px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-width: 0;
+    }
+
+    /* ── Rule Banner ────────────────────────────────────────────── */
+    .rule-banner {
+      background: var(--green-bg);
+      border: 1px solid color-mix(in oklab, var(--green) 35%, transparent);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .rule-banner .rule-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .rule-banner p {
+      font-size: .83rem;
+      color: var(--green-ink);
+      line-height: 1.5;
+    }
+    .rule-banner strong { color: var(--green-ink); }
+
+    /* ── Phase Card ─────────────────────────────────────────────── */
+    .phase {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      scroll-margin-top: 126px;
+    }
+
+    .phase-head {
+      padding: 18px 22px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+    }
+    .phase-head:hover { background: color-mix(in oklab, var(--bg-alt) 40%, transparent); }
+
+    .phase-num-badge {
+      font-family: var(--mono);
+      font-size: .7rem;
+      font-weight: 600;
+      background: var(--chip-bg);
+      color: var(--chip-ink);
+      border: 1px solid var(--chip-line);
+      border-radius: 6px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .phase-head-text { flex: 1; min-width: 0; }
+
+    .phase-head-text h2 {
+      font-family: var(--serif);
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: color-mix(in oklab, var(--ink) 84%, var(--blue));
+      line-height: 1.2;
+    }
+
+    .phase-head-text .goal {
+      margin-top: 5px;
+      font-size: .8rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .phase-head-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .badge {
+      font-size: .63rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+    .badge-risk-med  { background: var(--amber-bg); color: var(--amber-ink); }
+    .badge-risk-low  { background: var(--green-bg); color: var(--green-ink); }
+    .badge-prereq    { background: var(--red-bg); color: var(--red-ink); }
+    .badge-stretch   { background: var(--amber-bg); color: var(--amber-ink); }
+    .badge-count     { background: var(--chip-bg); color: var(--chip-ink); border: 1px solid var(--chip-line); }
+
+    .chevron {
+      font-size: .85rem;
+      color: var(--muted);
+      transition: transform .2s;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .phase.open .chevron { transform: rotate(180deg); }
+
+    .phase-body { display: none; }
+    .phase.open .phase-body { display: block; }
+
+    /* ── Task Table ─────────────────────────────────────────────── */
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .81rem;
+    }
+
+    .task-table thead tr {
+      background: color-mix(in oklab, var(--bg-alt) 60%, var(--panel));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .task-table th {
+      padding: 9px 16px;
+      text-align: left;
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .task-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent);
+      vertical-align: top;
+    }
+
+    .task-table tr:last-child td { border-bottom: none; }
+    .task-table tr:hover td { background: color-mix(in oklab, var(--bg-alt) 30%, transparent); }
+
+    .task-id {
+      font-family: var(--mono);
+      font-size: .72rem;
+      font-weight: 600;
+      background: var(--chip-bg);
+      color: var(--chip-ink);
+      border: 1px solid var(--chip-line);
+      border-radius: 5px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .stretch .task-id {
+      background: var(--amber-bg);
+      color: var(--amber-ink);
+      border-color: rgba(229,132,42,.3);
+    }
+
+    .task-title { font-weight: 600; color: var(--ink); line-height: 1.35; }
+    .task-notes { margin-top: 4px; color: var(--muted); font-size: .77rem; line-height: 1.45; }
+
+    .col-id    { width: 96px; }
+    .col-task  { width: auto; }
+    .col-notes { width: 40%; }
+
+    /* ── Stretch Phase ──────────────────────────────────────────── */
+    .stretch {
+      border-color: rgba(229,132,42,.35);
+    }
+
+    .stretch .phase-head {
+      background: color-mix(in oklab, var(--amber-bg) 30%, var(--panel));
+    }
+    .stretch .phase-head:hover {
+      background: color-mix(in oklab, var(--amber-bg) 50%, var(--panel));
+    }
+
+    .stretch .phase-num-badge {
+      background: var(--amber-bg);
+      color: var(--amber-ink);
+      border-color: rgba(229,132,42,.35);
+    }
+
+    .stretch .phase-head-text h2 {
+      color: color-mix(in oklab, var(--amber) 70%, var(--ink));
+    }
+
+    /* ── File Layout Block ──────────────────────────────────────── */
+    .file-layout {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 24px;
+      scroll-margin-top: 126px;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: color-mix(in oklab, var(--ink) 84%, var(--blue));
+      margin-bottom: 14px;
+    }
+
+    .file-tree {
+      font-family: var(--mono);
+      font-size: .78rem;
+      line-height: 1.75;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      overflow-x: auto;
+    }
+
+    .file-new { color: var(--green); font-weight: 600; }
+    .file-comment { color: var(--muted); }
+
+    /* ── Constraints ────────────────────────────────────────────── */
+    .constraints {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 24px;
+      scroll-margin-top: 126px;
+    }
+
+    .constraint-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .constraint-item {
+      background: var(--bg-alt);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: .8rem;
+    }
+
+    .constraint-item .ci-label {
+      font-size: .66rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .constraint-item p { color: var(--ink); line-height: 1.45; }
+
+    /* ── Phase note block inside body ───────────────────────────── */
+    .phase-note {
+      margin: 0;
+      padding: 12px 18px;
+      font-size: .79rem;
+      color: var(--muted);
+      background: color-mix(in oklab, var(--bg-alt) 45%, transparent);
+      border-top: 1px solid var(--line);
+      line-height: 1.5;
+    }
+
+    /* ── Decisions table ────────────────────────────────────────── */
+    .decisions-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+      margin-top: 14px;
+    }
+    .decisions-table th {
+      text-align: left;
+      font-size: .66rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 14px;
+      background: color-mix(in oklab, var(--bg-alt) 60%, var(--panel));
+      border-bottom: 1px solid var(--line);
+    }
+    .decisions-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent);
+      vertical-align: top;
+    }
+    .decisions-table tr:last-child td { border-bottom: none; }
+
+    /* ── Scroll up ──────────────────────────────────────────────── */
+    #scroll-top {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(35,81,148,.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #scroll-top.visible { opacity: 1; pointer-events: auto; }
+    #scroll-top:hover { background: var(--blue-mid); }
+
+    /* ── Expand/collapse all ────────────────────────────────────── */
+    #expand-all {
+      font-family: var(--sans);
+      font-size: .74rem;
+      font-weight: 600;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.3);
+      color: #fff;
+      border-radius: 999px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #expand-all:hover { background: rgba(255,255,255,.24); }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      font-size: .73rem;
+      color: var(--muted);
+      padding: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* ── Mobile ─────────────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        display: none;
+      }
+      .content { padding: 18px 16px 48px; }
+      .hero { padding: 22px 18px 18px; position: static; }
+      .phase { scroll-margin-top: 16px; }
+      .col-notes { display: none; }
+      #scroll-top { bottom: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div>
+          <div class="hero-eyebrow">Migration Plan</div>
+          <h1>Web UI — Flask + Browser</h1>
+          <div class="hero-pills">
+            <span class="hero-pill">29 core tasks</span>
+            <span class="hero-pill">5 phases</span>
+            <span class="hero-pill">Windows + Mac</span>
+            <span class="hero-pill">Auto-pick port</span>
+            <span class="hero-pill stretch">+ 5 stretch tasks (PyWebView)</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button id="expand-all" type="button">Expand All</button>
+        <button id="theme-toggle" class="btn-ghost" type="button">Theme</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+
+    <!-- Sidebar -->
+    <nav class="sidebar" aria-label="Phase navigation">
+      <div class="nav-label">Core Phases</div>
+      <ul class="phase-nav">
+        <li><a href="#p1" class="phase-link"><span class="nav-num">P1</span>Logic Extraction</a></li>
+        <li><a href="#p2" class="phase-link"><span class="nav-num">P2</span>Flask Backend</a></li>
+        <li><a href="#p3" class="phase-link"><span class="nav-num">P3</span>Frontend</a></li>
+        <li><a href="#p4" class="phase-link"><span class="nav-num">P4</span>Launcher</a></li>
+        <li><a href="#p5" class="phase-link"><span class="nav-num">P5</span>Parity + Polish</a></li>
+      </ul>
+
+      <div class="nav-label">Stretch</div>
+      <ul class="phase-nav">
+        <li><a href="#sb" class="phase-link stretch-link"><span class="nav-num">SB</span>PyWebView</a></li>
+      </ul>
+
+      <div class="nav-label">Reference</div>
+      <ul class="phase-nav">
+        <li><a href="#layout" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">📁</span>File Layout</a></li>
+        <li><a href="#frozen" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">🔒</span>Frozen Logic</a></li>
+        <li><a href="#decisions" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">⚙</span>Decisions</a></li>
+      </ul>
+
+      <div class="sidebar-stats">
+        <div class="sstat"><span class="sstat-label">Core tasks</span><span class="sstat-val">29</span></div>
+        <div class="sstat"><span class="sstat-label">Stretch tasks</span><span class="sstat-val">5</span></div>
+        <div class="sstat"><span class="sstat-label">Platforms</span><span class="sstat-val">Win + Mac</span></div>
+        <div class="sstat"><span class="sstat-label">Port strategy</span><span class="sstat-val">auto-pick</span></div>
+        <div class="sstat"><span class="sstat-label">Bundling</span><span class="sstat-val">out of scope</span></div>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="content">
+
+      <!-- Rule banner -->
+      <div class="rule-banner">
+        <span class="rule-icon">🔒</span>
+        <p>
+          <strong>Guiding rule:</strong> No behavioral changes to date logic at any phase.
+          All processing stays in <code>date_engine.py</code>. Flask routes are thin wrappers only.
+          The existing CTk GUI stays runnable until <strong>W-505</strong> (smoke test) is confirmed.
+        </p>
+      </div>
+
+      <!-- ── Phase 1 ── -->
+      <section class="phase open" id="p1">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">PHASE 1</span>
+          <div class="phase-head-text">
+            <h2>Logic Extraction</h2>
+            <p class="goal">Isolate all date parsing and formatting into a pure Python module. No UI imports. Tests pass before and after. This phase is a prerequisite for everything else — complete it in isolation before writing any Flask code.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-prereq">Prerequisite</span>
+            <span class="badge badge-risk-med">Medium risk</span>
+            <span class="badge badge-count">4 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-101</span></td>
+                <td>
+                  <div class="task-title">Audit <code>date-formatter-gui.py</code></div>
+                  <div class="task-notes">Map every function: pure logic (date parsing, formatting, conversion, validation) vs UI callback vs both. Document the boundary before touching anything.</div>
+                </td>
+                <td><div class="task-notes">Output: a comment block or scratch doc listing which functions move. Do not start W-102 without this map.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-102</span></td>
+                <td>
+                  <div class="task-title">Create <code>prod/date_engine.py</code></div>
+                  <div class="task-notes">Extract all pure logic. Zero <code>customtkinter</code> / <code>tkinter</code> / <code>threading</code> GUI calls. Module must import cleanly with no side effects (<code>import date_engine</code> should do nothing visible).</div>
+                </td>
+                <td><div class="task-notes">Functions to move: <code>convert_date_pattern</code>, <code>format_single_date</code>, <code>ensure_chronological_order</code>, <code>is_valid_date_format</code>, all pipeline helpers, <code>apply_leading_zeros</code>, <code>reorder_columns</code>, constants, regex patterns.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-103</span></td>
+                <td>
+                  <div class="task-title">Repoint existing CTk GUI to engine</div>
+                  <div class="task-notes">Update <code>prod/date-formatter-gui.py</code> with <code>from date_engine import ...</code>. Existing CTk GUI must still launch and behave identically. Do not modify any logic during this step.</div>
+                </td>
+                <td><div class="task-notes">Also update <code>src/date-formatter-gui.py</code> to match. Both files in lockstep.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-104</span></td>
+                <td>
+                  <div class="task-title">Run full test suite — must pass clean</div>
+                  <div class="task-notes"><code>./run-tests.sh</code>. All tests must pass. Zero regressions. If any fail, fix before proceeding to Phase 2. This gate is non-negotiable.</div>
+                </td>
+                <td><div class="task-notes">Also manually launch CTk GUI and run a conversion on <code>9200-W22.xlsx</code> to confirm end-to-end behavior is unchanged.</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Phase 2 ── -->
+      <section class="phase open" id="p2">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">PHASE 2</span>
+          <div class="phase-head-text">
+            <h2>Flask Backend</h2>
+            <p class="goal">HTTP API layer that wraps <code>date_engine</code>. Routes validate inputs, call the engine, and return results. No processing logic lives in routes.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-risk-low">Low risk</span>
+            <span class="badge badge-count">7 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-201</span></td>
+                <td>
+                  <div class="task-title">Scaffold <code>web/app.py</code></div>
+                  <div class="task-notes">Flask app skeleton. Host: <code>127.0.0.1</code> only (no LAN exposure). Debug off in production. Blueprint structure if routes grow beyond one file.</div>
+                </td>
+                <td><div class="task-notes">Add <code>flask</code> to <code>requirements.txt</code>. No other Flask extensions needed.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-202</span></td>
+                <td>
+                  <div class="task-title"><code>POST /api/load</code> — file upload</div>
+                  <div class="task-notes">Accept <code>multipart/form-data</code> with xlsx or csv. Save to <code>tempfile.mkdtemp()</code>. Return JSON: <code>{columns, row_count, token}</code>. Token is a UUID mapped server-side to the temp path.</div>
+                </td>
+                <td><div class="task-notes">Reject non-xlsx/csv with 400. Max file size: configurable constant, default 50 MB. Token dict lives in module-level <code>dict</code> (single-user local app, no concurrency concern).</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-203</span></td>
+                <td>
+                  <div class="task-title"><code>POST /api/process</code> — run conversion</div>
+                  <div class="task-notes">Accept: <code>{token, column, mode, output_mode}</code>. Look up temp file by token. Call engine. Stream result file back as download. Clean temp files after response.</div>
+                </td>
+                <td><div class="task-notes">Modes: <code>single</code> / <code>ae</code> / <code>dublin</code>. Output modes: <code>overwrite</code> / <code>copy</code>. Return Content-Disposition: attachment. Orphaned temp files cleaned on next server start.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-204</span></td>
+                <td>
+                  <div class="task-title"><code>GET /api/settings</code></div>
+                  <div class="task-notes">Return current <code>dates-formatter-settings.json</code> as JSON. Same schema as existing sidecar file.</div>
+                </td>
+                <td><div class="task-notes">Settings file path: same location as existing sidecar (<code>os.path.dirname(os.path.abspath(__file__))</code>).</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-205</span></td>
+                <td>
+                  <div class="task-title"><code>POST /api/settings</code></div>
+                  <div class="task-notes">Merge incoming JSON with defaults, write updated settings file. Return updated settings.</div>
+                </td>
+                <td><div class="task-notes">Validate keys against known schema — reject unknown keys with 400 to prevent settings corruption.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-206</span></td>
+                <td>
+                  <div class="task-title"><code>GET /manual</code> — serve user manual</div>
+                  <div class="task-notes">Serve <code>prod/user-manual.html</code> via <code>send_from_directory</code>. Opens in new browser tab from frontend link.</div>
+                </td>
+                <td><div class="task-notes">Path resolves relative to <code>app.py</code>. No template rendering — static serve only.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-207</span></td>
+                <td>
+                  <div class="task-title">Consistent JSON error handling on all routes</div>
+                  <div class="task-notes">All error responses: <code>{"error": "human-readable message"}</code> with appropriate HTTP status. No Flask HTML error pages escape to the browser.</div>
+                </td>
+                <td><div class="task-notes">Register <code>@app.errorhandler</code> for 400, 404, 500. Errors also written to existing log path (<code>date-formatter.log</code>).</div></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="phase-note">
+            <strong>Temp file strategy:</strong> Each upload gets a UUID. Server holds <code>{uuid: tmp_path}</code> in memory.
+            File deleted after <code>/api/process</code> streams. Orphaned files (server crash, no process call) cleaned on next startup by scanning tempdir for known prefix.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Phase 3 ── -->
+      <section class="phase open" id="p3">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">PHASE 3</span>
+          <div class="phase-head-text">
+            <h2>Frontend</h2>
+            <p class="goal">Single-page app at <code>web/templates/index.html</code>. Vanilla JS, no framework, no bundler. Clean native-feeling design — not a data tool aesthetic. Fetches against the Flask API.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-risk-low">Low risk</span>
+            <span class="badge badge-count">8 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-301</span></td>
+                <td>
+                  <div class="task-title">Design system + base template</div>
+                  <div class="task-notes"><code>web/templates/index.html</code> with <code>web/static/style.css</code>. CSS custom properties for color and spacing. Dark/light mode via <code>data-theme</code> attribute. Matches existing palette: <code>#235194</code> blue, <code>#e5842a</code> orange. IBM Plex fonts.</div>
+                </td>
+                <td><div class="task-notes">Single HTML file served by Flask template engine. CSS and JS as separate static files for caching.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-302</span></td>
+                <td>
+                  <div class="task-title">File upload zone</div>
+                  <div class="task-notes">Drag-and-drop target + click-to-browse fallback (<code>&lt;input type="file"&gt;</code>). On file select: POST to <code>/api/load</code>. Show filename, row count, column count in a file card on success.</div>
+                </td>
+                <td><div class="task-notes">Accept <code>.xlsx, .csv</code> only. Show loading state during upload. File card replaces drop zone after successful load.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-303</span></td>
+                <td>
+                  <div class="task-title">Column picker</div>
+                  <div class="task-notes">Dropdown/select populated from <code>/api/load</code> response column list. Shows column names. Required before Run is enabled.</div>
+                </td>
+                <td><div class="task-notes">If <code>date_columns</code> hint present in response (W-503), auto-select first suggested column and visually flag suggested columns.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-304</span></td>
+                <td>
+                  <div class="task-title">Mode selector + output mode toggle</div>
+                  <div class="task-notes">Three mode options: Single Date / Date Range (ArchivERA) / Dublin Core. Per-mode description text and output format example below selector. Output mode toggle: Overwrite in place / Save as copy.</div>
+                </td>
+                <td><div class="task-notes">Mode defaults from settings. Output mode example updates dynamically when mode changes.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-305</span></td>
+                <td>
+                  <div class="task-title">Run → spinner → download</div>
+                  <div class="task-notes">Run button POSTs <code>{token, column, mode, output_mode}</code> to <code>/api/process</code>. Response is a file blob → trigger browser download. Status text shows rows processed and flagged count after completion.</div>
+                </td>
+                <td><div class="task-notes">Spinner state while request is in flight. Disable Run during processing. On error: show inline error message, re-enable Run.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-306</span></td>
+                <td>
+                  <div class="task-title">Settings panel</div>
+                  <div class="task-notes">Accessible via gear icon (top-right). Slides in as a side panel or modal. Contains: theme toggle (dark/light/system), default output mode. Changes POST to <code>/api/settings</code> immediately (no explicit Save button).</div>
+                </td>
+                <td><div class="task-notes">Load initial values from <code>GET /api/settings</code> on page load.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-307</span></td>
+                <td>
+                  <div class="task-title">Inline error states</div>
+                  <div class="task-notes">File format errors, bad column, engine errors. Displayed inline near the relevant control — not alert dialogs. Dismissable.</div>
+                </td>
+                <td><div class="task-notes">Network errors (Flask not running): show a distinct "server not responding" message with a reload prompt.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-308</span></td>
+                <td>
+                  <div class="task-title">User manual link</div>
+                  <div class="task-notes">Button or link that opens <code>/manual</code> in a new tab. Positioned consistently with existing CTk "View User Manual" button.</div>
+                </td>
+                <td><div class="task-notes">No JS required — plain <code>&lt;a href="/manual" target="_blank"&gt;</code>.</div></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="phase-note">
+            <strong>JS strategy:</strong> Fetch API for all calls. No jQuery. No bundler. Single <code>web/static/app.js</code>.
+            Keep state in a plain JS object. This is a utility, not a dashboard — avoid unnecessary abstraction.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Phase 4 ── -->
+      <section class="phase open" id="p4">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">PHASE 4</span>
+          <div class="phase-head-text">
+            <h2>Launcher</h2>
+            <p class="goal">Single entry point that finds a free port, starts Flask, opens the browser, and handles shutdown cleanly on both platforms.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-risk-low">Low risk</span>
+            <span class="badge badge-count">4 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-401</span></td>
+                <td>
+                  <div class="task-title">Create <code>prod/launch.py</code></div>
+                  <div class="task-notes">
+                    Free port via <code>socket.bind(('', 0))</code>. Start Flask in a daemon thread. Poll <code>GET http://127.0.0.1:{port}/</code> until ready (max ~5s). Open <code>http://127.0.0.1:{port}</code> in default browser. Block on <code>KeyboardInterrupt</code>.
+                  </div>
+                </td>
+                <td><div class="task-notes">Print port to stdout on launch. Flask thread is daemon so it dies when main thread exits. No external dependencies beyond stdlib + flask.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-402</span></td>
+                <td>
+                  <div class="task-title">Windows launcher: <code>date-formatter-web.bat</code></div>
+                  <div class="task-notes">Calls <code>py prod\launch.py</code>. Keep existing <code>date-formatter-gui.bat</code> until W-506 (CTk retirement).</div>
+                </td>
+                <td><div class="task-notes">Batch file lives in <code>prod/</code>. Can be copied to Desktop. If <code>py</code> not found, fallback to <code>python</code>.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-403</span></td>
+                <td>
+                  <div class="task-title">Mac launcher: <code>date-formatter-web.command</code></div>
+                  <div class="task-notes">Double-clickable shell script on Mac. <code>#!/bin/bash</code>. <code>cd</code> to script dir, call <code>python3 launch.py</code>. Requires <code>chmod +x</code> after copy.</div>
+                </td>
+                <td><div class="task-notes">Document <code>chmod +x</code> step in README. Mac Gatekeeper may prompt on first open — document that too.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-404</span></td>
+                <td>
+                  <div class="task-title">Graceful shutdown</div>
+                  <div class="task-notes">Ctrl+C in terminal: clean temp dir, exit. Browser window close: best-effort via <code>window.addEventListener('beforeunload', ...)</code> → <code>navigator.sendBeacon('/api/shutdown')</code>. Flask route sets a flag to stop the server loop.</div>
+                </td>
+                <td><div class="task-notes">Shutdown is best-effort. If browser close doesn't fire, process exits when terminal is closed or Ctrl+C is used. Temp dir is always cleaned on next startup.</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Phase 5 ── -->
+      <section class="phase open" id="p5">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">PHASE 5</span>
+          <div class="phase-head-text">
+            <h2>Parity + Polish</h2>
+            <p class="goal">Feature parity with the CTk GUI, plus improvements the web stack unlocks. Ends with a smoke test on both platforms and a decision on CTk GUI retirement.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-risk-low">Low risk</span>
+            <span class="badge badge-count">6 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-501</span></td>
+                <td>
+                  <div class="task-title">Theme persistence</div>
+                  <div class="task-notes">On page load: <code>GET /api/settings</code> → apply <code>data-theme</code>. Toggle in settings panel saves via <code>POST /api/settings</code>. Respects system preference as default if no saved preference.</div>
+                </td>
+                <td><div class="task-notes">Same three states as CTk: dark / light / system.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-502</span></td>
+                <td>
+                  <div class="task-title">Recent files list</div>
+                  <div class="task-notes">Store last 5 filenames in settings JSON. Show under upload zone. Clicking a recent file opens the browse dialog (browser security prevents restoring the path directly — filename is display-only).</div>
+                </td>
+                <td><div class="task-notes">Filenames only — no paths stored. Trimmed to basename.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-503</span></td>
+                <td>
+                  <div class="task-title">Column auto-detection (T-013)</div>
+                  <div class="task-notes">After <code>/api/load</code>: engine scans each column; columns where majority of non-empty values match a date pattern are returned as <code>date_columns</code> in the response. Frontend highlights these in the picker with a "looks like dates" badge.</div>
+                </td>
+                <td><div class="task-notes">Detection runs in <code>date_engine.py</code> — no new dependency. This closes T-013.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-504</span></td>
+                <td>
+                  <div class="task-title">Keyboard shortcuts</div>
+                  <div class="task-notes"><code>Ctrl/Cmd+O</code>: open file browse. <code>Ctrl/Cmd+R</code>: run (if enabled). <code>Ctrl/Cmd+,</code>: open settings panel. <code>Ctrl/Cmd+?</code>: open manual in new tab. Implemented in <code>app.js</code>.</div>
+                </td>
+                <td><div class="task-notes">This closes T-014. Do not intercept shortcuts when a text input is focused.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-505</span></td>
+                <td>
+                  <div class="task-title">Smoke test — both platforms</div>
+                  <div class="task-notes">End-to-end on Windows and Mac: launch → load <code>9200-W22.xlsx</code> → pick column → run all three modes → verify output files. Check theme toggle, settings persistence, manual link, keyboard shortcuts.</div>
+                </td>
+                <td><div class="task-notes">Windows: test with <code>date-formatter-web.bat</code>. Mac: test with <code>date-formatter-web.command</code>. Required gate before W-506.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-506</span></td>
+                <td>
+                  <div class="task-title">Retire CTk GUI (optional)</div>
+                  <div class="task-notes">Once Web UI is validated on client machine (T-001 equivalent), archive or remove <code>date-formatter-gui.py</code> and the CTk launcher. Keep until client sign-off.</div>
+                </td>
+                <td><div class="task-notes">Do not do this until client smoke test passes. Remove <code>customtkinter</code> from <code>requirements.txt</code> at the same time.</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Stretch B ── -->
+      <section class="phase stretch open" id="sb">
+        <div class="phase-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="phase-num-badge">STRETCH B</span>
+          <div class="phase-head-text">
+            <h2>PyWebView — Native Window</h2>
+            <p class="goal">Wrap the Flask app in a native webview window. Same HTML/CSS/JS frontend, same Flask backend — but no browser chrome, no URL bar, no tabs. Feels like a standalone desktop app.</p>
+          </div>
+          <div class="phase-head-meta">
+            <span class="badge badge-stretch">Stretch</span>
+            <span class="badge badge-risk-med">Medium risk</span>
+            <span class="badge badge-count">5 tasks</span>
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="phase-body">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-task">Task</th>
+                <th class="col-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="task-id">W-SB1</span></td>
+                <td>
+                  <div class="task-title">Add <code>pywebview&gt;=4.4</code> to requirements</div>
+                  <div class="task-notes">Verify install on both platforms. Windows uses Edge WebView2 (present on Win11 + modern Win10 by default). Mac uses WebKit.</div>
+                </td>
+                <td><div class="task-notes">Do not add to base <code>requirements.txt</code> until Stretch B is confirmed in scope. Keep in a separate <code>requirements-native.txt</code> until then.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-SB2</span></td>
+                <td>
+                  <div class="task-title">Create <code>prod/launch_native.py</code></div>
+                  <div class="task-notes">Start Flask in background thread (same port-pick logic as <code>launch.py</code>). Open <code>pywebview</code> window at <code>http://127.0.0.1:{port}</code>. Window title: "Dates Formatter". <code>webview.start()</code> blocks until window closed → Flask thread exits with it.</div>
+                </td>
+                <td><div class="task-notes">Minimum window size: 900×650. Resizable. No <code>frameless=True</code> — keep OS chrome for accessibility (minimize, resize, close buttons).</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-SB3</span></td>
+                <td>
+                  <div class="task-title">Native launchers</div>
+                  <div class="task-notes">Windows: <code>date-formatter-native.bat</code>. Mac: <code>date-formatter-native.command</code> (<code>chmod +x</code> required). Both call <code>launch_native.py</code>.</div>
+                </td>
+                <td><div class="task-notes">Keep browser-based launchers (W-402, W-403) as fallback.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-SB4</span></td>
+                <td>
+                  <div class="task-title">Platform rendering test</div>
+                  <div class="task-notes">Windows: confirm Edge WebView2 renders layout correctly, drag-and-drop works, download triggers correctly. Mac: confirm WebKit renders identically. Flag any CSS or JS differences.</div>
+                </td>
+                <td><div class="task-notes">File download inside pywebview requires care — <code>webview.windows[0].evaluate_js</code> may need to trigger the download differently than a standard browser.</div></td>
+              </tr>
+              <tr>
+                <td><span class="task-id">W-SB5</span></td>
+                <td>
+                  <div class="task-title">Fallback documentation</div>
+                  <div class="task-notes">If Edge WebView2 is not installed on a Windows machine, document the fallback: run <code>date-formatter-web.bat</code> (browser version) instead. Add a one-liner error message in <code>launch_native.py</code> that catches the missing WebView2 error and prints the fallback instruction.</div>
+                </td>
+                <td><div class="task-notes">Edge WebView2 installer: available free from Microsoft. May be worth bundling the bootstrapper URL in the error message.</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── File Layout ── -->
+      <section class="file-layout" id="layout">
+        <h2 class="section-title">File Layout — Post-Migration</h2>
+        <div class="file-tree">
+<span class="file-comment">prod/</span>
+  <span class="file-new">date_engine.py</span>              <span class="file-comment">← extracted logic (Phase 1, new)</span>
+  date-formatter-gui.py       <span class="file-comment">← existing CTk GUI, imports from engine</span>
+  <span class="file-new">launch.py</span>                   <span class="file-comment">← web launcher (Phase 4, new)</span>
+  <span class="file-new">launch_native.py</span>            <span class="file-comment">← PyWebView launcher (Stretch B, new)</span>
+  <span class="file-new">date-formatter-web.bat</span>      <span class="file-comment">← Windows web launcher</span>
+  <span class="file-new">date-formatter-web.command</span>  <span class="file-comment">← Mac web launcher</span>
+  date-formatter-gui.bat      <span class="file-comment">← existing CTk launcher (kept until W-506)</span>
+  user-manual.html
+
+<span class="file-new">web/</span>                         <span class="file-comment">← new directory (Phase 2+)</span>
+  <span class="file-new">app.py</span>                      <span class="file-comment">← Flask app</span>
+  <span class="file-new">templates/</span>
+    <span class="file-new">index.html</span>               <span class="file-comment">← single-page UI</span>
+  <span class="file-new">static/</span>
+    <span class="file-new">app.js</span>
+    <span class="file-new">style.css</span>
+
+src/                         <span class="file-comment">← mirrors prod (updated in W-103)</span>
+  date-formatter-gui.py
+
+test-files/                  <span class="file-comment">← unchanged</span>
+tests/                       <span class="file-comment">← unchanged</span>
+requirements.txt             <span class="file-comment">← adds flask, optionally pywebview</span>
+        </div>
+      </section>
+
+      <!-- ── Frozen Logic ── -->
+      <section class="constraints" id="frozen">
+        <h2 class="section-title">What Does Not Change</h2>
+        <div class="constraint-grid">
+          <div class="constraint-item">
+            <div class="ci-label">Date Parsing</div>
+            <p>All patterns, edge cases, error detection. Zero logic changes across all phases.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">Output Columns</div>
+            <p><code>{col}</code>, <code>Original_{col}</code>, <code>Check {col}</code> structure unchanged.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">Conversion Modes</div>
+            <p>Single / AE Range / Dublin Core behavior and output format unchanged.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">Output File Format</div>
+            <p>xlsx and csv output. Same file structure as today.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">Settings Schema</div>
+            <p>Existing keys: <code>theme</code>, <code>geometry</code>, <code>output_mode</code>. Web adds new keys alongside, never removes.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">User Manual</div>
+            <p><code>user-manual.html</code> content unchanged. Served at <code>/manual</code> instead of opened via <code>webbrowser</code>.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">Test Suite</div>
+            <p><code>./run-tests.sh</code> must pass at the end of Phase 1 and remain passing at every subsequent phase.</p>
+          </div>
+          <div class="constraint-item">
+            <div class="ci-label">CTk GUI</div>
+            <p>Stays functional until W-505 smoke test passes and client sign-off received (W-506).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Open Decisions ── -->
+      <section class="constraints" id="decisions">
+        <h2 class="section-title">Open Decisions</h2>
+        <table class="decisions-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Assumption</th>
+              <th>Flag if wrong</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>PyInstaller (T-010)</strong></td>
+              <td>Out of scope for this plan. Tracked separately in backlog.</td>
+              <td>Raise before W-401 if bundling is needed — affects launcher design.</td>
+            </tr>
+            <tr>
+              <td><strong>CTk GUI retirement</strong></td>
+              <td>Keep until client smoke test passes (W-505 gate).</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Web framework</strong></td>
+              <td>Flask, no extensions beyond core.</td>
+              <td>If FastAPI preferred, raise before W-201.</td>
+            </tr>
+            <tr>
+              <td><strong>JS approach</strong></td>
+              <td>Vanilla JS, no bundler, single <code>app.js</code>.</td>
+              <td>If a lightweight framework is preferred, raise before W-301.</td>
+            </tr>
+            <tr>
+              <td><strong>PyWebView window size</strong></td>
+              <td>Resizable, minimum 900×650.</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Port number</strong></td>
+              <td>Auto-pick available port via <code>socket.bind</code>.</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    Dates Formatter — Web UI Migration Plan &nbsp;·&nbsp; <span id="foot-date"></span>
+  </footer>
+
+  <button id="scroll-top" aria-label="Scroll to top" title="Back to top">↑</button>
+
+  <script>
+  (function () {
+
+    /* ── Theme ──────────────────────────────────────────────────── */
+    const stored = localStorage.getItem('df-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const applyTheme = (t) => {
+      document.body.setAttribute('data-theme', t);
+      localStorage.setItem('df-theme', t);
+      document.getElementById('theme-toggle').textContent = t === 'dark' ? 'Theme: Dark' : 'Theme: Light';
+    };
+    applyTheme(stored || (prefersDark ? 'dark' : 'light'));
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+      applyTheme(document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    /* ── Date ───────────────────────────────────────────────────── */
+    const footDate = document.getElementById('foot-date');
+    if (footDate) footDate.textContent = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+    /* ── Collapsible phases ─────────────────────────────────────── */
+    function setPhaseOpen(phase, open) {
+      if (open) {
+        phase.classList.add('open');
+        phase.querySelector('.phase-head').setAttribute('aria-expanded', 'true');
+      } else {
+        phase.classList.remove('open');
+        phase.querySelector('.phase-head').setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    document.querySelectorAll('.phase-head').forEach(function (head) {
+      head.addEventListener('click', function () {
+        const phase = head.closest('.phase');
+        setPhaseOpen(phase, !phase.classList.contains('open'));
+      });
+      head.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          head.click();
+        }
+      });
+    });
+
+    /* ── Expand / Collapse All ──────────────────────────────────── */
+    let allExpanded = true;
+    document.getElementById('expand-all').addEventListener('click', function () {
+      allExpanded = !allExpanded;
+      document.querySelectorAll('.phase').forEach(function (p) { setPhaseOpen(p, allExpanded); });
+      this.textContent = allExpanded ? 'Collapse All' : 'Expand All';
+    });
+    document.getElementById('expand-all').textContent = 'Collapse All';
+
+    /* ── Scroll-to-top ──────────────────────────────────────────── */
+    const scrollBtn = document.getElementById('scroll-top');
+    window.addEventListener('scroll', function () {
+      scrollBtn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+    scrollBtn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    /* ── Active nav link on scroll ──────────────────────────────── */
+    const sections = Array.from(document.querySelectorAll('section[id], .file-layout[id], .constraints[id]'));
+    const links = Array.from(document.querySelectorAll('.phase-link'));
+
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          links.forEach(function (l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+    sections.forEach(function (s) { observer.observe(s); });
+
+  })();
+  </script>
+</body>
+</html>
