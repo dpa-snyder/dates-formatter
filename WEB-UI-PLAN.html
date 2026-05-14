@@ -598,6 +598,193 @@
       border-top: 1px solid var(--line);
     }
 
+    /* ── Agent Reference sections ──────────────────────────────── */
+    .agent-ref {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      scroll-margin-top: 126px;
+      overflow: hidden;
+    }
+
+    .agent-ref-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      background: color-mix(in oklab, var(--code-bg) 40%, var(--panel));
+    }
+    .agent-ref-head:hover { background: color-mix(in oklab, var(--code-bg) 70%, var(--panel)); }
+
+    .agent-ref-head h2 {
+      font-family: var(--mono);
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--chip-ink);
+      flex: 1;
+    }
+
+    .agent-ref-badge {
+      font-size: .63rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: var(--chip-bg);
+      color: var(--chip-ink);
+      border: 1px solid var(--chip-line);
+    }
+
+    .agent-ref-body { display: none; padding: 20px 22px; }
+    .agent-ref.open .agent-ref-body { display: block; }
+    .agent-ref .chevron { color: var(--muted); font-size: .85rem; transition: transform .2s; }
+    .agent-ref.open .chevron { transform: rotate(180deg); }
+
+    .agent-ref pre {
+      font-family: var(--mono);
+      font-size: .76rem;
+      line-height: 1.6;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    .agent-ref-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .agent-ref-card {
+      background: var(--bg-alt);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: .8rem;
+    }
+
+    .agent-ref-card .arc-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .pitfall-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+
+    .pitfall-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: var(--bg-alt);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--red-ink);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: .8rem;
+      line-height: 1.5;
+    }
+
+    .pitfall-num {
+      font-family: var(--mono);
+      font-size: .68rem;
+      font-weight: 700;
+      background: var(--red-bg);
+      color: var(--red-ink);
+      border-radius: 4px;
+      padding: 2px 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .gate-list { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+
+    .gate-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .gate-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      background: color-mix(in oklab, var(--bg-alt) 60%, var(--panel));
+      border-bottom: 1px solid var(--line);
+      font-size: .78rem;
+      font-weight: 600;
+    }
+
+    .gate-item pre { margin: 0; border: none; border-radius: 0; }
+
+    .fn-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .77rem;
+      margin-top: 12px;
+    }
+    .fn-table th {
+      text-align: left;
+      font-size: .64rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      background: color-mix(in oklab, var(--bg-alt) 60%, var(--panel));
+      border-bottom: 1px solid var(--line);
+    }
+    .fn-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid color-mix(in oklab, var(--line) 40%, transparent);
+      vertical-align: top;
+    }
+    .fn-table tr:last-child td { border-bottom: none; }
+    .fn-table tr:hover td { background: color-mix(in oklab, var(--bg-alt) 25%, transparent); }
+    .yes-chip { display: inline-block; background: var(--green-bg); color: var(--green-ink); border-radius: 4px; padding: 1px 6px; font-size: .68rem; font-weight: 700; }
+    .no-chip  { display: inline-block; background: var(--bg-alt); color: var(--muted); border-radius: 4px; padding: 1px 6px; font-size: .68rem; font-weight: 700; border: 1px solid var(--line); }
+    .warn-chip { display: inline-block; background: var(--amber-bg); color: var(--amber-ink); border-radius: 4px; padding: 1px 6px; font-size: .68rem; font-weight: 700; }
+
+    .api-route { margin-top: 18px; }
+    .api-route:first-child { margin-top: 0; }
+    .api-route-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .http-method {
+      font-family: var(--mono);
+      font-size: .68rem;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .method-get  { background: var(--green-bg);  color: var(--green-ink); }
+    .method-post { background: var(--chip-bg); color: var(--chip-ink); border: 1px solid var(--chip-line); }
+    .api-path {
+      font-family: var(--mono);
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .api-desc { font-size: .78rem; color: var(--muted); }
+    .api-divider { border: none; border-top: 1px solid var(--line); margin: 18px 0; }
+
     /* ── Mobile ─────────────────────────────────────────────────── */
     @media (max-width: 860px) {
       .shell { grid-template-columns: 1fr; }
@@ -660,6 +847,16 @@
         <li><a href="#layout" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">📁</span>File Layout</a></li>
         <li><a href="#frozen" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">🔒</span>Frozen Logic</a></li>
         <li><a href="#decisions" class="phase-link"><span class="nav-num" style="background:var(--bg-alt)">⚙</span>Decisions</a></li>
+      </ul>
+
+      <div class="nav-label">Agent Reference</div>
+      <ul class="phase-nav">
+        <li><a href="#qs"       class="phase-link"><span class="nav-num" style="background:var(--code-bg);color:var(--code-ink)">QS</span>Quick Start</a></li>
+        <li><a href="#fnmap"    class="phase-link"><span class="nav-num" style="background:var(--code-bg);color:var(--code-ink)">FN</span>Function Map</a></li>
+        <li><a href="#api"      class="phase-link"><span class="nav-num" style="background:var(--code-bg);color:var(--code-ink)">API</span>API Contract</a></li>
+        <li><a href="#stubs"    class="phase-link"><span class="nav-num" style="background:var(--code-bg);color:var(--code-ink)">SK</span>Code Stubs</a></li>
+        <li><a href="#pitfalls" class="phase-link"><span class="nav-num" style="background:var(--red-bg);color:var(--red-ink)">!</span>Pitfalls</a></li>
+        <li><a href="#gates"    class="phase-link"><span class="nav-num" style="background:var(--code-bg);color:var(--code-ink)">✓</span>Phase Gates</a></li>
       </ul>
 
       <div class="sidebar-stats">
@@ -1258,6 +1455,676 @@ requirements.txt             <span class="file-comment">← adds flask, optional
         </table>
       </section>
 
+      <!-- ── Quick Start ── -->
+      <section class="agent-ref open" id="qs">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>Quick Start — Agent Onboarding</h2>
+          <span class="agent-ref-badge">Read First</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+          <div class="agent-ref-grid">
+            <div class="agent-ref-card">
+              <div class="arc-label">Repo root</div>
+              <p><code>/Users/baghead/code/leading-zeros-dates/</code></p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Active scripts</div>
+              <p><code>prod/date-formatter-gui.py</code> — 1980-line monolith (logic + CTk UI)<br>
+              <code>src/date-formatter-gui.py</code> — mirrors prod, same content</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Virtual env</div>
+              <p><code>.venv/</code> at repo root. Activate: <code>source .venv/bin/activate</code> (Mac/Linux) or <code>.venv\Scripts\activate</code> (Windows)</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Installed packages</div>
+              <p><code>customtkinter==5.2.2</code><br><code>pandas==2.2.2</code><br><code>openpyxl==3.1.5</code><br>Flask not yet installed — add to requirements.txt in W-201.</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Test suite</div>
+              <p><code>./run-tests.sh</code> — runs all tests against <code>src/date-formatter-gui.py</code> via importlib. 13 tests total (6 smoke + 7 regression).</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Test fixtures</div>
+              <p><code>test-files/testing-column.xlsx</code> — main fixture<br>
+              <code>test-files/dubline-core-test-WWII-dates.xlsx</code> — DC fixture<br>
+              <code>test-files/strange-range-test.xlsx</code> — named ranges<br>
+              <code>test-files/9200-W22.xlsx</code> — smoke test file</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Settings sidecar</div>
+              <p><code>prod/dates-formatter-settings.json</code> — created on first GUI launch. Keys: <code>theme</code>, <code>geometry</code>, <code>output_mode</code>.</p>
+            </div>
+            <div class="agent-ref-card">
+              <div class="arc-label">Log file</div>
+              <p>Written to <code>tempfile.gettempdir()/date-formatter.log</code>. On Mac: <code>/var/folders/.../date-formatter.log</code>. On Windows: <code>%TEMP%\date-formatter.log</code>.</p>
+            </div>
+          </div>
+          <pre><code># Setup (Mac)
+source .venv/bin/activate
+pip install flask          # W-201 — not yet in requirements.txt
+
+# Run existing tests (must pass before ANY changes)
+./run-tests.sh
+
+# Launch existing CTk GUI (must still work after Phase 1)
+python3 prod/date-formatter-gui.py
+
+# Python version
+python3 --version          # 3.13 (confirmed in .venv)</code></pre>
+        </div>
+      </section>
+
+      <!-- ── Function Map ── -->
+      <section class="agent-ref open" id="fnmap">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>Function Map — What Moves to date_engine.py</h2>
+          <span class="agent-ref-badge">W-101 / W-102</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">All functions in <code>prod/date-formatter-gui.py</code>. Line numbers are stable as of <code>cb294b4</code>. "To Engine" = moves to <code>prod/date_engine.py</code>.</p>
+          <table class="fn-table">
+            <thead>
+              <tr><th>Function / Symbol</th><th>Line</th><th>To Engine</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>month_map</code></td><td>103</td><td><span class="yes-chip">YES</span></td><td>Constant dict — copy verbatim</td></tr>
+              <tr><td><code>is_leap_year(year)</code></td><td>119</td><td><span class="yes-chip">YES</span></td><td>Pure math, no deps</td></tr>
+              <tr><td><code>get_last_day_of_month(year, month)</code></td><td>123</td><td><span class="yes-chip">YES</span></td><td>Uses <code>is_leap_year</code></td></tr>
+              <tr><td><code>is_plausible_year_text(value)</code></td><td>131</td><td><span class="yes-chip">YES</span></td><td></td></tr>
+              <tr><td><code>is_excel_serial_text(value)</code></td><td>135</td><td><span class="yes-chip">YES</span></td><td></td></tr>
+              <tr><td><code>excel_serial_to_date(serial_text)</code></td><td>139</td><td><span class="yes-chip">YES</span></td><td></td></tr>
+              <tr><td><code>format_single_date(date_str)</code></td><td>147</td><td><span class="yes-chip">YES</span></td><td>Returns <code>str</code>. Calls <code>custom_format_date</code>.</td></tr>
+              <tr><td><code>custom_format_date(date_str)</code></td><td>168</td><td><span class="yes-chip">YES</span></td><td><strong>Returns <code>(str, flag)</code> TUPLE</strong> — not just string. See Pitfall #1.</td></tr>
+              <tr><td><code>convert_strange_named_ranges(date_str)</code></td><td>396</td><td><span class="yes-chip">YES</span></td><td>Range pipeline step</td></tr>
+              <tr><td><code>ensure_chronological_order(date_str)</code></td><td>422</td><td><span class="yes-chip">YES</span></td><td>Swaps reversed start/end dates</td></tr>
+              <tr><td><code>is_valid_date_format(date_str)</code></td><td>437</td><td><span class="yes-chip">YES</span></td><td>Checks against 3 valid output patterns</td></tr>
+              <tr><td><code>convert_date_pattern(date_str)</code></td><td>447</td><td><span class="yes-chip">YES</span></td><td>DC pipeline. Returns <code>str</code> (not tuple).</td></tr>
+              <tr><td><code>_pad_alnum(val, width)</code></td><td>553</td><td><span class="yes-chip">YES</span></td><td>Internal helper for leading-zeros padding</td></tr>
+              <tr><td><code>apply_leading_zeros(df)</code></td><td>573</td><td><span class="yes-chip">YES</span></td><td>Pads RG (4 chars), SG/SubGr/Series (3 chars). Runs on every mode.</td></tr>
+              <tr><td><code>reorder_columns(df, col, orig, chk)</code></td><td>583</td><td><span class="yes-chip">YES</span></td><td>Moves <code>Original_*</code> and <code>Check *</code> after source col</td></tr>
+              <tr><td><code>detect_date_columns(df)</code></td><td>—</td><td><span class="yes-chip">NEW</span></td><td>New function for W-503. Based on <code>_detect_data_kind</code> (line 1531). Returns list of column names where ≥60% of non-empty values match a date pattern.</td></tr>
+              <tr><td><code>process_column(df, column, mode)</code></td><td>—</td><td><span class="yes-chip">NEW</span></td><td>New public entry point for Flask. Extracted from <code>_process_column</code> method (line 1743). Returns <code>(df, flagged_count)</code>. Mode values: <code>'single'</code> / <code>'ae'</code> / <code>'dublin'</code>.</td></tr>
+              <tr><td><code>DEFAULT_SETTINGS</code></td><td>68</td><td><span class="no-chip">NO</span></td><td>Stays in GUI. <code>web/app.py</code> defines its own version.</td></tr>
+              <tr><td><code>load_settings()</code></td><td>75</td><td><span class="no-chip">NO</span></td><td>Stays in GUI. Has file I/O. See Pitfall #2.</td></tr>
+              <tr><td><code>save_settings(settings)</code></td><td>86</td><td><span class="no-chip">NO</span></td><td>Stays in GUI.</td></tr>
+              <tr><td><code>SETTINGS = load_settings()</code></td><td>94</td><td><span class="warn-chip">DANGER</span></td><td>Module-level side effect. Must NOT be replicated in <code>date_engine.py</code>. See Pitfall #2.</td></tr>
+              <tr><td><code>MODES, MODE_*</code></td><td>596+</td><td><span class="no-chip">NO</span></td><td>CTk UI constants. <code>web/app.py</code> uses its own mode strings.</td></tr>
+              <tr><td><code>Tooltip</code></td><td>637</td><td><span class="no-chip">NO</span></td><td>CTk only</td></tr>
+              <tr><td><code>DateFormatterApp</code></td><td>701</td><td><span class="no-chip">NO</span></td><td>CTk only</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── API Contract ── -->
+      <section class="agent-ref open" id="api">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>API Contract — Flask Route Shapes</h2>
+          <span class="agent-ref-badge">Phase 2</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-post">POST</span>
+              <span class="api-path">/api/load</span>
+              <span class="api-desc">— Upload file, get column list</span>
+            </div>
+            <pre><code>Request:  multipart/form-data,  field name: "file"  (.xlsx or .csv)
+
+Response 200:
+{
+  "token":        "uuid-string",       // server-side key for /api/process
+  "columns":      ["Col A", "Col B"],  // all column names in order
+  "row_count":    523,
+  "date_columns": ["Date", "End Date"] // subset — detected as date-like (W-503)
+}
+
+Response 400: { "error": "Unsupported file type. Use .xlsx or .csv." }
+Response 400: { "error": "Could not read file: &lt;pandas error&gt;" }</code></pre>
+          </div>
+
+          <hr class="api-divider">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-post">POST</span>
+              <span class="api-path">/api/process</span>
+              <span class="api-desc">— Run conversion, stream result file</span>
+            </div>
+            <pre><code>Request (application/json):
+{
+  "token":       "uuid-string",   // from /api/load
+  "column":      "Date Column",   // must exist in file
+  "mode":        "single",        // "single" | "ae" | "dublin"
+  "output_mode": "overwrite"      // "overwrite" | "copy" (affects download filename only)
+}
+
+Response 200:
+  Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  Content-Disposition: attachment; filename="output.xlsx"
+  X-Flagged-Count: 12     // rows where Check column = "Yes"
+  X-Row-Count: 523        // total rows processed
+
+Response 400: { "error": "token, column, and mode are required." }
+Response 400: { "error": "Unknown mode: foo" }
+Response 404: { "error": "Token not found or expired." }
+Response 409: { "error": "Output file is locked. Close it in Excel and retry." }
+Response 500: { "error": "&lt;engine exception message&gt;" }
+
+Note: token is consumed on use. A second call with the same token returns 404.
+      Re-upload to get a fresh token.</code></pre>
+          </div>
+
+          <hr class="api-divider">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-get">GET</span>
+              <span class="api-path">/api/settings</span>
+              <span class="api-desc">— Read current settings</span>
+            </div>
+            <pre><code>Response 200:
+{
+  "theme":        "dark",      // "dark" | "light" | "system"
+  "output_mode":  "overwrite", // "overwrite" | "copy"
+  "recent_files": []           // list of up to 5 basenames (W-502)
+}</code></pre>
+          </div>
+
+          <hr class="api-divider">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-post">POST</span>
+              <span class="api-path">/api/settings</span>
+              <span class="api-desc">— Write settings (partial update)</span>
+            </div>
+            <pre><code>Request (application/json): any subset of valid keys
+{ "theme": "light" }
+
+Response 200: full merged settings dict (same shape as GET)
+Response 400: { "error": "Unknown settings key(s): ['foo']" }</code></pre>
+          </div>
+
+          <hr class="api-divider">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-get">GET</span>
+              <span class="api-path">/manual</span>
+            </div>
+            <pre><code>Response 200: serves prod/user-manual.html as text/html</code></pre>
+          </div>
+
+          <hr class="api-divider">
+
+          <div class="api-route">
+            <div class="api-route-head">
+              <span class="http-method method-post">POST</span>
+              <span class="api-path">/api/shutdown</span>
+              <span class="api-desc">— Graceful stop (called by browser beforeunload)</span>
+            </div>
+            <pre><code>Response 200: { "ok": true }
+Server sets internal flag; main thread in launch.py exits on next tick.</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── Code Stubs ── -->
+      <section class="agent-ref open" id="stubs">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>Code Stubs — Implementation Skeletons</h2>
+          <span class="agent-ref-badge">Phases 1–4</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:4px"><strong>prod/date_engine.py</strong> — target structure after W-102</p>
+          <pre><code># prod/date_engine.py
+# Pure date logic. No UI imports. No side effects on import.
+# Extracted from prod/date-formatter-gui.py (W-102).
+
+import re
+import pandas as pd
+from datetime import datetime, timedelta
+
+month_map = {
+    "Jan": "01", "January": "01",
+    "Feb": "02", "February": "02",
+    # ... copy full dict from GUI line 103
+}
+
+# Copy verbatim from GUI (lines 119–595):
+def is_leap_year(year): ...
+def get_last_day_of_month(year, month): ...
+def is_plausible_year_text(value): ...
+def is_excel_serial_text(value): ...
+def excel_serial_to_date(serial_text): ...
+def format_single_date(date_str): ...          # returns str
+def custom_format_date(date_str): ...          # returns (str, flag) TUPLE — not str
+def convert_strange_named_ranges(date_str): ...
+def ensure_chronological_order(date_str): ...
+def is_valid_date_format(date_str): ...
+def convert_date_pattern(date_str): ...
+def _pad_alnum(val, width): ...
+def apply_leading_zeros(df): ...
+def reorder_columns(df, column, original_col, check_col): ...
+
+# ── NEW: column detection (W-503) ────────────────────────────────────────────
+# Based on _detect_data_kind logic (GUI line 1531).
+
+def detect_date_columns(df, threshold=0.6):
+    """
+    Scan each column. Return list of names where >= threshold of
+    non-empty values match a known date pattern.
+    Samples up to 200 rows per column for speed.
+    """
+    date_cols = []
+    patterns = [
+        re.compile(r'^\d{1,2}/\d{1,2}/\d{4}'),
+        re.compile(r'^\d{4}-\d{2}-\d{2}'),
+        re.compile(r'^\d{4}$'),
+        re.compile(r'^\d{4}-\d{4}$'),
+        re.compile(r'^\d{4}-\d{2}$'),
+        re.compile(r'(?i)\b(circa|ca\.|before|after|undated)\b'),
+    ]
+    for col in df.columns:
+        vals = [str(v).strip() for v in df[col].dropna() if str(v).strip()][:200]
+        if not vals:
+            continue
+        hits = sum(1 for v in vals if any(p.search(v) for p in patterns))
+        if hits / len(vals) >= threshold:
+            date_cols.append(col)
+    return date_cols
+
+
+# ── NEW: processing entry point (W-203) ──────────────────────────────────────
+# Extracted from DateFormatterApp._process_column (GUI line 1743).
+
+def process_column(df, column, mode):
+    """
+    Run conversion pipeline on df[column] in place.
+
+    Args:
+        df     — pandas DataFrame (will be copied internally — caller's df unchanged)
+        column — column name (must exist in df)
+        mode   — "single" | "ae" | "dublin"
+
+    Returns:
+        (df_modified, flagged_count)
+        df_modified has three columns for `column`:
+            {column}            — formatted output (replaces original)
+            Original_{column}   — original raw value
+            Check {column}      — "Yes" if needs manual review, "" otherwise
+        apply_leading_zeros and reorder_columns are always called at end.
+
+    Raises:
+        KeyError  if column not in df
+        ValueError if mode is not one of the three valid values
+    """
+    if column not in df.columns:
+        raise KeyError(f"Column '{column}' not found in dataframe.")
+    if mode not in ('single', 'ae', 'dublin'):
+        raise ValueError(f"Unknown mode: '{mode}'. Use 'single', 'ae', or 'dublin'.")
+
+    original_col = f'Original_{column}'
+    check_col    = f'Check {column}'
+    df = df.copy()
+    df[original_col] = df[column].copy()
+
+    if mode == 'single':
+        # ... port Single Date pipeline from _process_column line 1757
+        pass
+
+    elif mode == 'ae':
+        # ... port Date Range pipeline from _process_column line 1769
+        pass
+
+    elif mode == 'dublin':
+        # ... port Dublin Core pipeline from _process_column line 1795
+        pass
+
+    df = reorder_columns(df, column, original_col, check_col)
+    df = apply_leading_zeros(df)
+    flagged = int((df[check_col] == 'Yes').sum())
+    return df, flagged</code></pre>
+
+          <p style="font-size:.82rem;color:var(--muted);margin:16px 0 4px"><strong>web/app.py</strong> — Flask backend skeleton</p>
+          <pre><code># web/app.py
+import io, json, os, tempfile, uuid
+from flask import Flask, request, jsonify, send_file, send_from_directory
+import pandas as pd
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'prod'))
+import date_engine
+
+app = Flask(__name__)
+TOKENS       = {}   # {uuid: {'path': str, 'df': DataFrame, 'ext': str}}
+PROD_DIR     = os.path.join(os.path.dirname(__file__), '..', 'prod')
+SETTINGS_PATH = os.path.join(PROD_DIR, 'dates-formatter-settings.json')
+DEFAULT_SETTINGS = {'theme': 'dark', 'output_mode': 'overwrite', 'recent_files': []}
+VALID_KEYS   = set(DEFAULT_SETTINGS)
+
+@app.route('/')
+def index():
+    return send_from_directory(
+        os.path.join(os.path.dirname(__file__), 'templates'), 'index.html')
+
+@app.route('/api/load', methods=['POST'])
+def load_file():
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify(error='No file provided.'), 400
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext not in ('.xlsx', '.csv'):
+        return jsonify(error='Unsupported file type. Use .xlsx or .csv.'), 400
+    tmp_dir  = tempfile.mkdtemp(prefix='df-')
+    tmp_path = os.path.join(tmp_dir, f.filename)
+    f.save(tmp_path)
+    try:
+        df = pd.read_excel(tmp_path) if ext == '.xlsx' else pd.read_csv(tmp_path)
+    except Exception as e:
+        return jsonify(error=f'Could not read file: {e}'), 400
+    token = str(uuid.uuid4())
+    TOKENS[token] = {'path': tmp_path, 'df': df, 'ext': ext}
+    return jsonify(token=token, columns=list(df.columns),
+                   row_count=len(df),
+                   date_columns=date_engine.detect_date_columns(df))
+
+@app.route('/api/process', methods=['POST'])
+def process():
+    data   = request.get_json(force=True) or {}
+    token  = data.get('token')
+    column = data.get('column')
+    mode   = data.get('mode')
+    if not all([token, column, mode]):
+        return jsonify(error='token, column, and mode are required.'), 400
+    if token not in TOKENS:
+        return jsonify(error='Token not found or expired.'), 404
+    if mode not in ('single', 'ae', 'dublin'):
+        return jsonify(error=f'Unknown mode: {mode}'), 400
+    entry = TOKENS.pop(token)
+    try:
+        df, flagged = date_engine.process_column(entry['df'].copy(), column, mode)
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+    buf = io.BytesIO()
+    ext = entry['ext']
+    if ext == '.xlsx':
+        with pd.ExcelWriter(buf, engine='openpyxl') as w:
+            df.to_excel(w, index=False)
+            ws = w.sheets[next(iter(w.sheets))]
+            for row in ws.iter_rows(min_row=2):
+                for cell in row:
+                    cell.number_format = '@'  # CRITICAL — prevent Excel auto-conversion
+        mime, fname = ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                       'output.xlsx')
+    else:
+        buf.write(df.to_csv(index=False).encode())
+        mime, fname = 'text/csv', 'output.csv'
+    buf.seek(0)
+    resp = send_file(buf, mimetype=mime, as_attachment=True, download_name=fname)
+    resp.headers['X-Flagged-Count'] = str(flagged)
+    resp.headers['X-Row-Count']     = str(len(df))
+    return resp
+
+@app.route('/api/settings', methods=['GET', 'POST'])
+def settings():
+    def _read():
+        try:
+            with open(SETTINGS_PATH, 'r', encoding='utf-8') as fh:
+                return {**DEFAULT_SETTINGS, **json.load(fh)}
+        except (OSError, json.JSONDecodeError):
+            return dict(DEFAULT_SETTINGS)
+    if request.method == 'GET':
+        return jsonify(_read())
+    incoming = request.get_json(force=True) or {}
+    bad = [k for k in incoming if k not in VALID_KEYS]
+    if bad:
+        return jsonify(error=f'Unknown settings key(s): {bad}'), 400
+    merged = {**_read(), **{k: v for k, v in incoming.items() if k in VALID_KEYS}}
+    with open(SETTINGS_PATH, 'w', encoding='utf-8') as fh:
+        json.dump(merged, fh, indent=2)
+    return jsonify(merged)
+
+@app.route('/manual')
+def manual():
+    return send_from_directory(PROD_DIR, 'user-manual.html')
+
+_shutdown = False
+
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    global _shutdown
+    _shutdown = True
+    return jsonify(ok=True)
+
+@app.errorhandler(400)
+@app.errorhandler(404)
+@app.errorhandler(500)
+def json_error(e):
+    return jsonify(error=str(e)), e.code</code></pre>
+
+          <p style="font-size:.82rem;color:var(--muted);margin:16px 0 4px"><strong>prod/launch.py</strong> — launcher skeleton</p>
+          <pre><code># prod/launch.py
+import os, socket, sys, threading, time, webbrowser
+
+def find_free_port():
+    with socket.socket() as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
+
+def wait_for_server(port, timeout=8.0):
+    import urllib.request
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=1)
+            return True
+        except Exception:
+            time.sleep(0.15)
+    return False
+
+if __name__ == '__main__':
+    # Resolve web/ directory relative to this script
+    here = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, os.path.join(here, '..', 'web'))
+    from app import app, _shutdown
+
+    port = find_free_port()
+    t = threading.Thread(
+        target=app.run,
+        kwargs={'host': '127.0.0.1', 'port': port, 'debug': False},
+        daemon=True)
+    t.start()
+    print(f'Dates Formatter starting on http://127.0.0.1:{port}')
+    if not wait_for_server(port):
+        print('Server did not start. Is flask installed?')
+        sys.exit(1)
+    webbrowser.open(f'http://127.0.0.1:{port}')
+    print('Press Ctrl+C to quit.')
+    try:
+        while not _shutdown:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        pass
+    print('Shutting down.')</code></pre>
+
+          <p style="font-size:.82rem;color:var(--muted);margin:16px 0 4px"><strong>prod/date-formatter-web.bat</strong> (Windows)</p>
+          <pre><code>@echo off
+cd /d "%~dp0"
+py launch.py
+if errorlevel 1 python launch.py
+pause</code></pre>
+
+          <p style="font-size:.82rem;color:var(--muted);margin:16px 0 4px"><strong>prod/date-formatter-web.command</strong> (Mac — requires <code>chmod +x</code>)</p>
+          <pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+python3 launch.py</code></pre>
+
+        </div>
+      </section>
+
+      <!-- ── Pitfalls ── -->
+      <section class="agent-ref open" id="pitfalls">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>Critical Pitfalls</h2>
+          <span class="agent-ref-badge">Read Before Coding</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+          <ul class="pitfall-list">
+            <li class="pitfall-item">
+              <span class="pitfall-num">#1</span>
+              <div><strong><code>custom_format_date()</code> returns a TUPLE <code>(str, flag)</code> — not a string.</strong><br>
+              Flag is <code>'Yes'</code> or <code>''</code>. The range pipeline unpacks it: <code>v, f = custom_format_date(val)</code>. If you call it and assign to a string variable, you get a tuple in the column and the entire output is silently wrong. Check all call sites.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#2</span>
+              <div><strong><code>date_engine.py</code> must have zero side effects on import.</strong><br>
+              The GUI has <code>SETTINGS = load_settings()</code> at line 94 (module level). Do NOT copy this into the engine. The engine must be importable with no file I/O, no logging setup, no global state mutation. Flask imports it at startup and imports must be fast and clean.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#3</span>
+              <div><strong>Test suite imports from <code>src/date-formatter-gui.py</code> via <code>importlib</code>.</strong><br>
+              After W-103 the GUI file uses <code>from date_engine import ...</code>. The imported names must be accessible at module level in the GUI (they are, via Python's normal import re-export). Verify with <code>./run-tests.sh</code> before moving to Phase 2. If tests fail after W-103, the fix is adding explicit re-exports in the GUI file.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#4</span>
+              <div><strong>Excel <code>number_format = '@'</code> is non-negotiable.</strong><br>
+              Without this, Excel interprets <code>MM/DD/YYYY</code> strings as dates and auto-converts them to serial numbers or its own display format on open. Apply to every data cell (rows 2+, all columns) in the ExcelWriter block. This is done in the existing CTk save path and must be done identically in <code>/api/process</code>.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#5</span>
+              <div><strong><code>apply_leading_zeros(df)</code> runs for every mode, every column — never skip it.</strong><br>
+              It pads <code>RG</code> columns to 4 chars and <code>SG</code>/<code>SubGr</code>/<code>Series</code> etc. to 3 chars. It only touches columns that exist in the dataframe — safe to always call. Lives at the end of every pipeline branch in <code>_process_column</code>.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#6</span>
+              <div><strong><code>reorder_columns</code> must run AFTER all processing.</strong><br>
+              It moves <code>Original_{col}</code> and <code>Check {col}</code> to immediately follow the source column. If called before the pipeline writes to those columns, the column order is wrong. Always call at end, before <code>apply_leading_zeros</code>.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#7</span>
+              <div><strong>Flask file download: use <code>io.BytesIO</code>, call <code>buf.seek(0)</code> before <code>send_file</code>.</strong><br>
+              For xlsx: the <code>pd.ExcelWriter</code> context must be closed (exit the <code>with</code> block) before <code>buf.seek(0)</code>. If you seek before the context closes, the buffer is empty. Order: open BytesIO → enter ExcelWriter with buf → write → exit with block → seek(0) → send_file.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#8</span>
+              <div><strong>Windows <code>PermissionError</code> on save = file open in Excel.</strong><br>
+              The CTk GUI has a retry dialog (<code>messagebox.askretrycancel</code>). Flask cannot show a dialog. Instead return <code>409 Conflict</code> with <code>{"error": "Output file is locked. Close it in Excel and retry."}</code>. The frontend shows this inline with a retry button that re-calls <code>/api/process</code> with the same token — but the token was consumed. Solution: either don't consume token on PermissionError, or have the frontend re-upload. Simplest: catch PermissionError before popping the token, return 409 with token still intact.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#9</span>
+              <div><strong><code>output_mode: 'copy'</code> doesn't map cleanly to download flow.</strong><br>
+              In the CTk GUI, 'copy' saves to <code>{name}_formatted{ext}</code> alongside the source. In the web flow, Flask sends a download and the user picks the save location — there is no "alongside" concept. Implement 'copy' as: download filename becomes <code>output_formatted.xlsx</code> vs <code>output.xlsx</code>. Document this difference in the UI.</div>
+            </li>
+            <li class="pitfall-item">
+              <span class="pitfall-num">#10</span>
+              <div><strong>Do not put <code>web/</code> inside <code>prod/</code>.</strong><br>
+              <code>web/</code> lives at repo root, alongside <code>prod/</code>. <code>launch.py</code> in <code>prod/</code> adjusts <code>sys.path</code> to find <code>web/app.py</code> and <code>prod/date_engine.py</code>. If you put <code>web/</code> inside <code>prod/</code>, the <code>send_from_directory</code> paths and <code>sys.path</code> adjustments in the stubs will need to change.</div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── Phase Gates ── -->
+      <section class="agent-ref open" id="gates">
+        <div class="agent-ref-head" role="button" tabindex="0">
+          <h2>Phase Verification Gates</h2>
+          <span class="agent-ref-badge">Run These</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="agent-ref-body">
+          <div class="gate-list">
+            <div class="gate-item">
+              <div class="gate-label"><span class="task-id" style="background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)">After W-104</span> Phase 1 complete gate</div>
+              <pre><code>./run-tests.sh                                    # 13/13 must pass
+python3 -c "import prod.date_engine; print('ok')" # must print 'ok', no errors
+python3 prod/date-formatter-gui.py                # CTk GUI must launch and run a conversion</code></pre>
+            </div>
+            <div class="gate-item">
+              <div class="gate-label"><span class="task-id" style="background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)">After W-207</span> Phase 2 complete gate</div>
+              <pre><code># Terminal 1: start server
+python3 prod/launch.py
+# (note the port printed to stdout — e.g. 54321)
+
+# Terminal 2: smoke test routes
+curl -s http://127.0.0.1:54321/ | head -3
+curl -s http://127.0.0.1:54321/api/settings
+curl -s -X POST http://127.0.0.1:54321/api/load \
+     -F "file=@test-files/testing-column.xlsx"
+# expect: {"token":"...","columns":[...],"row_count":...,"date_columns":[...]}
+
+curl -s http://127.0.0.1:54321/manual | head -3
+# expect: &lt;!doctype html&gt; (user manual HTML)</code></pre>
+            </div>
+            <div class="gate-item">
+              <div class="gate-label"><span class="task-id" style="background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)">After W-308</span> Phase 3 complete gate</div>
+              <pre><code># Launch and open in browser
+python3 prod/launch.py
+
+# Checklist (manual):
+# [ ] File upload zone renders — drag-and-drop works
+# [ ] After upload: filename, row count, column count shown
+# [ ] Column picker populated; date-column hints visible
+# [ ] Mode selector: all 3 modes switch, description updates
+# [ ] Run button → spinner → download triggers
+# [ ] X-Flagged-Count shown in status after download
+# [ ] Settings panel opens, theme toggle works
+# [ ] Chrome devtools console: zero errors, zero warnings</code></pre>
+            </div>
+            <div class="gate-item">
+              <div class="gate-label"><span class="task-id" style="background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)">After W-404</span> Phase 4 complete gate</div>
+              <pre><code># Windows
+double-click prod/date-formatter-web.bat
+# expect: terminal opens, server starts, browser opens automatically
+
+# Mac
+double-click prod/date-formatter-web.command
+# (chmod +x required first: chmod +x prod/date-formatter-web.command)
+# expect: terminal opens, server starts, browser opens automatically
+
+# Ctrl+C in terminal: clean shutdown, no orphan processes
+# Browser close: server exits within ~2s</code></pre>
+            </div>
+            <div class="gate-item">
+              <div class="gate-label"><span class="task-id" style="background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)">After W-505</span> Phase 5 complete gate — full smoke test</div>
+              <pre><code># Use test-files/9200-W22.xlsx on BOTH platforms
+
+# For each mode (single / ae / dublin):
+#   1. Launch via bat/command
+#   2. Upload 9200-W22.xlsx
+#   3. Select the date column
+#   4. Select mode
+#   5. Run → download → open output in Excel
+#   6. Verify: Original_* column present, Check * column present
+#   7. Verify: no cells show serial numbers (number_format='@' working)
+#   8. Verify: flagged count in status matches Check column 'Yes' count
+
+# Settings persistence:
+#   9.  Toggle theme → reload page → theme persists
+#   10. Change output mode → reload → persists
+
+# Keyboard shortcuts:
+#   11. Ctrl/Cmd+O → file browser opens
+#   12. Ctrl/Cmd+R → run triggers (if file loaded)
+#   13. Ctrl/Cmd+, → settings panel opens
+#   14. Ctrl/Cmd+? → manual opens in new tab
+
+./run-tests.sh  # must still pass 13/13</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1329,8 +2196,19 @@ requirements.txt             <span class="file-comment">← adds flask, optional
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
+    /* ── Collapsible agent-ref sections ────────────────────────── */
+    document.querySelectorAll('.agent-ref-head').forEach(function (head) {
+      head.addEventListener('click', function () {
+        const ref = head.closest('.agent-ref');
+        ref.classList.toggle('open');
+      });
+      head.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); }
+      });
+    });
+
     /* ── Active nav link on scroll ──────────────────────────────── */
-    const sections = Array.from(document.querySelectorAll('section[id], .file-layout[id], .constraints[id]'));
+    const sections = Array.from(document.querySelectorAll('section[id], .file-layout[id], .constraints[id], .agent-ref[id]'));
     const links = Array.from(document.querySelectorAll('.phase-link'));
 
     const observer = new IntersectionObserver(function (entries) {
