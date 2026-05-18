@@ -42,6 +42,7 @@ import threading
 import re
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import tempfile
 import time
 import traceback
@@ -57,11 +58,20 @@ MANUAL_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "user-manual.html")
 
 LOG_PATH = os.path.join(tempfile.gettempdir(), "date-formatter.log")
-logging.basicConfig(
-    filename=LOG_PATH,
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
+LOG_MAX_BYTES = 1_000_000     # 1 MB per file
+LOG_BACKUP_COUNT = 3          # keep 3 rotated backups -> ~4 MB total cap
+
+_log_handler = RotatingFileHandler(
+    LOG_PATH,
+    maxBytes=LOG_MAX_BYTES,
+    backupCount=LOG_BACKUP_COUNT,
+    encoding="utf-8",
 )
+_log_handler.setFormatter(
+    logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+)
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().addHandler(_log_handler)
 
 SETTINGS_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "dates-formatter-settings.json")

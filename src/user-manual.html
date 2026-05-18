@@ -246,6 +246,92 @@
     margin: 16px 0;
   }
   .callout strong { color: var(--accent); }
+  .callout.warn {
+    border-left-color: var(--flag);
+    background: var(--flag-bg);
+  }
+  .callout.warn strong { color: var(--flag); }
+  .callout.success {
+    border-left-color: #2d8a4e;
+    background: color-mix(in oklab, #2d8a4e 12%, var(--surface));
+  }
+  .callout.success strong { color: #2d8a4e; }
+  body[data-theme="dark"] .callout.success {
+    background: color-mix(in oklab, #4ed084 18%, var(--surface));
+  }
+  body[data-theme="dark"] .callout.success strong { color: #6fdfa1; }
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) .callout.success {
+      background: color-mix(in oklab, #4ed084 18%, var(--surface));
+    }
+    body:not([data-theme="light"]) .callout.success strong { color: #6fdfa1; }
+  }
+  .quickstart {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 8px 0 32px;
+  }
+  .quickstart h2 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    border: none;
+    padding: 0;
+  }
+  .quickstart ol { margin: 0; padding-left: 22px; }
+  .quickstart li { margin: 4px 0; }
+  .step-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+  }
+  .substeps { counter-reset: substep; padding-left: 0; list-style: none; }
+  .substeps > li {
+    counter-increment: substep;
+    position: relative;
+    padding-left: 38px;
+    margin: 12px 0;
+  }
+  .substeps > li::before {
+    content: counter(substep);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .substeps strong { color: var(--text); }
+  .expect {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+    font-style: italic;
+  }
+  .expect::before {
+    content: "↳ ";
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 600;
+  }
   .flag {
     display: inline-block;
     background: var(--flag-bg);
@@ -281,13 +367,15 @@
   <h2>Contents</h2>
   <ol>
     <li><a href="#overview">What this app does</a></li>
+    <li><a href="#quickstart">Quick start</a></li>
     <li><a href="#launching">Launching the app</a></li>
     <li><a href="#tour">The window at a glance</a></li>
-    <li><a href="#mode">Pick a mode</a></li>
-    <li><a href="#file">Open your file</a></li>
-    <li><a href="#columns">Pick date columns</a></li>
-    <li><a href="#run">Run it</a></li>
-    <li><a href="#output">Understanding the output</a></li>
+    <li><a href="#workflow">The five-step workflow</a></li>
+    <li><a href="#mode">Step 1 &mdash; Pick a mode</a></li>
+    <li><a href="#file">Step 2 &mdash; Open your file</a></li>
+    <li><a href="#columns">Step 3 &mdash; Pick date columns</a></li>
+    <li><a href="#run">Step 4 &mdash; Run it</a></li>
+    <li><a href="#output">Step 5 &mdash; Review flagged rows</a></li>
     <li><a href="#safeguards">Built-in safeguards</a></li>
     <li><a href="#special">Special outputs</a></li>
     <li><a href="#columns-preserved">What stays the same</a></li>
@@ -322,37 +410,92 @@
 <p>You select the file, you select the columns, and the app shows you which rows it was uncertain about.</p>
 </section>
 
+<section id="quickstart">
+<div class="quickstart">
+  <h2>Quick start</h2>
+  <ol>
+    <li><strong>Make a backup copy</strong> of your spreadsheet. The app overwrites the original.</li>
+    <li>Launch the app and pick a <strong>conversion mode</strong> (Single Date, Date Range, or Dublin Core).</li>
+    <li>Click <strong>Browse</strong> and choose your <code>.xlsx</code> or <code>.csv</code> file.</li>
+    <li>Tick the <strong>columns</strong> that contain dates.</li>
+    <li>Click <strong>Run</strong>. When it finishes, sort by the <code>Check</code> column to review flagged rows.</li>
+  </ol>
+</div>
+
+<div class="callout warn">
+  <strong>Before you start:</strong> the app saves on top of your original file. Always work from a copy until you are confident with the output.
+</div>
+</section>
+
 <section id="launching">
 <h2>Launching the app</h2>
+<p>There are two ways to start the app. Use whichever your IT Admin set up.</p>
 
-<h3>If your IT Admin set this up</h3>
-<p>You have a desktop shortcut, typically called <code>date-formatter-gui.bat</code>. Double-click it to launch the app.</p>
-<p>If the shortcut is not on your desktop, ask your IT Admin where they placed it.</p>
+<h3>Option A &mdash; Desktop shortcut (most common)</h3>
+<ol class="substeps">
+  <li><strong>Find the shortcut.</strong> Look on your desktop for <code>date-formatter-gui.bat</code> (or a similarly named icon).
+    <span class="expect">If it is not on your desktop, ask your IT Admin where it is.</span>
+  </li>
+  <li><strong>Double-click it.</strong> The app window opens within a few seconds.
+    <span class="expect">A black command window may flash open briefly. That is normal.</span>
+  </li>
+</ol>
 
-<h3>Manual launch</h3>
-<p>Open Command Prompt and run:</p>
-<pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
-<p>Your IT Admin may have configured a different path.</p>
+<h3>Option B &mdash; Command Prompt</h3>
+<ol class="substeps">
+  <li><strong>Open Command Prompt.</strong> Press <code>Win+R</code>, type <code>cmd</code>, and press Enter.</li>
+  <li><strong>Run the script.</strong> Type the command below and press Enter.
+    <pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
+    <span class="expect">Your IT Admin may have configured a different path.</span>
+  </li>
+</ol>
 </section>
 
 <section id="tour">
 <h2>The window at a glance</h2>
-<p>The app window contains five sections from top to bottom.</p>
+<p>Once the app is open, you will see five stacked sections. From top to bottom:</p>
+<table>
+  <thead><tr><th>Section</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1. Conversion Type</strong></td><td>Three radio buttons. Pick the output style you need.</td></tr>
+    <tr><td><strong>2. File</strong></td><td>A <strong>Browse</strong> button to pick an Excel or CSV file.</td></tr>
+    <tr><td><strong>3. Columns to Format</strong></td><td>Appears after a file loads. Checkboxes for every column. Tick the date columns.</td></tr>
+    <tr><td><strong>4. Run</strong></td><td>The button that starts conversion.</td></tr>
+    <tr><td><strong>5. Progress &amp; Status</strong></td><td>Progress bar plus a status line showing the row being processed and final flagged count.</td></tr>
+  </tbody>
+</table>
+<p>A theme switch in the top corner toggles light, dark, and auto. Your choice is saved between launches.</p>
+</section>
+
+<section id="workflow">
+<h2>The five-step workflow</h2>
+<p>Converting a spreadsheet is always the same five steps. Each section below walks through one step, what to click, and what you should see when it works.</p>
 <ol>
-  <li><strong>Conversion Type.</strong> Three radio buttons. Select the output style you need.</li>
-  <li><strong>File.</strong> A Browse button to select an Excel or CSV file.</li>
-  <li><strong>Columns to Format.</strong> Checkboxes for every column in the loaded file. Tick the columns containing dates.</li>
-  <li><strong>Run.</strong> Starts the conversion.</li>
-  <li><strong>Progress bar and status text.</strong> Shows progress and the number of flagged rows.</li>
+  <li><a href="#mode"><strong>Pick a mode</strong></a> &mdash; choose the output style.</li>
+  <li><a href="#file"><strong>Open your file</strong></a> &mdash; load the spreadsheet.</li>
+  <li><a href="#columns"><strong>Pick date columns</strong></a> &mdash; tell the app which columns to convert.</li>
+  <li><a href="#run"><strong>Run it</strong></a> &mdash; let the app do its work.</li>
+  <li><a href="#output"><strong>Review flagged rows</strong></a> &mdash; check the rows the app was unsure about.</li>
 </ol>
-<p>A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.</p>
 </section>
 
 <section id="mode">
-<h2>Step 1: Pick a conversion mode</h2>
-<p>The three modes produce different output styles. Pick the one that matches the system you are feeding the cleaned data into.</p>
+<div class="step-pill">Step 1 of 5</div>
+<h2>Pick a conversion mode</h2>
+<p>Three radio buttons sit at the top of the window. Each one produces a different output style. Pick the one that matches the system you are feeding the cleaned data into.</p>
 
-<h3>Single Date Conversion: <code>MM/DD/YYYY</code></h3>
+<h3>Which mode should I pick?</h3>
+<table>
+  <thead><tr><th>If you need&hellip;</th><th>Pick this mode</th></tr></thead>
+  <tbody>
+    <tr><td>One specific date per row (e.g. event date)</td><td><strong>Single Date</strong></td></tr>
+    <tr><td>A date range per row, for ArchivERA imports</td><td><strong>Date Range (ArchivERA)</strong></td></tr>
+    <tr><td>Dublin Core or ISO-style date strings cleaned up</td><td><strong>Dublin Core</strong></td></tr>
+    <tr><td>You are not sure</td><td><strong>Date Range</strong> &mdash; it is the safest general-purpose choice</td></tr>
+  </tbody>
+</table>
+
+<h3>Single Date Conversion &mdash; output <code>MM/DD/YYYY</code></h3>
 <p>Use this when each row should resolve to a single date.</p>
 <ul>
   <li><code>5/8/2026</code> becomes <code>05/08/2026</code>.</li>
@@ -361,7 +504,7 @@
   <li>Vague values such as <code>circa 1962</code>, <code>1960s</code>, <code>before 1991</code>, or <code>undated</code> produce an empty result and are flagged for review.</li>
 </ul>
 
-<h3>ArchivERA / Date Range Conversion: <code>MM/DD/YYYY - MM/DD/YYYY</code></h3>
+<h3>ArchivERA / Date Range Conversion &mdash; output <code>MM/DD/YYYY - MM/DD/YYYY</code></h3>
 <p>Use this when each row represents a span of time. This mode is designed for ArchivERA imports.</p>
 <ul>
   <li><code>1962</code> becomes <code>01/01/1962 - 12/31/1962</code>.</li>
@@ -373,58 +516,103 @@
 
 <h3>Dublin Core Conversion</h3>
 <p>Use this when you need Dublin Core-friendly date output. Like ArchivERA, this mode emits dates as ranges. It accepts a wider variety of inputs than ArchivERA, including ISO and Dublin Core partial formats (<code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>, <code>YYYY-MM-DD/YYYY-MM-DD</code>).</p>
-
-<div class="callout"><strong>Not sure?</strong> Use <strong>Date Range</strong>. Dublin Core handles the same range outputs plus more exotic input formats.</div>
 </section>
 
 <section id="file">
-<h2>Step 2: Open your file</h2>
-<p>Click <strong>Browse</strong> and select the Excel (<code>.xlsx</code>) or CSV file. Once loaded:</p>
-<ul>
-  <li>The filename appears in the file box.</li>
-  <li>The Columns section fills with one checkbox per column.</li>
-  <li>The status bar shows the row count.</li>
-</ul>
-<p>The app reads every column as text. Leading zeros, codes like <code>001.001</code>, and folder numbers like <code>04</code> are preserved exactly as they appear in the source.</p>
+<div class="step-pill">Step 2 of 5</div>
+<h2>Open your file</h2>
+<ol class="substeps">
+  <li><strong>Click Browse.</strong> A standard Windows file picker opens.</li>
+  <li><strong>Select an <code>.xlsx</code> or <code>.csv</code> file</strong> and click Open.
+    <span class="expect">If you have <code>.xls</code>, open it in Excel and save as <code>.xlsx</code> first.</span>
+  </li>
+  <li><strong>Wait for the file to load.</strong> Large files take a few seconds.
+    <span class="expect">The filename appears in the file box, the Columns section fills with one checkbox per column, and the status bar shows the row count.</span>
+  </li>
+</ol>
+
+<div class="callout">
+  <strong>Good to know:</strong> the app reads every column as text. Leading zeros, codes like <code>001.001</code>, and folder numbers like <code>04</code> are preserved exactly as they appear in the source.
+</div>
 </section>
 
 <section id="columns">
-<h2>Step 3: Pick your date columns</h2>
-<p>Tick every column you want converted. You can pick more than one in a single run, for example both <strong>Full Date</strong> and <strong>Date Checked</strong>. Each column is processed independently in the order ticked.</p>
-<p>Columns you do not tick are left exactly as they were.</p>
+<div class="step-pill">Step 3 of 5</div>
+<h2>Pick date columns</h2>
+<ol class="substeps">
+  <li><strong>Tick every column that contains dates.</strong> You can pick more than one in a single run (for example both <strong>Full Date</strong> and <strong>Date Checked</strong>).
+    <span class="expect">Ticked columns process independently, in the order you ticked them.</span>
+  </li>
+  <li><strong>Leave non-date columns unticked.</strong> Anything you do not tick is left exactly as it was.</li>
+</ol>
+
+<div class="callout">
+  <strong>Not sure which columns to tick?</strong> Pick one and run the app on a copy. The <code>Original_</code> column preserves the raw value so you can always compare.
+</div>
 </section>
 
 <section id="run">
-<h2>Step 4: Run it</h2>
-<p>Click <strong>Run</strong>. The progress bar advances as the app works through each column. The status line shows the current row and column.</p>
-<div class="callout"><strong>Important:</strong> when the run finishes, your original file is overwritten with the cleaned version. Make a backup copy before running if you want to keep the raw input.</div>
-<p>If the file is open in Excel when the app tries to save, you will see a "File in use" prompt. Close Excel and click Retry.</p>
+<div class="step-pill">Step 4 of 5</div>
+<h2>Run it</h2>
+
+<div class="callout warn">
+  <strong>Last chance for a backup.</strong> When the run finishes, your original file is overwritten with the cleaned version. If you have not made a backup copy yet, do that now.
+</div>
+
+<ol class="substeps">
+  <li><strong>Close the spreadsheet in Excel</strong> if it is open. The app cannot save to a file Excel is holding.</li>
+  <li><strong>Click Run.</strong>
+    <span class="expect">The progress bar advances and the status line names the row and column being processed.</span>
+  </li>
+  <li><strong>Wait for it to finish.</strong> Large files with many columns can take a minute or two.
+    <span class="expect">The status line reports either "Done. <em>N</em> rows flagged for review" or "Done. <em>N</em> rows processed, no rows flagged."</span>
+  </li>
+</ol>
+
+<div class="callout success">
+  <strong>How to tell it worked:</strong> the status line shows a "Done" message and your file now contains <code>Original_</code> and <code>Check</code> columns next to each date column you ticked.
+</div>
+
+<h3>If "File in use" appears</h3>
+<p>Excel (or another program) still has the file open. Close it and click <strong>Retry</strong>.</p>
 </section>
 
 <section id="output">
-<h2>Understanding the output</h2>
+<div class="step-pill">Step 5 of 5</div>
+<h2>Review flagged rows</h2>
 <p>For every column you ticked, the app adds two new columns next to it.</p>
 
 <table>
   <thead><tr><th>Column</th><th>Contents</th></tr></thead>
   <tbody>
     <tr><td><code>{your column}</code></td><td>The cleaned, formatted date. Replaces the original value in place.</td></tr>
-    <tr><td><code>Original_{your column}</code></td><td>The raw original value.</td></tr>
+    <tr><td><code>Original_{your column}</code></td><td>The raw original value, preserved for reference.</td></tr>
     <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app was uncertain about the row. Blank otherwise.</td></tr>
   </tbody>
 </table>
 
-<p>For example, if you ticked <strong>Full Date</strong>, the result looks like:</p>
+<p>For example, ticking <strong>Full Date</strong> yields:</p>
 <pre><code>... | Full Date | Original_Full Date | Check Full Date | ...</code></pre>
 
-<p>When the run finishes, the status bar reports the number of flagged rows. A row is flagged when:</p>
+<h3>How to review</h3>
+<ol class="substeps">
+  <li><strong>Open the file</strong> in Excel.</li>
+  <li><strong>Sort by the <code>Check</code> column descending.</strong> All flagged rows rise to the top.</li>
+  <li><strong>Compare each flagged row's <code>Original_</code> value</strong> to the formatted output. Edit the formatted column if you need to fix it.</li>
+  <li><strong>Save the file.</strong></li>
+</ol>
+
+<h3>Why a row gets flagged</h3>
+<p>A row is flagged when any of these are true:</p>
 <ul>
   <li>The original value was vague (<code>circa 1962</code>, <code>before 1991</code>).</li>
   <li>The app could not recognize the format.</li>
   <li>The original cell contained multiple values separated by semicolons.</li>
   <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
 </ul>
-<p>Flagged rows are not errors. They are rows that benefit from a human glance.</p>
+<div class="callout">
+  <strong>Flagged rows are not errors.</strong> They are rows that benefit from a human glance.
+</div>
 </section>
 
 <section id="safeguards">
@@ -587,18 +775,37 @@
 
 <section id="troubleshooting">
 <h2>If something goes wrong</h2>
+<p>Common problems and what to try first.</p>
 
-<h3>Error dialog</h3>
-<p>Click OK. The app writes a log file to <code>%TEMP%\date-formatter.log</code>. Open it in Notepad to see details. Share the log with your IT Admin if you need help.</p>
-
-<h3>"File in use" prompt</h3>
-<p>Close the spreadsheet in Excel or whatever has it open, then click Retry.</p>
-
-<h3>The app does not open</h3>
-<p>Python may not be installed, or the script path may have changed. Contact your IT Admin.</p>
-
-<h3>A row was flagged that should not have been</h3>
-<p>Check the <code>Original_</code> column for the raw value the app saw. If the format is one the app does not recognize, you can either clean up the source value and re-run, or edit the formatted column directly.</p>
+<table>
+  <thead><tr><th>Symptom</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Error dialog appears</strong></td>
+      <td>Click OK. The app writes details to <code>%TEMP%\date-formatter.log</code>. Open it in Notepad and share with your IT Admin.</td>
+    </tr>
+    <tr>
+      <td><strong>"File in use" prompt</strong></td>
+      <td>Close the spreadsheet in Excel (or whatever has it open), then click Retry.</td>
+    </tr>
+    <tr>
+      <td><strong>The app does not open</strong></td>
+      <td>Python may not be installed, or the script path may have changed. Contact your IT Admin.</td>
+    </tr>
+    <tr>
+      <td><strong>A row was flagged that should not have been</strong></td>
+      <td>Check the <code>Original_</code> column for the raw value the app saw. Edit the formatted column directly, or clean up the source value and re-run.</td>
+    </tr>
+    <tr>
+      <td><strong>Nothing was flagged but a row looks wrong</strong></td>
+      <td>Open the row, compare the formatted value to <code>Original_</code>, and edit the formatted column if needed. The <code>Check</code> column is a hint, not a guarantee.</td>
+    </tr>
+    <tr>
+      <td><strong>Progress bar is stuck</strong></td>
+      <td>Wait a minute &mdash; large files can pause while saving. If still stuck, close the app, check <code>%TEMP%\date-formatter.log</code>, and re-run on a copy of the file.</td>
+    </tr>
+  </tbody>
+</table>
 </section>
 
 <section id="tips">
@@ -625,7 +832,7 @@
   <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
   <tbody>
     <tr><td>App version</td><td>Shown at the bottom-left of the app window.</td></tr>
-    <tr><td>Log file</td><td><code>%TEMP%\date-formatter.log</code> on Windows. Records run history and any errors.</td></tr>
+    <tr><td>Log file</td><td><code>%TEMP%\date-formatter.log</code> on Windows. Records run history and any errors. The log is automatically capped at <strong>~4 MB total</strong> &mdash; the active file rotates at 1 MB and the oldest backup is dropped, so the log never grows without bound.</td></tr>
     <tr><td>Settings file</td><td><code>dates-formatter-settings.json</code> in the same folder as the script. Stores theme, window position, recent files, and output preference.</td></tr>
     <tr><td>User manual file</td><td><code>user-manual.html</code> in the same folder as the script. This document.</td></tr>
     <tr><td>Python dependencies</td><td><code>customtkinter 5.2.2</code>, <code>pandas 2.2.2</code>, <code>openpyxl 3.1.5</code>.</td></tr>
