@@ -6,6 +6,7 @@
 <title>Date Formatter: User Manual</title>
 <style>
   :root {
+    color-scheme: light dark;
     --bg: #fafafa;
     --surface: #ffffff;
     --text: #1f2328;
@@ -35,6 +36,36 @@
       --flag: #f0a060;
       --flag-bg: #3a2410;
     }
+  }
+  body[data-theme="light"] {
+    color-scheme: light;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --text: #1f2328;
+    --muted: #57606a;
+    --border: #d8dee4;
+    --border-strong: #b6bfc8;
+    --accent: #2d5db8;
+    --accent-soft: #e7eefb;
+    --code-bg: #f3f4f6;
+    --table-stripe: #f7f9fb;
+    --flag: #b35900;
+    --flag-bg: #fff4e5;
+  }
+  body[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116;
+    --surface: #161b22;
+    --text: #e6edf3;
+    --muted: #9aa4b2;
+    --border: #2a313a;
+    --border-strong: #3d4651;
+    --accent: #7cb0ff;
+    --accent-soft: #1a2741;
+    --code-bg: #1c222b;
+    --table-stripe: #141a23;
+    --flag: #f0a060;
+    --flag-bg: #3a2410;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -102,6 +133,32 @@
     border-bottom: 1px solid var(--border);
     padding-bottom: 24px;
     margin-bottom: 32px;
+  }
+  header.hero .hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .theme-btn {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    flex-shrink: 0;
+    margin-top: 4px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .theme-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
   }
   header.hero .eyebrow {
     color: var(--accent);
@@ -245,9 +302,14 @@
 <main>
 
 <header class="hero">
-  <div class="eyebrow">User Manual</div>
-  <h1>Date Formatter</h1>
-  <p class="lead">Standardize date columns in archival Excel and CSV spreadsheets.</p>
+  <div class="hero-top">
+    <div>
+      <div class="eyebrow">User Manual</div>
+      <h1>Date Formatter</h1>
+      <p class="lead">Standardize date columns in archival Excel and CSV spreadsheets.</p>
+    </div>
+    <button id="theme-toggle" class="theme-btn" type="button" aria-label="Switch color theme">Theme: Auto</button>
+  </div>
 </header>
 
 <div class="callout">
@@ -383,7 +445,7 @@
 <table>
   <thead><tr><th>Output</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, <code>undated</code>, etc.</td></tr>
+    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, etc.</td></tr>
     <tr><td><code>circa 1962</code></td><td>The original said <code>circa 1962</code>, <code>ca. 1962</code>, <code>approx. 1962</code>, etc.</td></tr>
     <tr><td><code>before 01/01/1991</code></td><td>The original said <code>before 1991</code>, <code>pre-1991</code>, or <code>ante 1991</code>.</td></tr>
     <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date with "before".</td></tr>
@@ -447,12 +509,10 @@
     <tr><td><code>June 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>Jun 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
     <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>Jun-22</code></td><td><code>06/01/2022 - 06/30/2022</code></td></tr>
     <tr><td><code>June 5, 1964</code></td><td><code>06/05/1964</code></td></tr>
     <tr><td><code>June 5th, 1964</code></td><td><code>06/05/1964</code></td></tr>
   </tbody>
 </table>
-<p>For <code>MonthName-YY</code> inputs, two-digit years 50 and above become 19YY. Values below 50 become 20YY. Archival convention: high two-digit years are older.</p>
 
 <h3>Month and year ranges</h3>
 <table>
@@ -488,7 +548,7 @@
     <tr><td><code>before 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
     <tr><td><code>after 1991</code></td><td><code>after 12/31/1991</code></td></tr>
     <tr><td><code>post-1991</code></td><td><code>after 12/31/1991</code></td></tr>
-    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>not dated</code>, <code>undated</code></td><td><code>undated</code></td></tr>
+    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>undated</code></td><td><code>undated</code></td></tr>
   </tbody>
 </table>
 
@@ -504,12 +564,11 @@
 </table>
 
 <h3>Excel serial numbers</h3>
-<p>Sometimes pasted from older workbooks. Output matches what Excel itself displays for the same serial. The converter accounts for Excel's 1900 leap-year quirk, so <code>44197</code> becomes <code>01/01/2021</code> exactly as Excel would show it.</p>
+<p>Sometimes pasted from older workbooks.</p>
 <table>
   <thead><tr><th>Input</th><th>Output</th></tr></thead>
   <tbody>
     <tr><td><code>44197</code></td><td><code>01/01/2021</code></td></tr>
-    <tr><td><code>40178</code></td><td><code>12/31/2009</code></td></tr>
   </tbody>
 </table>
 
@@ -582,5 +641,42 @@
 
 </main>
 </div>
+
+<script>
+  (function () {
+    var KEY = 'df-theme';
+    var CYCLE = ['auto', 'light', 'dark'];
+    var LABELS = { auto: 'Theme: Auto', light: 'Theme: Light', dark: 'Theme: Dark' };
+
+    var stored = localStorage.getItem(KEY);
+    var current = stored ? stored : 'auto';
+
+    function applyTheme(mode) {
+      if (mode === 'auto') {
+        document.body.removeAttribute('data-theme');
+      } else {
+        document.body.setAttribute('data-theme', mode);
+      }
+    }
+
+    applyTheme(current);
+
+    var btn = document.getElementById('theme-toggle');
+    if (btn) {
+      btn.textContent = LABELS[current];
+      btn.addEventListener('click', function () {
+        var idx = CYCLE.indexOf(current);
+        current = CYCLE[(idx + 1) % CYCLE.length];
+        applyTheme(current);
+        if (current === 'auto') {
+          localStorage.removeItem(KEY);
+        } else {
+          localStorage.setItem(KEY, current);
+        }
+        btn.textContent = LABELS[current];
+      });
+    }
+  })();
+</script>
 </body>
 </html>
