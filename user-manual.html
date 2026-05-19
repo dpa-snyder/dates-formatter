@@ -1,682 +1,1246 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Date Formatter: User Manual</title>
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg: #fafafa;
-    --surface: #ffffff;
-    --text: #1f2328;
-    --muted: #57606a;
-    --border: #d8dee4;
-    --border-strong: #b6bfc8;
-    --accent: #2d5db8;
-    --accent-soft: #e7eefb;
-    --code-bg: #f3f4f6;
-    --table-stripe: #f7f9fb;
-    --flag: #b35900;
-    --flag-bg: #fff4e5;
-    --max-width: 880px;
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Formatter — User Manual</title>
+  <style>
+    /* ── Design tokens ────────────────────────────────────────── */
     :root {
-      --bg: #0e1116;
-      --surface: #161b22;
-      --text: #e6edf3;
-      --muted: #9aa4b2;
-      --border: #2a313a;
-      --border-strong: #3d4651;
-      --accent: #7cb0ff;
-      --accent-soft: #1a2741;
-      --code-bg: #1c222b;
-      --table-stripe: #141a23;
+      --bg: #f4f1e8;
+      --panel: rgba(255, 253, 248, 0.88);
+      --panel-border: rgba(64, 55, 44, 0.12);
+      --text: #2f261d;
+      --muted: #6b6054;
+      --accent: #205b52;
+      --accent-soft: rgba(32, 91, 82, 0.12);
+      --shadow: 0 18px 38px rgba(60, 46, 27, 0.1);
+      --nav-bg: rgba(255, 253, 248, 0.94);
+      --nav-width: 220px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --flag: #7a4500;
+      --flag-bg: rgba(122, 69, 0, 0.1);
+      --alert: #8f4200;
+      --alert-soft: rgba(180, 80, 0, 0.08);
+      --alert-border: rgba(180, 80, 0, 0.18);
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1612;
+      --panel: rgba(30, 26, 20, 0.92);
+      --panel-border: rgba(255, 240, 210, 0.1);
+      --text: #f0e8d8;
+      --muted: #a89880;
+      --accent: #5aaa96;
+      --accent-soft: rgba(90, 170, 150, 0.14);
+      --shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
+      --nav-bg: rgba(26, 22, 18, 0.96);
       --flag: #f0a060;
-      --flag-bg: #3a2410;
+      --flag-bg: rgba(240, 160, 96, 0.14);
+      --alert: #f0a060;
+      --alert-soft: rgba(240, 140, 60, 0.13);
+      --alert-border: rgba(240, 140, 60, 0.24);
     }
-  }
-  body[data-theme="light"] {
-    color-scheme: light;
-    --bg: #fafafa;
-    --surface: #ffffff;
-    --text: #1f2328;
-    --muted: #57606a;
-    --border: #d8dee4;
-    --border-strong: #b6bfc8;
-    --accent: #2d5db8;
-    --accent-soft: #e7eefb;
-    --code-bg: #f3f4f6;
-    --table-stripe: #f7f9fb;
-    --flag: #b35900;
-    --flag-bg: #fff4e5;
-  }
-  body[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #0e1116;
-    --surface: #161b22;
-    --text: #e6edf3;
-    --muted: #9aa4b2;
-    --border: #2a313a;
-    --border-strong: #3d4651;
-    --accent: #7cb0ff;
-    --accent-soft: #1a2741;
-    --code-bg: #1c222b;
-    --table-stripe: #141a23;
-    --flag: #f0a060;
-    --flag-bg: #3a2410;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
-                 "Helvetica Neue", Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.65;
-    color: var(--text);
-    background: var(--bg);
-    -webkit-font-smoothing: antialiased;
-  }
-  .layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-  @media (min-width: 1024px) {
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.25s, color 0.25s;
+    }
+
+    [data-theme="light"] body,
+    :root body {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 32%),
+        linear-gradient(180deg, #f8f5ee 0%, #efe8db 100%);
+    }
+
+    [data-theme="dark"] body {
+      background:
+        radial-gradient(circle at top left, rgba(60, 50, 35, 0.4), transparent 32%),
+        linear-gradient(180deg, #1e1a14 0%, #141008 100%);
+    }
+
+    /* ── Layout shell ────────────────────────────────────────── */
+
     .layout {
-      grid-template-columns: 240px minmax(0, 1fr);
-      gap: 48px;
-      padding: 0 32px;
+      display: flex;
+      min-height: 100vh;
     }
-  }
-  aside { display: none; }
-  @media (min-width: 1024px) {
-    aside {
-      display: block;
+
+    /* ── Left nav ────────────────────────────────────────────── */
+
+    .nav {
       position: sticky;
-      top: 32px;
-      align-self: start;
-      padding: 24px 0;
-      max-height: calc(100vh - 64px);
+      top: 0;
+      height: 100vh;
+      width: var(--nav-width);
+      flex-shrink: 0;
+      background: var(--nav-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
       overflow-y: auto;
+      backdrop-filter: blur(10px);
+      transition: background 0.25s, border-color 0.25s;
+      z-index: 10;
     }
-    aside h2 {
-      font-size: 12px;
+
+    .nav-brand {
+      padding: 22px 18px 14px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .nav-brand p {
+      margin: 0 0 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .nav-brand strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .nav-links {
+      flex: 1;
+      padding: 12px 0;
+    }
+
+    .nav-group-label {
+      padding: 10px 18px 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav-link {
+      display: block;
+      padding: 7px 18px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* ── Theme toggle ────────────────────────────────────────── */
+
+    .nav-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .nav-footer label {
+      font-size: 0.78rem;
+      font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
-      margin: 0 0 12px;
-      font-weight: 600;
-    }
-    aside ol { list-style: none; padding: 0; margin: 0; font-size: 14px; }
-    aside ol li { margin: 6px 0; }
-    aside a {
-      color: var(--text);
-      text-decoration: none;
       display: block;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border-left: 2px solid transparent;
+      margin-bottom: 8px;
     }
-    aside a:hover {
+
+    .theme-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 6px 0;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+
+    .theme-btn:hover {
       background: var(--accent-soft);
       color: var(--accent);
-      border-left-color: var(--accent);
+      border-color: var(--accent);
     }
-  }
-  main { max-width: var(--max-width); padding: 40px 0 80px; }
-  header.hero {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 24px;
-    margin-bottom: 32px;
-  }
-  header.hero .hero-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  .theme-btn {
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--muted);
-    border-radius: 999px;
-    padding: 7px 14px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    font-family: inherit;
-    flex-shrink: 0;
-    margin-top: 4px;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-  }
-  .theme-btn:hover {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-  header.hero .eyebrow {
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  header.hero h1 {
-    font-size: 36px;
-    line-height: 1.15;
-    margin: 0 0 12px;
-    letter-spacing: -0.01em;
-  }
-  header.hero p.lead {
-    font-size: 18px;
-    color: var(--muted);
-    margin: 0;
-    max-width: 640px;
-  }
-  h2 {
-    font-size: 22px;
-    margin: 48px 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    scroll-margin-top: 24px;
-  }
-  h3 { font-size: 17px; margin: 28px 0 8px; color: var(--text); }
-  p { margin: 12px 0; }
-  ul, ol { padding-left: 24px; }
-  li { margin: 4px 0; }
-  a { color: var(--accent); }
-  a:hover { text-decoration: underline; }
-  code {
-    font-family: "SF Mono", "Consolas", "Monaco", "Liberation Mono", monospace;
-    font-size: 0.92em;
-    background: var(--code-bg);
-    padding: 1px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  pre {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    overflow-x: auto;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-  pre code { background: transparent; border: none; padding: 0; white-space: pre; }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 16px 0;
-    font-size: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  th, td {
-    text-align: left;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  th {
-    background: var(--accent-soft);
-    color: var(--text);
-    font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.02em;
-    border-bottom: 1px solid var(--border-strong);
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:nth-child(even) td { background: var(--table-stripe); }
-  .callout {
-    border-left: 3px solid var(--accent);
-    background: var(--accent-soft);
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-    margin: 16px 0;
-  }
-  .callout strong { color: var(--accent); }
-  .flag {
-    display: inline-block;
-    background: var(--flag-bg);
-    color: var(--flag);
-    font-weight: 600;
-    font-size: 12px;
-    padding: 1px 8px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    border: 1px solid currentColor;
-  }
-  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
-  footer {
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 14px;
-  }
-  @media print {
-    aside { display: none; }
-    main { max-width: 100%; padding: 0; }
-    pre, table { page-break-inside: avoid; }
-    a { color: var(--text); text-decoration: none; }
-  }
-</style>
+
+    .theme-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ── Main content ────────────────────────────────────────── */
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 44px 64px 44px;
+      max-width: 860px;
+    }
+
+    /* ── Search tip bar ──────────────────────────────────────── */
+
+    .search-tip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      background: var(--accent-soft);
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .search-tip kbd {
+      display: inline-block;
+      padding: 2px 7px;
+      border: 1px solid var(--panel-border);
+      border-radius: 5px;
+      background: var(--panel);
+      font-family: "SF Mono", Consolas, Menlo, monospace;
+      font-size: 0.82em;
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+
+    .hero {
+      padding: 36px 40px;
+      border: 1px solid var(--panel-border);
+      border-radius: calc(var(--radius-lg) + 6px);
+      background:
+        linear-gradient(135deg, rgba(32, 91, 82, 0.16), rgba(255, 253, 248, 0.88) 42%),
+        var(--panel);
+      box-shadow: var(--shadow);
+      margin-bottom: 4px;
+    }
+
+    [data-theme="dark"] .hero {
+      background:
+        linear-gradient(135deg, rgba(90, 170, 150, 0.12), rgba(30, 26, 20, 0.9) 42%),
+        var(--panel);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
+    }
+
+    h1 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 0.97rem; }
+
+    .hero-tagline {
+      max-width: 660px;
+      margin: 14px 0 0;
+      font-size: 1.02rem;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .stat-card {
+      padding: 14px 16px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 8px 20px rgba(84, 70, 50, 0.07);
+    }
+
+    [data-theme="dark"] .stat-card {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .stat-card span {
+      display: block;
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    /* ── Sections ────────────────────────────────────────────── */
+
+    .section {
+      margin-top: 24px;
+      padding: 26px 30px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      scroll-margin-top: 28px;
+    }
+
+    .section-header {
+      margin-bottom: 18px;
+    }
+
+    .section-header .eyebrow {
+      margin-bottom: 6px;
+    }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+
+    .cards { display: grid; gap: 12px; }
+
+    .card {
+      padding: 16px 18px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 8px 20px rgba(84, 70, 50, 0.07);
+    }
+
+    [data-theme="dark"] .card {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .card h3 { margin-bottom: 8px; }
+
+    .card p {
+      margin: 0;
+      line-height: 1.6;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .card p + p { margin-top: 8px; }
+
+    .card-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* ── Pills ───────────────────────────────────────────────── */
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .flag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--flag-bg);
+      color: var(--flag);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+
+    /* ── Lists ───────────────────────────────────────────────── */
+
+    ul.guide-list {
+      margin: 0;
+      padding: 0 0 0 18px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+
+    ul.guide-list li + li { margin-top: 4px; }
+
+    ol.steps-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: steps;
+    }
+
+    ol.steps-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 0.94rem;
+      line-height: 1.6;
+      color: var(--muted);
+      padding: 9px 0;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    ol.steps-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    ol.steps-list li:first-child { padding-top: 0; }
+
+    ol.steps-list li::before {
+      content: counter(steps);
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.76rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    /* ── Code ────────────────────────────────────────────────── */
+
+    code {
+      font-family: "SF Mono", Consolas, Menlo, monospace;
+      font-size: 0.84em;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(32, 91, 82, 0.1);
+      color: var(--accent);
+    }
+
+    [data-theme="dark"] code {
+      background: rgba(90, 170, 150, 0.14);
+    }
+
+    pre {
+      background: rgba(32, 91, 82, 0.07);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      overflow-x: auto;
+      font-size: 0.87rem;
+      line-height: 1.5;
+      margin: 10px 0 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ──────────────────────────────────────────────── */
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0 0;
+      font-size: 0.88rem;
+      background: transparent;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--panel-border);
+      vertical-align: top;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    th {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid rgba(64, 55, 44, 0.2);
+    }
+
+    [data-theme="dark"] th {
+      border-bottom-color: rgba(255, 240, 210, 0.18);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Timeline ────────────────────────────────────────────── */
+
+    .timeline { display: grid; gap: 10px; }
+
+    .timeline-item {
+      padding: 13px 16px;
+      border: 1px solid var(--panel-border);
+      border-left: 5px solid var(--accent);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 6px 16px rgba(84, 70, 50, 0.06);
+    }
+
+    [data-theme="dark"] .timeline-item {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .timeline-item h3 { margin-bottom: 4px; font-size: 0.94rem; }
+
+    .timeline-item p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    /* ── Callout / Note ──────────────────────────────────────── */
+
+    .note {
+      padding: 10px 14px;
+      border: 1px solid var(--alert-border);
+      border-radius: var(--radius-sm);
+      background: var(--alert-soft);
+      font-size: 0.88rem;
+      color: var(--alert);
+      margin-top: 10px;
+      line-height: 1.55;
+    }
+
+    .note strong { color: var(--alert); }
+
+    /* ── Mode group (ArchivEra + Dublin Core ribbon) ─────────── */
+
+    .mode-group {
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: 0 8px 20px rgba(84, 70, 50, 0.07);
+    }
+
+    .mode-group > .card-row {
+      margin: 0;
+      padding: 12px;
+    }
+
+    .mode-ribbon {
+      padding: 11px 16px;
+      background: var(--alert-soft);
+      border-top: 1px solid var(--alert-border);
+      font-size: 0.88rem;
+      color: var(--alert);
+      line-height: 1.5;
+    }
+
+    .mode-ribbon strong { color: var(--alert); }
+
+    /* ── Op cards ────────────────────────────────────────────── */
+
+    .card.op-card {
+      background: var(--accent-soft) !important;
+      border-color: rgba(32, 91, 82, 0.18) !important;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+
+    .footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--panel-border);
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .main { padding: 20px 16px 48px; }
+      .card-row { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      .nav { display: none; }
+      .main { max-width: 100%; padding: 0; }
+      pre, table { page-break-inside: avoid; }
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
 
-<aside aria-label="Table of contents">
-  <h2>Contents</h2>
-  <ol>
-    <li><a href="#overview">What this app does</a></li>
-    <li><a href="#launching">Launching the app</a></li>
-    <li><a href="#tour">The window at a glance</a></li>
-    <li><a href="#mode">Pick a mode</a></li>
-    <li><a href="#file">Open your file</a></li>
-    <li><a href="#columns">Pick date columns</a></li>
-    <li><a href="#run">Run it</a></li>
-    <li><a href="#output">Understanding the output</a></li>
-    <li><a href="#safeguards">Built-in safeguards</a></li>
-    <li><a href="#special">Special outputs</a></li>
-    <li><a href="#columns-preserved">What stays the same</a></li>
-    <li><a href="#patterns">Patterns recognized</a></li>
-    <li><a href="#troubleshooting">If something goes wrong</a></li>
-    <li><a href="#tips">Tips</a></li>
-    <li><a href="#help">Need help</a></li>
-    <li><a href="#about">About this app</a></li>
-  </ol>
-</aside>
-
-<main>
-
-<header class="hero">
-  <div class="hero-top">
-    <div>
-      <div class="eyebrow">User Manual</div>
-      <h1>Date Formatter</h1>
-      <p class="lead">Standardize date columns in archival Excel and CSV spreadsheets.</p>
+  <!-- ── Left nav ───────────────────────────────────────────────── -->
+  <nav class="nav" aria-label="Manual navigation">
+    <div class="nav-brand">
+      <p>User Manual</p>
+      <strong>Date Formatter</strong>
     </div>
-    <button id="theme-toggle" class="theme-btn" type="button" aria-label="Switch color theme">Theme: Auto</button>
-  </div>
-</header>
 
-<div class="callout">
-  <strong>Tip:</strong> press <code>Ctrl-F</code> on Windows or <code>⌘-F</code> on Mac to search this page.
-</div>
+    <div class="nav-links">
+      <a class="nav-link" href="#overview">What this app does</a>
 
-<section id="overview">
-<h2>What this app does</h2>
-<p>Archival spreadsheets often contain dates entered in many different ways: <code>5/8/2026</code>, <code>May 8, 2026</code>, <code>2026-05-08</code>, <code>circa 2026</code>, <code>1960s</code>, <code>n.d.</code>, and so on. The Date Formatter reads each value in a column you choose and rewrites it in a single consistent format. Values it cannot confidently parse are left alone and flagged for review.</p>
-<p>You select the file, you select the columns, and the app shows you which rows it was uncertain about.</p>
-</section>
+      <div class="nav-group-label">Getting Started</div>
+      <a class="nav-link" href="#launching">Launching</a>
+      <a class="nav-link" href="#tour">Window Tour</a>
 
-<section id="launching">
-<h2>Launching the app</h2>
+      <div class="nav-group-label">Workflow</div>
+      <a class="nav-link" href="#mode">1. Pick a mode</a>
+      <a class="nav-link" href="#file">2. Open your file</a>
+      <a class="nav-link" href="#columns">3. Pick columns</a>
+      <a class="nav-link" href="#run">4. Run it</a>
 
-<h3>If your IT Admin set this up</h3>
-<p>You have a desktop shortcut, typically called <code>date-formatter-gui.bat</code>. Double-click it to launch the app.</p>
-<p>If the shortcut is not on your desktop, ask your IT Admin where they placed it.</p>
+      <div class="nav-group-label">Reference</div>
+      <a class="nav-link" href="#output">Understanding output</a>
+      <a class="nav-link" href="#safeguards">Safeguards</a>
+      <a class="nav-link" href="#special">Special outputs</a>
+      <a class="nav-link" href="#columns-preserved">What stays the same</a>
+      <a class="nav-link" href="#patterns">Patterns recognized</a>
+      <a class="nav-link" href="#troubleshooting">Troubleshooting</a>
+      <a class="nav-link" href="#tips">Tips</a>
+      <a class="nav-link" href="#about">About</a>
+    </div>
 
-<h3>Manual launch</h3>
-<p>Open Command Prompt and run:</p>
-<pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
-<p>Your IT Admin may have configured a different path.</p>
-</section>
+    <div class="nav-footer">
+      <label>Appearance</label>
+      <div class="theme-toggle">
+        <button class="theme-btn" id="btn-light" onclick="setTheme('light')">Light</button>
+        <button class="theme-btn" id="btn-dark" onclick="setTheme('dark')">Dark</button>
+      </div>
+    </div>
+  </nav>
 
-<section id="tour">
-<h2>The window at a glance</h2>
-<p>The app window contains five sections from top to bottom.</p>
-<ol>
-  <li><strong>Conversion Type.</strong> Three radio buttons. Select the output style you need.</li>
-  <li><strong>File.</strong> A Browse button to select an Excel or CSV file.</li>
-  <li><strong>Columns to Format.</strong> Checkboxes for every column in the loaded file. Tick the columns containing dates.</li>
-  <li><strong>Run.</strong> Starts the conversion.</li>
-  <li><strong>Progress bar and status text.</strong> Shows progress and the number of flagged rows.</li>
-</ol>
-<p>A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.</p>
-</section>
+  <!-- ── Main content ───────────────────────────────────────────── -->
+  <div class="main">
 
-<section id="mode">
-<h2>Step 1: Pick a conversion mode</h2>
-<p>The three modes produce different output styles. Pick the one that matches the system you are feeding the cleaned data into.</p>
+    <!-- Search tip -->
+    <div class="search-tip" role="note">
+      <span>Tip: use</span>
+      <kbd>Ctrl</kbd><span>+</span><kbd>F</kbd>
+      <span>(Windows) or</span>
+      <kbd>⌘</kbd><span>+</span><kbd>F</kbd>
+      <span>(Mac) to search anywhere in this manual.</span>
+    </div>
 
-<h3>Single Date Conversion: <code>MM/DD/YYYY</code></h3>
-<p>Use this when each row should resolve to a single date.</p>
-<ul>
-  <li><code>5/8/2026</code> becomes <code>05/08/2026</code>.</li>
-  <li><code>May 8, 2026</code> becomes <code>05/08/2026</code>.</li>
-  <li>If the original value is a range like <code>01/01/1962 - 12/31/1962</code>, the output is the start date <code>01/01/1962</code>.</li>
-  <li>Vague values such as <code>circa 1962</code>, <code>1960s</code>, <code>before 1991</code>, or <code>undated</code> produce an empty result and are flagged for review.</li>
-</ul>
+    <!-- Hero -->
+    <header class="hero" id="top">
+      <p class="eyebrow">User Manual</p>
+      <h1>Date Formatter</h1>
+      <p class="hero-tagline">
+        Standardize date columns in archival Excel and CSV spreadsheets.
+        Three conversion modes cover single dates, ArchivEra ranges, and Dublin Core formats.
+      </p>
+    </header>
 
-<h3>ArchivERA / Date Range Conversion: <code>MM/DD/YYYY - MM/DD/YYYY</code></h3>
-<p>Use this when each row represents a span of time. This mode is designed for ArchivERA imports.</p>
-<ul>
-  <li><code>1962</code> becomes <code>01/01/1962 - 12/31/1962</code>.</li>
-  <li><code>Jun 1962</code> becomes <code>06/01/1962 - 06/30/1962</code>.</li>
-  <li><code>1960s</code> becomes <code>01/01/1960 - 12/31/1969</code>.</li>
-  <li><code>5/8/2026</code> stays as <code>05/08/2026</code>.</li>
-  <li>Fuzzy values are preserved and flagged: <code>circa 1962</code>, <code>before 10/15/1991</code>, <code>after 1991</code>, <code>undated</code>.</li>
-</ul>
+    <!-- ── Overview ───────────────────────────────────────────────── -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <p class="eyebrow">Overview</p>
+        <h2>What this app does</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Archival spreadsheets often contain dates entered in many different ways:
+            <code>5/8/2026</code>, <code>May 8, 2026</code>, <code>2026-05-08</code>,
+            <code>circa 2026</code>, <code>1960s</code>, <code>n.d.</code>, and so on.
+            The Date Formatter reads each value in a column you choose and rewrites it
+            in a single consistent format. Values it cannot confidently parse are left
+            alone and flagged for review.
+          </p>
+          <p>
+            You select the file, you select the columns, and the app shows you which
+            rows it was uncertain about.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<h3>Dublin Core Conversion</h3>
-<p>Use this when you need Dublin Core-friendly date output. Like ArchivERA, this mode emits dates as ranges. It accepts a wider variety of inputs than ArchivERA, including ISO and Dublin Core partial formats (<code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>, <code>YYYY-MM-DD/YYYY-MM-DD</code>).</p>
+    <!-- ── Launching ──────────────────────────────────────────────── -->
+    <section class="section" id="launching">
+      <div class="section-header">
+        <p class="eyebrow">Getting Started</p>
+        <h2>Launching the app</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>If your IT Admin set this up</h3>
+          <p>
+            You have a desktop shortcut, typically called <code>date-formatter-gui.bat</code>.
+            Double-click it to launch the app.
+          </p>
+          <p>If the shortcut is not on your desktop, ask your IT Admin where they placed it.</p>
+        </div>
+        <div class="card">
+          <h3>Manual launch</h3>
+          <p>Open Command Prompt and run:</p>
+          <pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
+          <p style="margin-top:8px">Your IT Admin may have configured a different path.</p>
+        </div>
+      </div>
+    </section>
 
-<div class="callout"><strong>Not sure?</strong> Use <strong>Date Range</strong>. Dublin Core handles the same range outputs plus more exotic input formats.</div>
-</section>
+    <!-- ── Window tour ────────────────────────────────────────────── -->
+    <section class="section" id="tour">
+      <div class="section-header">
+        <p class="eyebrow">Getting Started</p>
+        <h2>The window at a glance</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>The app window contains five sections from top to bottom.</p>
+          <ol class="steps-list" style="margin-top:12px">
+            <li><strong>Conversion Type.</strong> Three radio buttons. Select the output style you need.</li>
+            <li><strong>File.</strong> A Browse button to select an Excel or CSV file.</li>
+            <li><strong>Columns to Format.</strong> Checkboxes for every column in the loaded file. Tick the columns containing dates.</li>
+            <li><strong>Run.</strong> Starts the conversion.</li>
+            <li><strong>Progress bar and status text.</strong> Shows progress and the number of flagged rows.</li>
+          </ol>
+          <div class="note" style="margin-top:14px">
+            A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.
+          </div>
+        </div>
+      </div>
+    </section>
 
-<section id="file">
-<h2>Step 2: Open your file</h2>
-<p>Click <strong>Browse</strong> and select the Excel (<code>.xlsx</code>) or CSV file. Once loaded:</p>
-<ul>
-  <li>The filename appears in the file box.</li>
-  <li>The Columns section fills with one checkbox per column.</li>
-  <li>The status bar shows the row count.</li>
-</ul>
-<p>The app reads every column as text. Leading zeros, codes like <code>001.001</code>, and folder numbers like <code>04</code> are preserved exactly as they appear in the source.</p>
-</section>
+    <!-- ── Step 1: Mode ───────────────────────────────────────────── -->
+    <section class="section" id="mode">
+      <div class="section-header">
+        <p class="eyebrow">Step 1 of 4</p>
+        <h2>Pick a conversion mode</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            The three modes produce different output styles. Pick the one that matches
+            the system you are feeding the cleaned data into.
+          </p>
+        </div>
+        <div class="card op-card">
+          <span class="pill">Single Date</span>
+          <h3 style="margin-bottom:6px">MM/DD/YYYY</h3>
+          <p>Use this when each row should resolve to a single date.</p>
+          <ul class="guide-list" style="margin-top:8px">
+            <li><code>5/8/2026</code> becomes <code>05/08/2026</code>.</li>
+            <li><code>May 8, 2026</code> becomes <code>05/08/2026</code>.</li>
+            <li>A range like <code>01/01/1962 - 12/31/1962</code> outputs the start date <code>01/01/1962</code>.</li>
+            <li>Vague values such as <code>circa 1962</code>, <code>1960s</code>, <code>before 1991</code>, or <code>undated</code> produce an empty result and are flagged.</li>
+          </ul>
+        </div>
+        <div class="mode-group">
+          <div class="card-row">
+            <div class="card op-card">
+              <span class="pill">ArchivEra</span>
+              <h3 style="margin-bottom:6px">MM/DD/YYYY – MM/DD/YYYY</h3>
+              <p>Use this when each row represents a span of time. Designed for ArchivEra imports.</p>
+              <ul class="guide-list" style="margin-top:8px">
+                <li><code>1962</code> becomes <code>01/01/1962 - 12/31/1962</code>.</li>
+                <li><code>Jun 1962</code> becomes <code>06/01/1962 - 06/30/1962</code>.</li>
+                <li><code>1960s</code> becomes <code>01/01/1960 - 12/31/1969</code>.</li>
+                <li><code>5/8/2026</code> stays as <code>05/08/2026</code>.</li>
+                <li>Fuzzy values are preserved and flagged: <code>circa 1962</code>, <code>before 10/15/1991</code>, <code>undated</code>.</li>
+              </ul>
+            </div>
+            <div class="card op-card">
+              <span class="pill">Dublin Core</span>
+              <h3 style="margin-bottom:6px">ISO / Dublin Core ranges</h3>
+              <p>
+                Like ArchivEra, this mode emits dates as ranges, but accepts a wider variety
+                of inputs including ISO and Dublin Core partial formats:
+                <code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>,
+                <code>YYYY-MM-DD/YYYY-MM-DD</code>.
+              </p>
+            </div>
+          </div>
+          <div class="mode-ribbon"><strong>Not sure which to use?</strong> Choose <strong>ArchivEra</strong> — Dublin Core handles the same outputs plus more exotic input formats.</div>
+        </div>
+      </div>
+    </section>
 
-<section id="columns">
-<h2>Step 3: Pick your date columns</h2>
-<p>Tick every column you want converted. You can pick more than one in a single run, for example both <strong>Full Date</strong> and <strong>Date Checked</strong>. Each column is processed independently in the order ticked.</p>
-<p>Columns you do not tick are left exactly as they were.</p>
-</section>
+    <!-- ── Step 2: File ───────────────────────────────────────────── -->
+    <section class="section" id="file">
+      <div class="section-header">
+        <p class="eyebrow">Step 2 of 4</p>
+        <h2>Open your file</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Click <strong>Browse</strong> and select the Excel (<code>.xlsx</code>) or CSV file.
+            Once loaded, the filename appears in the file box, the Columns section fills with
+            one checkbox per column, and the status bar shows the row count.
+          </p>
+          <p>
+            The app reads every column as text. Leading zeros, codes like <code>001.001</code>,
+            and folder numbers like <code>04</code> are preserved exactly as they appear in the source.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<section id="run">
-<h2>Step 4: Run it</h2>
-<p>Click <strong>Run</strong>. The progress bar advances as the app works through each column. The status line shows the current row and column.</p>
-<div class="callout"><strong>Important:</strong> when the run finishes, your original file is overwritten with the cleaned version. Make a backup copy before running if you want to keep the raw input.</div>
-<p>If the file is open in Excel when the app tries to save, you will see a "File in use" prompt. Close Excel and click Retry.</p>
-</section>
+    <!-- ── Step 3: Columns ────────────────────────────────────────── -->
+    <section class="section" id="columns">
+      <div class="section-header">
+        <p class="eyebrow">Step 3 of 4</p>
+        <h2>Pick your date columns</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Tick every column you want converted. You can pick more than one in a single run —
+            for example both <strong>Full Date</strong> and <strong>Date Checked</strong>.
+            Each column is processed independently in the order ticked.
+            Columns you do not tick are left exactly as they were.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<section id="output">
-<h2>Understanding the output</h2>
-<p>For every column you ticked, the app adds two new columns next to it.</p>
+    <!-- ── Step 4: Run ────────────────────────────────────────────── -->
+    <section class="section" id="run">
+      <div class="section-header">
+        <p class="eyebrow">Step 4 of 4</p>
+        <h2>Run it</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Click <strong>Run</strong>. The progress bar advances as the app works through
+            each column. The status line shows the current row and column.
+          </p>
+          <div class="note">
+            <strong>Important:</strong> when the run finishes, your original file is overwritten
+            with the cleaned version. Make a backup copy before running if you want to keep the raw input.
+          </div>
+          <p style="margin-top:10px">
+            If the file is open in Excel when the app tries to save, you will see a "File in use"
+            prompt. Close Excel and click Retry.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<table>
-  <thead><tr><th>Column</th><th>Contents</th></tr></thead>
-  <tbody>
-    <tr><td><code>{your column}</code></td><td>The cleaned, formatted date. Replaces the original value in place.</td></tr>
-    <tr><td><code>Original_{your column}</code></td><td>The raw original value.</td></tr>
-    <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app was uncertain about the row. Blank otherwise.</td></tr>
-  </tbody>
-</table>
+    <!-- ── Output ─────────────────────────────────────────────────── -->
+    <section class="section" id="output">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Understanding the output</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>For every column you ticked, the app adds two new columns next to it.</p>
+          <table>
+            <thead>
+              <tr><th>Column</th><th>Contents</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>{your column}</code></td><td>The cleaned, formatted date. Replaces the original value in place.</td></tr>
+              <tr><td><code>Original_{your column}</code></td><td>The raw original value.</td></tr>
+              <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app was uncertain. Blank otherwise.</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px">For example, if you ticked <strong>Full Date</strong>, the result looks like:</p>
+          <pre><code>... | Full Date | Original_Full Date | Check Full Date | ...</code></pre>
+        </div>
+        <div class="card">
+          <h3>When is a row flagged?</h3>
+          <ul class="guide-list" style="margin-top:6px">
+            <li>The original value was vague (<code>circa 1962</code>, <code>before 1991</code>).</li>
+            <li>The app could not recognize the format.</li>
+            <li>The original cell contained multiple values separated by semicolons.</li>
+            <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
+          </ul>
+          <div class="note" style="margin-top:10px">Flagged rows are not errors. They are rows that benefit from a human glance.</div>
+        </div>
+      </div>
+    </section>
 
-<p>For example, if you ticked <strong>Full Date</strong>, the result looks like:</p>
-<pre><code>... | Full Date | Original_Full Date | Check Full Date | ...</code></pre>
+    <!-- ── Safeguards ─────────────────────────────────────────────── -->
+    <section class="section" id="safeguards">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Built-in safeguards</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>Every formatted output respects three rules:</p>
+          <div class="timeline" style="margin-top:12px">
+            <div class="timeline-item">
+              <h3>Correct day counts per month</h3>
+              <p>February has 28 days (29 in leap years). April, June, September, and November have 30. The rest have 31. The app never emits an invalid date like <code>02/30/1990</code> or <code>04/31/1990</code>.</p>
+            </div>
+            <div class="timeline-item">
+              <h3>Leap-year awareness</h3>
+              <p>February 29 only appears in years where it is valid. A year is a leap year if divisible by 4, except century years which must also be divisible by 400. So <code>02/29/2000</code> is valid and <code>02/29/1900</code> is not.</p>
+            </div>
+            <div class="timeline-item">
+              <h3>Chronological order</h3>
+              <p>In any output range <code>start - end</code>, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.</p>
+            </div>
+          </div>
+          <div class="note" style="margin-top:12px">
+            If the input itself is an invalid date (e.g. <code>02/30/1990</code>), the app leaves it alone and flags the row rather than guessing what was meant.
+          </div>
+        </div>
+      </div>
+    </section>
 
-<p>When the run finishes, the status bar reports the number of flagged rows. A row is flagged when:</p>
-<ul>
-  <li>The original value was vague (<code>circa 1962</code>, <code>before 1991</code>).</li>
-  <li>The app could not recognize the format.</li>
-  <li>The original cell contained multiple values separated by semicolons.</li>
-  <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
-</ul>
-<p>Flagged rows are not errors. They are rows that benefit from a human glance.</p>
-</section>
+    <!-- ── Special outputs ────────────────────────────────────────── -->
+    <section class="section" id="special">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Special outputs</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>These values appear when the input expresses something more nuanced than a plain date or range. They are always flagged.</p>
+          <table>
+            <thead><tr><th>Output</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, etc.</td></tr>
+              <tr><td><code>circa 1962</code></td><td>The original said <code>circa 1962</code>, <code>ca. 1962</code>, <code>approx. 1962</code>, etc.</td></tr>
+              <tr><td><code>before 01/01/1991</code></td><td>The original said <code>before 1991</code>, <code>pre-1991</code>, or <code>ante 1991</code>.</td></tr>
+              <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date with "before".</td></tr>
+              <tr><td><code>after 12/31/1991</code></td><td>The original said <code>after 1991</code> or <code>post-1991</code>.</td></tr>
+              <tr><td><code>after 10/15/1991</code></td><td>The original gave a specific cutoff date with "after".</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px">
+            For year-only inputs, "before" lands on January 1 of that year and "after" lands on December 31.
+            This is a tight bound: the named year is excluded from the range.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<section id="safeguards">
-<h2>Built-in safeguards</h2>
-<p>Every formatted output respects three rules:</p>
-<ul>
-  <li><strong>Correct day counts per month.</strong> February has 28 days (29 in leap years). April, June, September, and November have 30. The rest have 31. The app never emits an invalid date like <code>02/30/1990</code> or <code>04/31/1990</code>.</li>
-  <li><strong>Leap-year awareness.</strong> February 29 only appears in years where it is valid. A year is a leap year if it is divisible by 4, except century years which must also be divisible by 400. So <code>02/29/2000</code> is valid and <code>02/29/1900</code> is not.</li>
-  <li><strong>Chronological order.</strong> In any output range <code>start - end</code>, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.</li>
-</ul>
-<p>If the input itself is an invalid date (for example <code>02/30/1990</code>), the app leaves it alone and flags the row for review rather than guessing what was meant.</p>
-</section>
+    <!-- ── What stays the same ────────────────────────────────────── -->
+    <section class="section" id="columns-preserved">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>What gets cleaned vs. what stays the same</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>Always cleaned, regardless of mode</h3>
+          <p style="margin-bottom:10px">The following archival ID columns have their leading zeros restored on every save.</p>
+          <table>
+            <thead><tr><th>Column header (any variant)</th><th>Format</th></tr></thead>
+            <tbody>
+              <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits. <code>200</code> → <code>0200</code>. <code>9200</code> stays <code>9200</code>.</td></tr>
+              <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters. <code>22</code> → <code>022</code>. <code>W22</code> stays <code>W22</code>.</td></tr>
+              <tr><td><code>Series</code>, <code>Series Number</code></td><td>Same as SG.</td></tr>
+              <tr><td><code>SubSeries Number</code></td><td>Same as SG.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Left alone</h3>
+          <p>
+            Every other column — including Folder Number, Sequential Box Number, Title, Description,
+            and Container Barcode — is preserved exactly as it appeared in the source. Leading zeros
+            are kept and codes like <code>001.001</code> are not converted to numbers.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<section id="special">
-<h2>Special outputs</h2>
-<p>These values appear when the input expresses something more nuanced than a plain date or range. They are always flagged.</p>
+    <!-- ── Patterns ───────────────────────────────────────────────── -->
+    <section class="section" id="patterns">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Patterns the app recognizes</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>Already-formatted dates</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>05/31/1964</code></td><td><code>05/31/1964</code></td></tr>
+              <tr><td><code>01/01/1962 - 12/31/1962</code></td><td><code>01/01/1962 - 12/31/1962</code></td></tr>
+              <tr><td><code>5/8/2026</code></td><td><code>05/08/2026</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Years and decades</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>1962</code></td><td><code>01/01/1962 - 12/31/1962</code></td></tr>
+              <tr><td><code>1962-1965</code></td><td><code>01/01/1962 - 12/31/1965</code></td></tr>
+              <tr><td><code>1962-65</code></td><td><code>01/01/1962 - 12/31/1965</code></td></tr>
+              <tr><td><code>1960s</code></td><td><code>01/01/1960 - 12/31/1969</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Month and year</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>June 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+              <tr><td><code>Jun 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+              <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+              <tr><td><code>June 5, 1964</code></td><td><code>06/05/1964</code></td></tr>
+              <tr><td><code>June 5th, 1964</code></td><td><code>06/05/1964</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Month and year ranges</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>June 1, 1962 - August 5, 1964</code></td><td><code>06/01/1962 - 08/05/1964</code></td></tr>
+              <tr><td><code>June 1 - 5 1962</code></td><td><code>06/01/1962 - 06/05/1962</code></td></tr>
+              <tr><td><code>1962/06 - 1962/08</code></td><td><code>06/01/1962 - 08/31/1962</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <span class="pill">Dublin Core mode</span>
+          <h3 style="margin-bottom:8px">ISO and Dublin Core formats</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>2026-05-08</code></td><td><code>05/08/2026</code></td></tr>
+              <tr><td><code>2026-05-08 14:30:00</code></td><td><code>05/08/2026</code></td></tr>
+              <tr><td><code>1962-06/1965-08</code></td><td><code>06/01/1962 - 08/31/1965</code></td></tr>
+              <tr><td><code>1962-06-05/1965-08-12</code></td><td><code>06/05/1962 - 08/12/1965</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <span class="pill">Always flagged</span>
+          <h3 style="margin-bottom:8px">Fuzzy and approximate dates</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>circa 1962</code></td><td><code>circa 1962</code></td></tr>
+              <tr><td><code>ca. 1962</code></td><td><code>circa 1962</code></td></tr>
+              <tr><td><code>approx 1962</code></td><td><code>circa 1962</code></td></tr>
+              <tr><td><code>before 1991</code></td><td><code>before 01/01/1991</code></td></tr>
+              <tr><td><code>pre-1991</code></td><td><code>before 01/01/1991</code></td></tr>
+              <tr><td><code>ante 1991</code></td><td><code>before 01/01/1991</code></td></tr>
+              <tr><td><code>before 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
+              <tr><td><code>after 1991</code></td><td><code>after 12/31/1991</code></td></tr>
+              <tr><td><code>post-1991</code></td><td><code>after 12/31/1991</code></td></tr>
+              <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>undated</code></td><td><code>undated</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Wildcards and incomplete inputs</h3>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>06/??/1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+              <tr><td><code>06/00/1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
+              <tr><td><code>?? - 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
+              <tr><td><code>10/15/1991 - ??</code></td><td><code>after 10/15/1991</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Excel serial numbers</h3>
+          <p style="margin-bottom:8px">Sometimes pasted from older workbooks.</p>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>44197</code></td><td><code>01/01/2021</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <span class="pill">Always flagged</span>
+          <h3 style="margin-bottom:8px">Unrecognized inputs</h3>
+          <p style="margin-bottom:8px">If the app does not have a pattern for the input, the value is left as-is and the Check column is set to <span class="flag">Yes</span>.</p>
+          <table>
+            <thead><tr><th>Input</th><th>Output</th><th>Check</th></tr></thead>
+            <tbody>
+              <tr><td><code>Spring 1962</code></td><td><code>Spring 1962</code></td><td><span class="flag">Yes</span></td></tr>
+              <tr><td><code>Easter 1964</code></td><td><code>Easter 1964</code></td><td><span class="flag">Yes</span></td></tr>
+              <tr><td>Any free-text comment</td><td>passed through</td><td><span class="flag">Yes</span></td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px">The app flags rather than guesses.</p>
+        </div>
+      </div>
+    </section>
 
-<table>
-  <thead><tr><th>Output</th><th>Meaning</th></tr></thead>
-  <tbody>
-    <tr><td><code>undated</code></td><td>The original said <code>n.d.</code>, <code>no date</code>, <code>not dated</code>, etc.</td></tr>
-    <tr><td><code>circa 1962</code></td><td>The original said <code>circa 1962</code>, <code>ca. 1962</code>, <code>approx. 1962</code>, etc.</td></tr>
-    <tr><td><code>before 01/01/1991</code></td><td>The original said <code>before 1991</code>, <code>pre-1991</code>, or <code>ante 1991</code>.</td></tr>
-    <tr><td><code>before 10/15/1991</code></td><td>The original gave a specific cutoff date with "before".</td></tr>
-    <tr><td><code>after 12/31/1991</code></td><td>The original said <code>after 1991</code> or <code>post-1991</code>.</td></tr>
-    <tr><td><code>after 10/15/1991</code></td><td>The original gave a specific cutoff date with "after".</td></tr>
-  </tbody>
-</table>
+    <!-- ── Troubleshooting ────────────────────────────────────────── -->
+    <section class="section" id="troubleshooting">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>If something goes wrong</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <h3>Error dialog</h3>
+          <p>
+            Click OK. The app writes a log file to <code>%TEMP%\date-formatter.log</code>.
+            Open it in Notepad to see details. Share the log with your IT Admin if you need help.
+          </p>
+        </div>
+        <div class="timeline-item">
+          <h3>"File in use" prompt</h3>
+          <p>Close the spreadsheet in Excel or whatever has it open, then click Retry.</p>
+        </div>
+        <div class="timeline-item">
+          <h3>The app does not open</h3>
+          <p>Python may not be installed, or the script path may have changed. Contact your IT Admin.</p>
+        </div>
+        <div class="timeline-item">
+          <h3>A row was flagged that should not have been</h3>
+          <p>
+            Check the <code>Original_</code> column for the raw value the app saw. If the format
+            is one the app does not recognize, you can either clean up the source value and re-run,
+            or edit the formatted column directly.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<p>For year-only inputs, "before" lands on January 1 of that year and "after" lands on December 31. This is a tight bound: the named year is excluded from the range.</p>
-</section>
+    <!-- ── Tips ───────────────────────────────────────────────────── -->
+    <section class="section" id="tips">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Tips</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <ul class="guide-list">
+            <li>Make a backup copy of your spreadsheet before running. The app overwrites your file in place.</li>
+            <li>Run on one column at a time until you are comfortable with the output, then batch larger jobs.</li>
+            <li>After a run, sort by the <code>Check</code> column to bring flagged rows to the top.</li>
+            <li>The app handles <code>.xlsx</code> and <code>.csv</code>. Save older <code>.xls</code> files as <code>.xlsx</code> first.</li>
+            <li>Light mode and dark mode are both supported. Your preference is saved.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-<section id="columns-preserved">
-<h2>What gets cleaned vs. what stays the same</h2>
+    <!-- ── Need help ──────────────────────────────────────────────── -->
+    <section class="section" id="help">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Need help</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Contact your IT Admin or whoever provided this app. Include the log file
+            from <code>%TEMP%\date-formatter.log</code> if you encountered a specific error.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<h3>Always cleaned, regardless of mode</h3>
-<p>The following archival ID columns have their leading zeros restored on every save.</p>
+    <!-- ── About ──────────────────────────────────────────────────── -->
+    <section class="section" id="about">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>About this app</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p style="margin-bottom:10px">Diagnostic info you may be asked to share with your IT Admin.</p>
+          <table>
+            <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
+            <tbody>
+              <tr><td>App version</td><td>Shown at the bottom-left of the app window.</td></tr>
+              <tr><td>Log file</td><td><code>%TEMP%\date-formatter.log</code> — records run history and any errors.</td></tr>
+              <tr><td>Settings file</td><td><code>dates-formatter-settings.json</code> in the same folder as the script. Stores theme, window position, recent files, and output preference.</td></tr>
+              <tr><td>User manual</td><td><code>user-manual.html</code> in the same folder as the script. This document.</td></tr>
+              <tr><td>Python dependencies</td><td><code>customtkinter 5.2.2</code>, <code>pandas 2.2.2</code>, <code>openpyxl 3.1.5</code>.</td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-top:12px">
+            Reset to defaults: close the app, delete <code>dates-formatter-settings.json</code>, and relaunch.
+          </div>
+        </div>
+      </div>
+    </section>
 
-<table>
-  <thead><tr><th>Column header (any variant)</th><th>Format</th></tr></thead>
-  <tbody>
-    <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits. <code>200</code> becomes <code>0200</code>. <code>9200</code> stays <code>9200</code>.</td></tr>
-    <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters. <code>22</code> becomes <code>022</code>. <code>W22</code> stays <code>W22</code>. Single-letter prefix is preserved.</td></tr>
-    <tr><td><code>Series</code>, <code>Series Number</code></td><td>Same as SG.</td></tr>
-    <tr><td><code>SubSeries Number</code></td><td>Same as SG.</td></tr>
-  </tbody>
-</table>
-
-<h3>Left alone</h3>
-<p>Every other column in your spreadsheet, including Folder Number, Sequential Box Number, Title, Description, and Container Barcode, is preserved exactly as it appeared in the source. Leading zeros are kept and codes like <code>001.001</code> are not converted to numbers.</p>
-</section>
-
-<section id="patterns">
-<h2>Patterns the app recognizes</h2>
-<p>The conversion engine tries many input formats. Below are the most common patterns grouped by type.</p>
-
-<h3>Already-formatted dates</h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>05/31/1964</code></td><td><code>05/31/1964</code></td></tr>
-    <tr><td><code>01/01/1962 - 12/31/1962</code></td><td><code>01/01/1962 - 12/31/1962</code></td></tr>
-    <tr><td><code>5/8/2026</code></td><td><code>05/08/2026</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Years and decades</h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>1962</code></td><td><code>01/01/1962 - 12/31/1962</code></td></tr>
-    <tr><td><code>1962-1965</code></td><td><code>01/01/1962 - 12/31/1965</code></td></tr>
-    <tr><td><code>1962-65</code></td><td><code>01/01/1962 - 12/31/1965</code></td></tr>
-    <tr><td><code>1960s</code></td><td><code>01/01/1960 - 12/31/1969</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Month and year</h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>June 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>Jun 1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>Jun-62</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>June 5, 1964</code></td><td><code>06/05/1964</code></td></tr>
-    <tr><td><code>June 5th, 1964</code></td><td><code>06/05/1964</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Month and year ranges</h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>June 1, 1962 - August 5, 1964</code></td><td><code>06/01/1962 - 08/05/1964</code></td></tr>
-    <tr><td><code>June 1 - 5 1962</code></td><td><code>06/01/1962 - 06/05/1962</code></td></tr>
-    <tr><td><code>1962/06 - 1962/08</code></td><td><code>06/01/1962 - 08/31/1962</code></td></tr>
-  </tbody>
-</table>
-
-<h3>ISO and Dublin Core formats <span class="flag" style="font-size:11px">use Dublin Core mode</span></h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>2026-05-08</code></td><td><code>05/08/2026</code></td></tr>
-    <tr><td><code>2026-05-08 14:30:00</code></td><td><code>05/08/2026</code></td></tr>
-    <tr><td><code>1962-06/1965-08</code></td><td><code>06/01/1962 - 08/31/1965</code></td></tr>
-    <tr><td><code>1962-06-05/1965-08-12</code></td><td><code>06/05/1962 - 08/12/1965</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Fuzzy and approximate dates <span class="flag">always flagged</span></h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>circa 1962</code></td><td><code>circa 1962</code></td></tr>
-    <tr><td><code>ca. 1962</code></td><td><code>circa 1962</code></td></tr>
-    <tr><td><code>approx 1962</code></td><td><code>circa 1962</code></td></tr>
-    <tr><td><code>before 1991</code></td><td><code>before 01/01/1991</code></td></tr>
-    <tr><td><code>pre-1991</code></td><td><code>before 01/01/1991</code></td></tr>
-    <tr><td><code>ante 1991</code></td><td><code>before 01/01/1991</code></td></tr>
-    <tr><td><code>before 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
-    <tr><td><code>after 1991</code></td><td><code>after 12/31/1991</code></td></tr>
-    <tr><td><code>post-1991</code></td><td><code>after 12/31/1991</code></td></tr>
-    <tr><td><code>n.d.</code>, <code>N.D.</code>, <code>no date</code>, <code>undated</code></td><td><code>undated</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Wildcards and incomplete inputs</h3>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>06/??/1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>06/00/1962</code></td><td><code>06/01/1962 - 06/30/1962</code></td></tr>
-    <tr><td><code>?? - 10/15/1991</code></td><td><code>before 10/15/1991</code></td></tr>
-    <tr><td><code>10/15/1991 - ??</code></td><td><code>after 10/15/1991</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Excel serial numbers</h3>
-<p>Sometimes pasted from older workbooks.</p>
-<table>
-  <thead><tr><th>Input</th><th>Output</th></tr></thead>
-  <tbody>
-    <tr><td><code>44197</code></td><td><code>01/01/2021</code></td></tr>
-  </tbody>
-</table>
-
-<h3>Unrecognized inputs</h3>
-<p>If the app does not have a pattern for the input, the value is left as-is and the <code>Check</code> column is set to <span class="flag">Yes</span>.</p>
-<table>
-  <thead><tr><th>Input</th><th>Output</th><th>Check</th></tr></thead>
-  <tbody>
-    <tr><td><code>Spring 1962</code></td><td><code>Spring 1962</code></td><td><span class="flag">Yes</span></td></tr>
-    <tr><td><code>Easter 1964</code></td><td><code>Easter 1964</code></td><td><span class="flag">Yes</span></td></tr>
-    <tr><td>Any free-text comment</td><td>passed through</td><td><span class="flag">Yes</span></td></tr>
-  </tbody>
-</table>
-<p>The app flags rather than guesses.</p>
-</section>
-
-<section id="troubleshooting">
-<h2>If something goes wrong</h2>
-
-<h3>Error dialog</h3>
-<p>Click OK. The app writes a log file to <code>%TEMP%\date-formatter.log</code>. Open it in Notepad to see details. Share the log with your IT Admin if you need help.</p>
-
-<h3>"File in use" prompt</h3>
-<p>Close the spreadsheet in Excel or whatever has it open, then click Retry.</p>
-
-<h3>The app does not open</h3>
-<p>Python may not be installed, or the script path may have changed. Contact your IT Admin.</p>
-
-<h3>A row was flagged that should not have been</h3>
-<p>Check the <code>Original_</code> column for the raw value the app saw. If the format is one the app does not recognize, you can either clean up the source value and re-run, or edit the formatted column directly.</p>
-</section>
-
-<section id="tips">
-<h2>Tips</h2>
-<ul>
-  <li>Make a backup copy of your spreadsheet before running. The app overwrites your file in place.</li>
-  <li>Run on one column at a time until you are comfortable with the output, then batch larger jobs.</li>
-  <li>After a run, sort by the <code>Check</code> column to bring flagged rows to the top.</li>
-  <li>The app handles <code>.xlsx</code> and <code>.csv</code>. Save older <code>.xls</code> files as <code>.xlsx</code> first.</li>
-  <li>Light mode and dark mode are both supported. Your preference is saved.</li>
-</ul>
-</section>
-
-<section id="help">
-<h2>Need help</h2>
-<p>Contact your IT Admin or whoever provided this app. Include the log file from <code>%TEMP%\date-formatter.log</code> if you encountered a specific error.</p>
-</section>
-
-<section id="about">
-<h2>About this app</h2>
-<p>Diagnostic info you may be asked to share with your IT Admin.</p>
-
-<table>
-  <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
-  <tbody>
-    <tr><td>App version</td><td>Shown at the bottom-left of the app window.</td></tr>
-    <tr><td>Log file</td><td><code>%TEMP%\date-formatter.log</code> on Windows. Records run history and any errors.</td></tr>
-    <tr><td>Settings file</td><td><code>dates-formatter-settings.json</code> in the same folder as the script. Stores theme, window position, recent files, and output preference.</td></tr>
-    <tr><td>User manual file</td><td><code>user-manual.html</code> in the same folder as the script. This document.</td></tr>
-    <tr><td>Python dependencies</td><td><code>customtkinter 5.2.2</code>, <code>pandas 2.2.2</code>, <code>openpyxl 3.1.5</code>.</td></tr>
-  </tbody>
-</table>
-
-<p>Reset the app to defaults: close the app, delete <code>dates-formatter-settings.json</code>, and relaunch.</p>
-</section>
-
-<footer>
-  Date Formatter User Manual. Press <code>Ctrl-F</code> or <code>⌘-F</code> to search this page.
-</footer>
-
-</main>
-</div>
+    <footer class="footer">
+      <p>Date Formatter — User Manual</p>
+    </footer>
+  </div><!-- /.main -->
+</div><!-- /.layout -->
 
 <script>
-  (function () {
-    var KEY = 'df-theme';
-    var CYCLE = ['auto', 'light', 'dark'];
-    var LABELS = { auto: 'Theme: Auto', light: 'Theme: Light', dark: 'Theme: Dark' };
+  function applyTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    document.getElementById('btn-light').classList.toggle('active', mode === 'light');
+    document.getElementById('btn-dark').classList.toggle('active', mode === 'dark');
+    localStorage.setItem('df-theme', mode);
+  }
 
-    var stored = localStorage.getItem(KEY);
-    var current = stored ? stored : 'auto';
+  function setTheme(mode) {
+    applyTheme(mode);
+  }
 
-    function applyTheme(mode) {
-      if (mode === 'auto') {
-        document.body.removeAttribute('data-theme');
-      } else {
-        document.body.setAttribute('data-theme', mode);
-      }
-    }
-
-    applyTheme(current);
-
-    var btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.textContent = LABELS[current];
-      btn.addEventListener('click', function () {
-        var idx = CYCLE.indexOf(current);
-        current = CYCLE[(idx + 1) % CYCLE.length];
-        applyTheme(current);
-        if (current === 'auto') {
-          localStorage.removeItem(KEY);
-        } else {
-          localStorage.setItem(KEY, current);
-        }
-        btn.textContent = LABELS[current];
-      });
-    }
+  (function initTheme() {
+    const saved = localStorage.getItem('df-theme');
+    applyTheme(saved === 'dark' ? 'dark' : 'light');
   })();
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id], header[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
 </script>
 </body>
 </html>
