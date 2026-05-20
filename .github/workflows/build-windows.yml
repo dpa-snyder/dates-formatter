@@ -1,0 +1,50 @@
+name: Build Windows EXE
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Install frontend deps
+        working-directory: wails-app/frontend
+        run: npm install
+
+      - name: Copy user manual into public
+        run: Copy-Item user-manual.html wails-app/frontend/public/user-manual.html
+
+      - name: Build EXE
+        working-directory: wails-app
+        run: wails build -platform windows/amd64 -clean
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: date-formatter-windows
+          path: wails-app/build/bin/date-formatter.exe
+          retention-days: 90
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wails-app/build/bin/date-formatter.exe
