@@ -5,8 +5,13 @@ on:
     tags:
       - 'v*'
 
+env:
+  WAILS_VERSION: v2.12.0
+  NODE_VERSION: '20'
+
 jobs:
   build:
+    name: Windows Wails GUI (amd64)
     runs-on: windows-latest
 
     steps:
@@ -16,35 +21,53 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: wails-app/go.mod
+          cache: true
+          cache-dependency-path: wails-app/go.sum
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: wails-app/frontend/package-lock.json
 
       - name: Install Wails CLI
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+        shell: pwsh
+        env:
+          WAILS_VER: ${{ env.WAILS_VERSION }}
+        run: |
+          go install "github.com/wailsapp/wails/v2/cmd/wails@$env:WAILS_VER"
+          "$(go env GOPATH)\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Wails doctor
+        shell: pwsh
+        working-directory: wails-app
+        run: wails doctor
 
       - name: Install frontend deps
+        shell: pwsh
         working-directory: wails-app/frontend
-        run: npm install
+        run: npm ci
 
-      - name: Copy user manual into public
-        run: Copy-Item user-manual.html wails-app/frontend/public/user-manual.html
+      - name: Sync user manual into public
+        shell: pwsh
+        run: Copy-Item user-manual.html wails-app/frontend/public/user-manual.html -Force
 
       - name: Build EXE
+        shell: pwsh
         working-directory: wails-app
-        run: wails build -platform windows/amd64 -clean
+        run: wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: date-formatter-windows
+          name: date-formatter-windows-amd64
           path: wails-app/build/bin/date-formatter.exe
+          if-no-files-found: error
           retention-days: 90
 
-      - name: Attach to release
+      - name: Attach to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: wails-app/build/bin/date-formatter.exe
