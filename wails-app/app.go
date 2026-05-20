@@ -62,14 +62,15 @@ func (a *App) OpenPath(path string) {
 // GetColumns loads the file at path and returns column names, row count,
 // and a list of columns that look like they contain dates (T-013).
 func (a *App) GetColumns(path string) (ColumnsResult, error) {
-	// TODO Phase 3: implement via dateengine + excelize
-	return ColumnsResult{}, fmt.Errorf("not implemented yet")
+	return GetColumns(path)
 }
 
 // StartProcess begins conversion in a background goroutine.
-// Progress is emitted as "process:progress" events.
-// Completion is emitted as "process:done".
-// Errors are emitted as "process:error".
+// Events emitted:
+//   "process:progress" → ProcessProgress
+//   "process:done"     → ProcessResult
+//   "process:error"    → string
+//   "process:log"      → string
 func (a *App) StartProcess(opts ProcessOptions) {
 	if a.cancelProc != nil {
 		a.cancelProc()
@@ -79,9 +80,34 @@ func (a *App) StartProcess(opts ProcessOptions) {
 
 	go func() {
 		defer cancel()
-		// TODO Phase 3: implement processing loop
-		_ = ctx
-		wailsruntime.EventsEmit(a.ctx, "process:error", "not implemented yet")
+
+		wailsruntime.EventsEmit(a.ctx, "process:log",
+			fmt.Sprintf("Starting: %d column(s), mode %d", len(opts.Columns), opts.Mode))
+
+		progress := func(row, total int, column string, flagged int) {
+			wailsruntime.EventsEmit(a.ctx, "process:progress", ProcessProgress{
+				Row:     row,
+				Total:   total,
+				Column:  column,
+				Flagged: flagged,
+			})
+		}
+
+		result, err := ProcessFile(ctx, opts, progress)
+		if err != nil {
+			if ctx.Err() != nil {
+				wailsruntime.EventsEmit(a.ctx, "process:log", "Cancelled.")
+			} else {
+				wailsruntime.EventsEmit(a.ctx, "process:error", err.Error())
+			}
+			return
+		}
+
+		a.addRecentFile(opts.FilePath)
+		wailsruntime.EventsEmit(a.ctx, "process:log",
+			fmt.Sprintf("Done. %d rows, %d flagged → %s",
+				result.RowsProcessed, result.FlaggedRows, result.OutputPath))
+		wailsruntime.EventsEmit(a.ctx, "process:done", result)
 	}()
 }
 
