@@ -179,6 +179,8 @@ def custom_format_date(date_str):
     """Return (formatted_str, flag) where flag is 'Yes' or ''."""
     try:
         date_str = str(date_str)
+        if not date_str.strip():
+            return ('undated', '')
         def add_leading_zeros(d):
             d = re.sub(r'\b(\d{1})/(\d{1,2})/(\d{4})', r'0\1/\2/\3', d)
             d = re.sub(r'(\d{2})/(\d{1})/(\d{4})', r'\1/0\2/\3', d)
@@ -214,16 +216,22 @@ def custom_format_date(date_str):
             return (f'{month_map[sm[:3]]}/{sd.zfill(2)}/{sy} - '
                     f'{month_map[em[:3]]}/{ed.zfill(2)}/{ey}', '')
 
-        m = re.match(r'^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})$',
-                     date_str, re.IGNORECASE)
+        m = re.match(
+            r'^(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\.?\s*(\d{4})$',
+            date_str, re.IGNORECASE)
         if m:
             mo, y = m.groups()
             num = month_map[mo.capitalize()[:3]]
             last = get_last_day_of_month(int(y), int(num))
             return (f'{num}/01/{y} - {num}/{last}/{y}', '')
 
-        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*'
-                     r'(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})', date_str, re.IGNORECASE)
+        m = re.match(
+            r'(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\.?\s*'
+            r'(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})', date_str, re.IGNORECASE)
         if m:
             mon, day, year = m.groups()
             return (f'{month_map[mon.capitalize()[:3]]}/{day.zfill(2)}/{year}', '')
@@ -347,7 +355,7 @@ def custom_format_date(date_str):
             except ValueError:
                 pass
 
-        m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})', date_str, re.IGNORECASE)
+        m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})(?!-\d{2})', date_str, re.IGNORECASE)
         if m:
             return (f'circa {m.group(2)}', 'Yes')
 
@@ -371,16 +379,22 @@ def custom_format_date(date_str):
                 y = date_str.split('/')[1]
                 return (f'01/01/{y} - 12/31/{y}', '')
 
-        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})',
-                     date_str, re.IGNORECASE)
+        m = re.match(
+            r'(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\.?\s*(\d{4})',
+            date_str, re.IGNORECASE)
         if m:
             mo, y = m.groups()
             num = month_map[mo.capitalize()[:3]]
             last = get_last_day_of_month(int(y), int(num))
             return (f'{num}/01/{y} - {num}/{last}/{y}', '')
 
-        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[-.]\s*(\d{2})',
-                     date_str, re.IGNORECASE)
+        m = re.match(
+            r'(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)[-.]\s*(\d{2})',
+            date_str, re.IGNORECASE)
         if m:
             mo, y2 = m.groups()
             y = f'20{y2}' if int(y2) < 50 else f'19{y2}'
@@ -457,6 +471,8 @@ def is_valid_date_format(date_str):
 def convert_date_pattern(date_str):
     try:
         date_str = str(date_str)
+        if not date_str.strip():
+            return 'undated'
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
         date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
@@ -538,11 +554,14 @@ def convert_date_pattern(date_str):
             else:
                 norm = f'01/01/{raw}' if out_kw == 'before' else f'12/31/{raw}'
             return f'{out_kw} {norm}'
-        m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})', date_str, re.IGNORECASE)
+        m = re.match(r'(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})(?!-\d{2})', date_str, re.IGNORECASE)
         if m:
             return f'circa {m.group(2)}'
-        m = re.match(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*(\d{4})',
-                     date_str, re.IGNORECASE)
+        m = re.match(
+            r'(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\.?\s*(\d{4})',
+            date_str, re.IGNORECASE)
         if m:
             mo, y = m.groups()
             num = month_map[mo.capitalize()[:3]]
