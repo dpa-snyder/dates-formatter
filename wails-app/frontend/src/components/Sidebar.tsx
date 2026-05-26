@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Screen, ThemeMode } from '../App'
+import { GetAppVersion } from '../../wailsjs/go/main/App'
 
 interface Props {
   active: Screen
@@ -13,6 +15,9 @@ const NAV: { id: Screen; label: string; icon: string }[] = [
 ]
 
 export default function Sidebar({ active, onNav, theme, onCycleTheme }: Props) {
+  const [version, setVersion] = useState('…')
+  useEffect(() => { GetAppVersion().then(setVersion) }, [])
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -48,7 +53,7 @@ export default function Sidebar({ active, onNav, theme, onCycleTheme }: Props) {
             </button>
           ))}
         </div>
-        <div className="sidebar-version">v0.1.0-dev</div>
+        <div className="sidebar-version">{version}</div>
       </div>
     </aside>
   )

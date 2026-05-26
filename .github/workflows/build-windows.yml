@@ -59,7 +59,11 @@ jobs:
       - name: Build EXE
         shell: pwsh
         working-directory: wails-app
-        run: wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe
+        env:
+          BUILD_VERSION: ${{ github.ref_name }}
+        run: |
+          $tag = if ($env:BUILD_VERSION -match '^v') { $env:BUILD_VERSION } else { "dev" }
+          wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

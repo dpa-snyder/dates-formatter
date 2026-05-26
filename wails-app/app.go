@@ -12,7 +12,8 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const appVersion = "0.1.0"
+// version is injected at build time via -ldflags "-X main.version=vX.Y.Z"
+var version = "dev"
 
 // App is the main application struct bound to the Wails runtime.
 type App struct {
@@ -132,7 +133,7 @@ func (a *App) SaveSettings(s Settings) {
 
 // GetAppVersion returns the app version string.
 func (a *App) GetAppVersion() string {
-	return appVersion
+	return version
 }
 
 // ── Settings persistence ───────────────────────────────────────────────────────
