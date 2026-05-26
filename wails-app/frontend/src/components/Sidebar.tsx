@@ -57,17 +57,15 @@ export default function Sidebar({ active, onNav, theme, onCycleTheme, palette, o
           ))}
         </div>
         <div className="sidebar-footer-label" style={{marginTop: '10px'}}>Theme</div>
-        <div className="theme-swatches">
+        <select
+          className="theme-select"
+          value={palette}
+          onChange={e => onSetPalette(e.target.value as ThemePalette)}
+        >
           {(Object.keys(THEMES) as ThemePalette[]).map(p => (
-            <button
-              key={p}
-              className={`theme-swatch${palette === p ? ' active' : ''}`}
-              style={{ background: THEMES[p].swatch }}
-              title={THEMES[p].label}
-              onClick={() => onSetPalette(p)}
-            />
+            <option key={p} value={p}>{THEMES[p].label}</option>
           ))}
-        </div>
+        </select>
         <div className="sidebar-version">{version}</div>
       </div>
     </aside>

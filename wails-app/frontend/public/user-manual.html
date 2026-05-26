@@ -1239,6 +1239,8 @@
     const el = document.getElementById('df-theme-inject')
     if (el) el.textContent = ':root {\n' + lines + '\n}'
     document.documentElement.setAttribute('data-theme', mode)
+    // Override hardcoded body gradient so theme bg actually shows
+    document.body.style.background = vars['--bg'] || ''
     const bl = document.getElementById('btn-light')
     const bd = document.getElementById('btn-dark')
     if (bl) bl.classList.toggle('active', mode === 'light')

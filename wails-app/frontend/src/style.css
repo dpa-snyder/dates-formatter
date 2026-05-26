@@ -84,7 +84,7 @@ button { font-family: inherit; cursor: pointer; }
 .sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background: var(--panel);
+  background: var(--bg2);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -674,23 +674,22 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--chip-bg);
 }
 
-/* ── Theme swatches ────────────────────────────────────────── */
-.theme-swatches {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  margin-top: 4px;
-}
-
-.theme-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid transparent;
+/* ── Theme select ──────────────────────────────────────────── */
+.theme-select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-family: inherit;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0;
-  transition: border-color 0.14s, transform 0.10s;
+  outline: none;
+  transition: border-color 0.14s;
+  appearance: auto;
 }
 
-.theme-swatch:hover { transform: scale(1.15); border-color: var(--muted); }
-.theme-swatch.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--bg); }
+.theme-select:focus,
+.theme-select:hover { border-color: var(--blue); }

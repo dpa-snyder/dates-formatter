@@ -46,7 +46,13 @@ export default function App() {
     applyTheme(t)
     return t
   })
-  const [palette, setPalette] = useState<ThemePalette>(() => loadPalette())
+  const [palette, setPalette] = useState<ThemePalette>(() => {
+    const p = loadPalette()
+    const t = loadTheme()
+    const dark = t === 'system' ? getSystemDark() : t === 'dark'
+    applyPalette(p, dark)
+    return p
+  })
 
   const resolvedDark = theme === 'system' ? getSystemDark() : theme === 'dark'
 
