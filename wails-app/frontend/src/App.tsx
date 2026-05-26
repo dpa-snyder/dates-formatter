@@ -32,6 +32,7 @@ function applyPalette(palette: ThemePalette, dark: boolean) {
   Object.entries(vars).forEach(([key, value]) => {
     root.style.setProperty(key, value)
   })
+  root.setAttribute('data-palette', palette)
 }
 
 function loadPalette(): ThemePalette {
