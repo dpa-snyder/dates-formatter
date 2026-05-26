@@ -606,6 +606,7 @@
       pre, table { page-break-inside: avoid; }
     }
   </style>
+  <style id="df-theme-inject"></style>
 </head>
 <body>
 <div class="layout">
@@ -1220,6 +1221,29 @@
   function setTheme(mode) {
     applyTheme(mode);
   }
+
+  // When embedded in Wails, hide the manual's own theme toggle
+  if (window !== window.top) {
+    const f = document.querySelector('.nav-footer')
+    if (f) f.style.display = 'none'
+  }
+
+  // Receive theme from parent Wails app
+  window.addEventListener('message', function(e) {
+    if (!e.data || e.data.type !== 'df-theme') return
+    const vars = e.data.vars
+    const mode = e.data.mode
+    const lines = Object.entries(vars).map(function(entry) {
+      return '  ' + entry[0] + ': ' + entry[1] + ';'
+    }).join('\n')
+    const el = document.getElementById('df-theme-inject')
+    if (el) el.textContent = ':root {\n' + lines + '\n}'
+    document.documentElement.setAttribute('data-theme', mode)
+    const bl = document.getElementById('btn-light')
+    const bd = document.getElementById('btn-dark')
+    if (bl) bl.classList.toggle('active', mode === 'light')
+    if (bd) bd.classList.toggle('active', mode === 'dark')
+  })
 
   (function initTheme() {
     const saved = localStorage.getItem('df-theme');

@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import Converter from './screens/Converter'
 import Manual from './screens/Manual'
+import { THEMES, ThemePalette, getAppVars } from './themes'
 
 export type Screen = 'converter' | 'manual'
 export type ThemeMode = 'light' | 'dark' | 'system'
+export type { ThemePalette }
 
 const THEME_KEY = 'df-theme'
+const PALETTE_KEY = 'df-palette'
 
 function getSystemDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -22,6 +25,20 @@ function loadTheme(): ThemeMode {
   return saved ?? 'system'
 }
 
+function applyPalette(palette: ThemePalette, dark: boolean) {
+  const colors = THEMES[palette][dark ? 'dark' : 'light']
+  const vars = getAppVars(colors)
+  const root = document.documentElement
+  Object.entries(vars).forEach(([key, value]) => {
+    root.style.setProperty(key, value)
+  })
+}
+
+function loadPalette(): ThemePalette {
+  const saved = localStorage.getItem(PALETTE_KEY) as ThemePalette | null
+  return saved ?? 'default'
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>('converter')
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -29,6 +46,13 @@ export default function App() {
     applyTheme(t)
     return t
   })
+  const [palette, setPalette] = useState<ThemePalette>(() => loadPalette())
+
+  const resolvedDark = theme === 'system' ? getSystemDark() : theme === 'dark'
+
+  useEffect(() => {
+    applyPalette(palette, resolvedDark)
+  }, [palette, resolvedDark])
 
   useEffect(() => {
     if (theme !== 'system') return
@@ -46,12 +70,26 @@ export default function App() {
     localStorage.setItem(THEME_KEY, next)
   }
 
+  function setCurrentPalette(p: ThemePalette) {
+    setPalette(p)
+    localStorage.setItem(PALETTE_KEY, p)
+    const dark = theme === 'system' ? getSystemDark() : theme === 'dark'
+    applyPalette(p, dark)
+  }
+
   return (
     <div className="app-shell">
-      <Sidebar active={screen} onNav={setScreen} theme={theme} onCycleTheme={cycleTheme} />
+      <Sidebar
+        active={screen}
+        onNav={setScreen}
+        theme={theme}
+        onCycleTheme={cycleTheme}
+        palette={palette}
+        onSetPalette={setCurrentPalette}
+      />
       <main className="main-content">
         {screen === 'converter' && <Converter />}
-        {screen === 'manual'    && <Manual />}
+        {screen === 'manual'    && <Manual palette={palette} dark={resolvedDark} />}
       </main>
     </div>
   )

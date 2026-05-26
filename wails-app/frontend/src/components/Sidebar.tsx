@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Screen, ThemeMode } from '../App'
+import { THEMES, ThemePalette } from '../themes'
 import { GetAppVersion } from '../../wailsjs/go/main/App'
 
 interface Props {
@@ -7,6 +8,8 @@ interface Props {
   onNav: (s: Screen) => void
   theme: ThemeMode
   onCycleTheme: () => void
+  palette: ThemePalette
+  onSetPalette: (p: ThemePalette) => void
 }
 
 const NAV: { id: Screen; label: string; icon: string }[] = [
@@ -14,7 +17,7 @@ const NAV: { id: Screen; label: string; icon: string }[] = [
   { id: 'manual',    label: 'User Manual',  icon: '📖' },
 ]
 
-export default function Sidebar({ active, onNav, theme, onCycleTheme }: Props) {
+export default function Sidebar({ active, onNav, theme, onCycleTheme, palette, onSetPalette }: Props) {
   const [version, setVersion] = useState('…')
   useEffect(() => { GetAppVersion().then(setVersion) }, [])
 
@@ -51,6 +54,18 @@ export default function Sidebar({ active, onNav, theme, onCycleTheme }: Props) {
             >
               {t === 'light' ? '☀' : t === 'dark' ? '☾' : 'Auto'}
             </button>
+          ))}
+        </div>
+        <div className="sidebar-footer-label" style={{marginTop: '10px'}}>Theme</div>
+        <div className="theme-swatches">
+          {(Object.keys(THEMES) as ThemePalette[]).map(p => (
+            <button
+              key={p}
+              className={`theme-swatch${palette === p ? ' active' : ''}`}
+              style={{ background: THEMES[p].swatch }}
+              title={THEMES[p].label}
+              onClick={() => onSetPalette(p)}
+            />
           ))}
         </div>
         <div className="sidebar-version">{version}</div>
