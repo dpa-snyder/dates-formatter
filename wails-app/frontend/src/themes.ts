@@ -352,27 +352,43 @@ export const THEMES: Record<ThemePalette, ThemeDef> = {
 }
 
 export function getAppVars(t: ThemeColors): Record<string, string> {
+  const bg = t.bg
+  const panel = t.panel
+  const blue = readable(t.blue, [bg, panel], 4.5)
+  const blueLt = readable(t.blueLt, [bg, panel], 4.5)
+  const orange = readable(t.orange, [bg, panel], 4.5)
+  const muted = readable(t.muted, [bg, panel], 4.5)
+  const line = readableLine(t.line, panel)
+  const chipBg = separateSurface(t.chipBg, panel, 1.15)
+  const chipLine = readableLine(t.chipLine, chipBg)
+  const codeBg = separateSurface(t.codeBg, panel, 1.12)
+  const codeInk = readable(t.codeInk, [codeBg], 4.5)
+
   return {
-    '--blue': t.blue, '--blue-lt': t.blueLt, '--orange': t.orange,
-    '--bg': t.bg, '--bg2': t.bg2, '--panel': t.panel,
-    '--ink': t.ink, '--muted': t.muted, '--line': t.line,
+    '--blue': blue, '--blue-lt': blueLt, '--orange': orange,
+    '--on-blue': onColor(blue), '--on-orange': onColor(orange),
+    '--bg': bg, '--bg2': t.bg2, '--panel': panel,
+    '--ink': readable(t.ink, [bg, panel], 7), '--muted': muted, '--line': line,
     '--shadow': t.shadow, '--shadow-sm': t.shadowSm,
     '--ok-bg': t.okBg, '--ok-ink': t.okInk,
     '--warn-bg': t.warnBg, '--warn-ink': t.warnInk,
     '--err-bg': t.errBg, '--err-ink': t.errInk,
-    '--chip-bg': t.chipBg, '--chip-line': t.chipLine,
-    '--code-bg': t.codeBg, '--code-ink': t.codeInk,
+    '--chip-bg': chipBg, '--chip-line': chipLine,
+    '--code-bg': codeBg, '--code-ink': codeInk,
   }
 }
 
 export function getManualVars(t: ThemeColors): Record<string, string> {
+  const app = getAppVars(t)
+  const accent = app['--blue']
+  const alert = app['--orange']
   return {
-    '--bg': t.bg, '--panel': t.panel, '--panel-border': t.line,
-    '--text': t.ink, '--muted': t.muted, '--accent': t.blue,
-    '--accent-soft': hexAlpha(t.blue, 0.09), '--shadow': t.shadow,
-    '--nav-bg': t.panel, '--flag': t.orange,
-    '--flag-bg': hexAlpha(t.orange, 0.10), '--alert': t.orange,
-    '--alert-soft': hexAlpha(t.orange, 0.08), '--alert-border': hexAlpha(t.orange, 0.22),
+    '--bg': app['--bg'], '--panel': app['--panel'], '--panel-border': app['--line'],
+    '--text': app['--ink'], '--muted': app['--muted'], '--accent': accent,
+    '--accent-soft': hexAlpha(accent, 0.12), '--shadow': app['--shadow'],
+    '--nav-bg': app['--panel'], '--flag': alert,
+    '--flag-bg': hexAlpha(alert, 0.12), '--alert': alert,
+    '--alert-soft': hexAlpha(alert, 0.10), '--alert-border': hexAlpha(alert, 0.28),
   }
 }
 
@@ -381,4 +397,65 @@ function hexAlpha(hex: string, a: number): string {
   const g = parseInt(hex.slice(3, 5), 16)
   const b = parseInt(hex.slice(5, 7), 16)
   return `rgba(${r},${g},${b},${a})`
+}
+
+function readable(color: string, backgrounds: string[], min: number): string {
+  const bgLum = backgrounds.reduce((sum, bg) => sum + luminance(bg), 0) / backgrounds.length
+  const target = bgLum > 0.45 ? '#000000' : '#ffffff'
+  let out = color
+  for (let i = 0; i <= 20; i++) {
+    if (backgrounds.every(bg => contrast(out, bg) >= min)) return out
+    out = mix(color, target, i / 20)
+  }
+  return out
+}
+
+function readableLine(color: string, background: string): string {
+  return readable(color, [background], 1.55)
+}
+
+function separateSurface(surface: string, bg: string, min: number): string {
+  if (contrast(surface, bg) >= min) return surface
+  const target = luminance(bg) > 0.45 ? '#000000' : '#ffffff'
+  let out = surface
+  for (let i = 0; i <= 12; i++) {
+    if (contrast(out, bg) >= min) return out
+    out = mix(surface, target, i / 12)
+  }
+  return out
+}
+
+function onColor(bg: string): string {
+  return contrast('#ffffff', bg) >= contrast('#0b1020', bg) ? '#ffffff' : '#0b1020'
+}
+
+function contrast(a: string, b: string): number {
+  const la = luminance(a)
+  const lb = luminance(b)
+  const hi = Math.max(la, lb)
+  const lo = Math.min(la, lb)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+function luminance(hex: string): number {
+  const [r, g, b] = toRgb(hex).map(v => {
+    const c = v / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+function mix(a: string, b: string, amount: number): string {
+  const ar = toRgb(a)
+  const br = toRgb(b)
+  const rgb = ar.map((v, i) => Math.round(v + (br[i] - v) * amount))
+  return '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('')
+}
+
+function toRgb(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ]
 }

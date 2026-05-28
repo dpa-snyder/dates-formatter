@@ -37,7 +37,7 @@ export default function Converter() {
 
   // Load settings on mount
   useEffect(() => {
-    GetSettings().then(s => {
+    Promise.resolve().then(GetSettings).then(s => {
       if (s) {
         if (s.lastMode !== undefined) setMode(s.lastMode)
         if (s.lastOutputMode) setOutputMode(s.lastOutputMode as 'overwrite' | 'copy')
@@ -48,6 +48,7 @@ export default function Converter() {
 
   // Wire up process events
   useEffect(() => {
+    if (!(window as any).runtime?.EventsOnMultiple) return
     const offProg = EventsOn('process:progress', (data: ProcessProgress) => {
       setProgress(data)
     })

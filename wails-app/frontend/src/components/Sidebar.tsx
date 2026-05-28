@@ -7,7 +7,7 @@ interface Props {
   active: Screen
   onNav: (s: Screen) => void
   theme: ThemeMode
-  onCycleTheme: () => void
+  onSetTheme: (t: ThemeMode) => void
   palette: ThemePalette
   onSetPalette: (p: ThemePalette) => void
 }
@@ -17,9 +17,14 @@ const NAV: { id: Screen; label: string; icon: string }[] = [
   { id: 'manual',    label: 'User Manual',  icon: '📖' },
 ]
 
-export default function Sidebar({ active, onNav, theme, onCycleTheme, palette, onSetPalette }: Props) {
+export default function Sidebar({ active, onNav, theme, onSetTheme, palette, onSetPalette }: Props) {
   const [version, setVersion] = useState('…')
-  useEffect(() => { GetAppVersion().then(setVersion) }, [])
+  useEffect(() => {
+    Promise.resolve()
+      .then(GetAppVersion)
+      .then(setVersion)
+      .catch(() => setVersion('dev'))
+  }, [])
 
   return (
     <aside className="sidebar">
@@ -48,9 +53,7 @@ export default function Sidebar({ active, onNav, theme, onCycleTheme, palette, o
             <button
               key={t}
               className={`theme-btn${theme === t ? ' active' : ''}`}
-              onClick={() => {
-                if (theme !== t) onCycleTheme()
-              }}
+              onClick={() => onSetTheme(t)}
             >
               {t === 'light' ? '☀' : t === 'dark' ? '☾' : 'Auto'}
             </button>

@@ -69,9 +69,7 @@ export default function App() {
     return () => mq.removeEventListener('change', handler)
   }, [theme])
 
-  function cycleTheme() {
-    const next: ThemeMode =
-      theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+  function setCurrentTheme(next: ThemeMode) {
     setTheme(next)
     applyTheme(next)
     localStorage.setItem(THEME_KEY, next)
@@ -90,7 +88,7 @@ export default function App() {
         active={screen}
         onNav={setScreen}
         theme={theme}
-        onCycleTheme={cycleTheme}
+        onSetTheme={setCurrentTheme}
         palette={palette}
         onSetPalette={setCurrentPalette}
       />

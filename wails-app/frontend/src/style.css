@@ -3,6 +3,8 @@
   --blue: #235194;
   --blue-lt: #4077c8;
   --orange: #d4720f;
+  --on-blue: #ffffff;
+  --on-orange: #0b1020;
   --bg: #f0f4fb;
   --bg2: #e5eaf6;
   --panel: #ffffff;
@@ -198,13 +200,13 @@ button { font-family: inherit; cursor: pointer; }
 
 .theme-btn.active {
   background: var(--blue);
-  color: #fff;
+  color: var(--on-blue);
   border-color: var(--blue);
 }
 
 [data-theme="dark"] .theme-btn.active {
   background: var(--blue);
-  color: var(--bg);
+  color: var(--on-blue);
   border-color: var(--blue);
 }
 
@@ -512,7 +514,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .seg-btn.active {
   background: var(--blue);
-  color: #fff;
+  color: var(--on-blue);
   border-color: var(--blue);
   z-index: 1;
 }
@@ -523,7 +525,7 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--blue);
 }
 
-[data-theme="dark"] .seg-btn.active { background: var(--blue); color: var(--bg); border-color: var(--blue); }
+[data-theme="dark"] .seg-btn.active { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
 
 .output-preview { font-size: 0.72rem; color: var(--muted); margin-top: 6px; font-family: "IBM Plex Mono", monospace; }
 
@@ -532,7 +534,7 @@ button { font-family: inherit; cursor: pointer; }
 .btn-run {
   padding: 10px 32px;
   background: var(--blue);
-  color: #fff;
+  color: var(--on-blue);
   border: none;
   border-radius: var(--radius-sm);
   font-size: 0.92rem;
@@ -544,7 +546,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .btn-run:hover:not(:disabled) { background: var(--blue-lt); }
 .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
-[data-theme="dark"] .btn-run { background: var(--blue); color: var(--bg); }
+[data-theme="dark"] .btn-run { background: var(--blue); color: var(--on-blue); }
 
 .btn-cancel {
   padding: 10px 32px;
@@ -642,7 +644,7 @@ button { font-family: inherit; cursor: pointer; }
 .btn-primary-sm {
   padding: 7px 14px;
   background: var(--blue);
-  color: #fff;
+  color: var(--on-blue);
   border: none;
   border-radius: 7px;
   font-size: 0.82rem;
@@ -653,7 +655,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .btn-primary-sm:hover { opacity: 0.85; }
-[data-theme="dark"] .btn-primary-sm { background: var(--blue); color: var(--bg); }
+[data-theme="dark"] .btn-primary-sm { background: var(--blue); color: var(--on-blue); }
 
 .btn-ghost-sm {
   padding: 7px 14px;
