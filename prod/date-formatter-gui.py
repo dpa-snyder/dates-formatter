@@ -108,6 +108,13 @@ ctk.set_appearance_mode(THEME_MODE)
 ctk.set_default_color_theme("blue")
 
 
+def normalize_open_path(path, platform=None):
+    platform = platform or sys.platform
+    if platform == "win32":
+        return path.replace("/", "\\")
+    return path
+
+
 # ─── Shared helpers ───────────────────────────────────────────────────────────
 
 month_map = {
@@ -1536,16 +1543,17 @@ class DateFormatterApp(ctk.CTk):
     def _open_path(self, path):
         if not path:
             return
+        open_path = normalize_open_path(path)
         try:
             if sys.platform == "win32":
-                os.startfile(path)  # type: ignore[attr-defined]
+                os.startfile(open_path)  # type: ignore[attr-defined]
             elif sys.platform == "darwin":
-                subprocess.Popen(["open", path])
+                subprocess.Popen(["open", open_path])
             else:
-                subprocess.Popen(["xdg-open", path])
+                subprocess.Popen(["xdg-open", open_path])
         except Exception as e:
-            logging.error("Could not open %s: %s", path, e)
-            messagebox.showerror("Could not open", f"{path}\n\n{e}")
+            logging.error("Could not open %s: %s", open_path, e)
+            messagebox.showerror("Could not open", f"{open_path}\n\n{e}")
 
     # ── Mode/column mismatch hint ──
 

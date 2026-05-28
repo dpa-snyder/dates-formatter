@@ -181,6 +181,15 @@ export default function Converter() {
   // ── Filename helper ───────────────────────────────────────────────────────────
 
   const basename = (p: string) => p.split(/[/\\]/).pop() || p
+  const dirname = (p: string) => p.split(/[/\\]/).slice(0, -1).join('/')
+  const handleOpenPath = async (path: string) => {
+    try {
+      await OpenPath(path)
+    } catch (err) {
+      setErrorMsg(String(err))
+      setStage('error')
+    }
+  }
   const previewOut = () => {
     if (!filePath) return ''
     if (outputMode === 'overwrite') return basename(filePath)
@@ -379,11 +388,11 @@ export default function Converter() {
           </div>
           <div className="result-path">{result.outputPath}</div>
           <div className="result-actions">
-            <button className="btn-primary-sm" onClick={() => OpenPath(result.outputPath)}>
+            <button className="btn-primary-sm" onClick={() => handleOpenPath(result.outputPath)}>
               Open file
             </button>
             <button className="btn-ghost-sm"
-              onClick={() => OpenPath(result.outputPath.split(/[/\\]/).slice(0, -1).join('/'))}>
+              onClick={() => handleOpenPath(dirname(result.outputPath))}>
               Open folder
             </button>
             <button className="btn-ghost-sm" onClick={handleReset}>New job</button>

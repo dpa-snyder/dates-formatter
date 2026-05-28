@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -55,9 +56,38 @@ func (a *App) PickFile() string {
 	return path
 }
 
-// OpenPath opens the given file or folder in the OS file manager.
-func (a *App) OpenPath(path string) {
-	wailsruntime.BrowserOpenURL(a.ctx, "file://"+path)
+// OpenPath opens the given file or folder with the OS shell.
+func (a *App) OpenPath(path string) error {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return fmt.Errorf("path is empty")
+	}
+	cmdName, args, err := openPathCommand(runtime.GOOS, path)
+	if err != nil {
+		return err
+	}
+	return exec.Command(cmdName, args...).Start()
+}
+
+func openPathCommand(goos, path string) (string, []string, error) {
+	path = normalizeOpenPath(goos, path)
+	switch goos {
+	case "windows":
+		return "explorer.exe", []string{path}, nil
+	case "darwin":
+		return "open", []string{path}, nil
+	case "linux":
+		return "xdg-open", []string{path}, nil
+	default:
+		return "", nil, fmt.Errorf("opening paths is not supported on %s", goos)
+	}
+}
+
+func normalizeOpenPath(goos, path string) string {
+	if goos == "windows" {
+		return strings.ReplaceAll(path, "/", `\`)
+	}
+	return path
 }
 
 // GetColumns loads the file at path and returns column names, row count,
@@ -68,10 +98,11 @@ func (a *App) GetColumns(path string) (ColumnsResult, error) {
 
 // StartProcess begins conversion in a background goroutine.
 // Events emitted:
-//   "process:progress" → ProcessProgress
-//   "process:done"     → ProcessResult
-//   "process:error"    → string
-//   "process:log"      → string
+//
+//	"process:progress" → ProcessProgress
+//	"process:done"     → ProcessResult
+//	"process:error"    → string
+//	"process:log"      → string
 func (a *App) StartProcess(opts ProcessOptions) {
 	if a.cancelProc != nil {
 		a.cancelProc()

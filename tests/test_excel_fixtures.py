@@ -240,6 +240,11 @@ class TestKnownBugRegressions(unittest.TestCase):
         self.assertEqual(parse_ae("Feb 21 2012"), "02/21/2012")
         self.assertEqual(parse_ae("Sept. 3rd 1798"), "09/03/1798")
 
+    def test_windows_unc_open_path_normalized(self):
+        path = "//DOSFS01/users/lindsay.townsend/Documents/9015-038-003_formatted.xlsx"
+        expected = r"\\DOSFS01\users\lindsay.townsend\Documents\9015-038-003_formatted.xlsx"
+        self.assertEqual(GUI.normalize_open_path(path, "win32"), expected)
+
 
 if __name__ == "__main__":
     unittest.main()
