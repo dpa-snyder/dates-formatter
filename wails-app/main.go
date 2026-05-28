@@ -17,7 +17,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:            "Date Formatter",
 		Width:            1020,
-		Height:           720,
+		Height:           770,
 		MinWidth:         820,
 		MinHeight:        580,
 		BackgroundColour: &options.RGBA{R: 18, G: 29, B: 50, A: 1},

@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import Converter from './screens/Converter'
 import Manual from './screens/Manual'
 import { THEMES, ThemePalette, getAppVars } from './themes'
+import { WindowSetSize } from '../wailsjs/runtime/runtime'
 
 export type Screen = 'converter' | 'manual'
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -10,6 +11,8 @@ export type { ThemePalette }
 
 const THEME_KEY = 'df-theme'
 const PALETTE_KEY = 'df-palette'
+const CONVERTER_SIZE = { width: 1020, height: 770 }
+const MANUAL_SIZE = { width: 1420, height: 770 }
 
 function getSystemDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -56,6 +59,12 @@ export default function App() {
   })
 
   const resolvedDark = theme === 'system' ? getSystemDark() : theme === 'dark'
+
+  useEffect(() => {
+    if (!(window as any).runtime?.WindowSetSize) return
+    const size = screen === 'manual' ? MANUAL_SIZE : CONVERTER_SIZE
+    WindowSetSize(size.width, size.height)
+  }, [screen])
 
   useEffect(() => {
     applyPalette(palette, resolvedDark)

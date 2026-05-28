@@ -191,7 +191,7 @@ func (a *App) loadSettings() Settings {
 		LastOutputMode: "overwrite",
 		RecentFiles:    []string{},
 		WindowWidth:    1020,
-		WindowHeight:   720,
+		WindowHeight:   770,
 	}
 	data, err := os.ReadFile(settingsPath())
 	if err != nil {

@@ -295,6 +295,7 @@ button { font-family: inherit; cursor: pointer; }
   height: 100vh;
   border: none;
   display: block;
+  overflow-x: hidden;
 }
 
 /* ── Converter screen ──────────────────────────────────────── */

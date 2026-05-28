@@ -853,7 +853,7 @@ class DateFormatterApp(ctk.CTk):
                 return
 
         width = max(760, min(1080, int(screen_w * 0.62)))
-        height = max(720, min(820, int(screen_h * 0.78)))
+        height = max(770, min(870, int(screen_h * 0.78) + 50))
         x = max(0, (screen_w - width) // 2)
         y = 0
         self.geometry(f"{width}x{height}+{x}+{y}")
