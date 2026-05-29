@@ -39,7 +39,7 @@ func Convert(input string, mode Mode) Result {
 	switch mode {
 	case ModeSingle:
 		v := FormatSingleDate(s)
-		return Result{Value: v, Flagged: v == ""}
+		return Result{Value: v, Flagged: v == "" || HasTwoDigitYearDate(s)}
 	case ModeAE:
 		v, flagged := CustomFormatDate(s)
 		v = ConvertStrangeNamedRanges(v)
@@ -48,7 +48,7 @@ func Convert(input string, mode Mode) Result {
 	case ModeDC:
 		v := ConvertDatePattern(s)
 		v = EnsureChronologicalOrder(v)
-		return Result{Value: v, Flagged: isNonStandard(v)}
+		return Result{Value: v, Flagged: isNonStandard(v) || HasTwoDigitYearDate(s)}
 	}
 	return Result{Value: input}
 }
@@ -121,31 +121,33 @@ var (
 	reLeadZero2  = regexp.MustCompile(`(\d{2})/(\d)/(\d{4})`)
 	reParens     = regexp.MustCompile(`\s*\(.*?\)`)
 	rePrePost    = regexp.MustCompile(`(?i)\b(before|pre|ante|after|post)\.?\s*-?\s*(\d{1,2}/\d{1,2}/\d{4}|\d{4})\b`)
+	reYYDate     = regexp.MustCompile(`^(\d{1,2})([/-])(\d{1,2})([/-])(\d{2})$`)
+	reYYDateScan = regexp.MustCompile(`(^|[^0-9])(\d{1,2})([/-])(\d{1,2})([/-])(\d{2})([^0-9]|$)`)
 
 	// AE mode
-	reMultiYear  = regexp.MustCompile(`^\d{4}([,;\s\-]+\d{4})+$`)
-	reMonthRangeA = regexp.MustCompile(`^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\s+[–\-]\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})`)
-	reMonthRangeB = regexp.MustCompile(`^([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})\s+-\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})`)
-	reMonthYearAnchor   = regexp.MustCompile(monthList + `\.?\s*(\d{4})$`)
-	reMonthDayYear      = regexp.MustCompile(`^` + monthList + `\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})`)
-	reVolYear    = regexp.MustCompile(`(?i)^(\d{4})\s+(?:vol|volume)\b`)
-	reSerialRange = regexp.MustCompile(`^(\d{5})?\s*-\s*(\d{5})?$`)
-	reISODateAE  = regexp.MustCompile(`^(\d{4})[\-/](\d{1,2})[\-/](\d{1,2})`)
-	reISOTimestamp = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}`)
-	reYearRange  = regexp.MustCompile(`^(\d{4})\s*-\s*(\d{4})`)
-	reISOMonthSlash = regexp.MustCompile(`^(\d{4})/(\d{2}) - (\d{4})/(\d{2})`)
-	reYYYYMM     = regexp.MustCompile(`^(\d{4})-(\d{2})`)
-	reQQBeforeDate = regexp.MustCompile(`^\?{1,2} - (\d{1,2})/(\d{1,2})/(\d{4})$`)
-	reQQBeforeYear = regexp.MustCompile(`^\?{1,2} - (\d{4})$`)
-	reAfterDate  = regexp.MustCompile(`^(\d{1,2})/(\d{1,2})/(\d{4}) - \?{1,2}$`)
-	reZeroDayRange = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4}) - (\d{1,2})/0+/(\d{4})`)
-	reZeroDay    = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4})`)
-	reDoubleSlash = regexp.MustCompile(`^(\d{1,2})//(\d{4})`)
-	reCircaFull  = regexp.MustCompile(`(?i)^(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})(.*)$`)
-	reDecadeYear = regexp.MustCompile(`^(\d{4})(s)?(-\d{4})?$`)
+	reMultiYear           = regexp.MustCompile(`^\d{4}([,;\s\-]+\d{4})+$`)
+	reMonthRangeA         = regexp.MustCompile(`^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\s+[–\-]\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})`)
+	reMonthRangeB         = regexp.MustCompile(`^([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})\s+-\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})`)
+	reMonthYearAnchor     = regexp.MustCompile(monthList + `\.?\s*(\d{4})$`)
+	reMonthDayYear        = regexp.MustCompile(`^` + monthList + `\.?\s*(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})`)
+	reVolYear             = regexp.MustCompile(`(?i)^(\d{4})\s+(?:vol|volume)\b`)
+	reSerialRange         = regexp.MustCompile(`^(\d{5})?\s*-\s*(\d{5})?$`)
+	reISODateAE           = regexp.MustCompile(`^(\d{4})[\-/](\d{1,2})[\-/](\d{1,2})`)
+	reISOTimestamp        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}`)
+	reYearRange           = regexp.MustCompile(`^(\d{4})\s*-\s*(\d{4})`)
+	reISOMonthSlash       = regexp.MustCompile(`^(\d{4})/(\d{2}) - (\d{4})/(\d{2})`)
+	reYYYYMM              = regexp.MustCompile(`^(\d{4})-(\d{2})`)
+	reQQBeforeDate        = regexp.MustCompile(`^\?{1,2} - (\d{1,2})/(\d{1,2})/(\d{4})$`)
+	reQQBeforeYear        = regexp.MustCompile(`^\?{1,2} - (\d{4})$`)
+	reAfterDate           = regexp.MustCompile(`^(\d{1,2})/(\d{1,2})/(\d{4}) - \?{1,2}$`)
+	reZeroDayRange        = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4}) - (\d{1,2})/0+/(\d{4})`)
+	reZeroDay             = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4})`)
+	reDoubleSlash         = regexp.MustCompile(`^(\d{1,2})//(\d{4})`)
+	reCircaFull           = regexp.MustCompile(`(?i)^(circa|cir\.?|ca\.?|approx\.?|c\.?)\s*(\d{4})(.*)$`)
+	reDecadeYear          = regexp.MustCompile(`^(\d{4})(s)?(-\d{4})?$`)
 	reMonthYearUnanchored = regexp.MustCompile(monthList + `\.?\s*(\d{4})`)
-	reMonthYY    = regexp.MustCompile(monthList + `[.\-]\s*(\d{2})`)
-	reSameMonthDayRange = regexp.MustCompile(`(?i)^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\s+(?:-\s+)?(\d{1,2})\s+(\d{4})`)
+	reMonthYY             = regexp.MustCompile(monthList + `[.\-]\s*(\d{2})`)
+	reSameMonthDayRange   = regexp.MustCompile(`(?i)^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\s+(?:-\s+)?(\d{1,2})\s+(\d{4})`)
 
 	// ensure_chronological_order
 	reRangeParts = regexp.MustCompile(`^(\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})/(\d{1,2})/(\d{4})`)
@@ -154,21 +156,21 @@ var (
 	reStrangeRange = regexp.MustCompile(`\b([A-Za-z]+) (\d{1,2})( \d{4})? - ([A-Za-z]*)? ?(\d{1,2})( \d{4})?`)
 
 	// DC mode
-	reDCFullRange    = regexp.MustCompile(`^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}`)
-	reDCISODate      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
-	reDCISOTimestamp = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$`)
-	reDCYearDashYear = regexp.MustCompile(`^\d{4}-\d{4}$`)
-	reDCYYYYslashYYYYMM = regexp.MustCompile(`^\d{4}/\d{4}-\d{2}$`)
-	reDCYYYYMMslashYYYY = regexp.MustCompile(`^\d{4}-\d{2}/\d{4}$`)
+	reDCFullRange         = regexp.MustCompile(`^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}`)
+	reDCISODate           = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	reDCISOTimestamp      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$`)
+	reDCYearDashYear      = regexp.MustCompile(`^\d{4}-\d{4}$`)
+	reDCYYYYslashYYYYMM   = regexp.MustCompile(`^\d{4}/\d{4}-\d{2}$`)
+	reDCYYYYMMslashYYYY   = regexp.MustCompile(`^\d{4}-\d{2}/\d{4}$`)
 	reDCYYYYMMslashYYYYMM = regexp.MustCompile(`^\d{4}-\d{2}/\d{4}-\d{2}$`)
-	reDCSlashYears   = regexp.MustCompile(`^\d{4}(/\d{4})+`)
-	reDCISORange     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}$`)
-	reDCMixedRange   = regexp.MustCompile(`^\d{2}-\d{2}-\d{4}/\d{4}-\d{2}-\d{2}$`)
-	reDCToRange      = regexp.MustCompile(`(?i)^\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}`)
-	reDCYear         = regexp.MustCompile(`^\d{4}$`)
-	reDCMonthYear    = regexp.MustCompile(monthList + `\.?\s*(\d{4})`)
-	reDCZeroDay      = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4})`)
-	reDCYYYYMM       = regexp.MustCompile(`^\d{4}-\d{2}$`)
+	reDCSlashYears        = regexp.MustCompile(`^\d{4}(/\d{4})+`)
+	reDCISORange          = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}$`)
+	reDCMixedRange        = regexp.MustCompile(`^\d{2}-\d{2}-\d{4}/\d{4}-\d{2}-\d{2}$`)
+	reDCToRange           = regexp.MustCompile(`(?i)^\d{4}-\d{2}-\d{2} (To|TO|to) \d{4}-\d{2}-\d{2}`)
+	reDCYear              = regexp.MustCompile(`^\d{4}$`)
+	reDCMonthYear         = regexp.MustCompile(monthList + `\.?\s*(\d{4})`)
+	reDCZeroDay           = regexp.MustCompile(`^(\d{1,2})/0+/(\d{4})`)
+	reDCYYYYMM            = regexp.MustCompile(`^\d{4}-\d{2}$`)
 )
 
 // ── Utility functions ─────────────────────────────────────────────────────────
@@ -188,6 +190,44 @@ func ExcelSerialToDate(serial int) string {
 	}
 	d := base.AddDate(0, 0, serial)
 	return fmt.Sprintf("%02d/%02d/%04d", d.Month(), d.Day(), d.Year())
+}
+
+// ExpandTwoDigitYear uses the project pivot for ambiguous numeric YY dates.
+func ExpandTwoDigitYear(yy int) int {
+	if yy <= 29 {
+		return 2000 + yy
+	}
+	return 1900 + yy
+}
+
+// FormatTwoDigitYearDate converts M/D/YY or M-D-YY to MM/DD/YYYY.
+func FormatTwoDigitYearDate(s string) (string, bool) {
+	m := reYYDate.FindStringSubmatch(strings.TrimSpace(s))
+	if m == nil || m[2] != m[4] {
+		return "", false
+	}
+	mo, day, year := atoi(m[1]), atoi(m[3]), ExpandTwoDigitYear(atoi(m[5]))
+	if !validDate(year, mo, day) {
+		return "", false
+	}
+	return fmt.Sprintf("%02d/%02d/%04d", mo, day, year), true
+}
+
+// HasTwoDigitYearDate reports whether input contains an ambiguous M/D/YY date.
+func HasTwoDigitYearDate(s string) bool {
+	for _, m := range reYYDateScan.FindAllStringSubmatch(s, -1) {
+		if m[3] == m[5] {
+			return true
+		}
+	}
+	return false
+}
+
+func validDate(year, month, day int) bool {
+	if month < 1 || month > 12 || day < 1 {
+		return false
+	}
+	return day <= GetLastDayOfMonth(year, month)
 }
 
 // PadAlnum pads a value to the given width. Pure-numeric values are
@@ -333,6 +373,10 @@ func CustomFormatDate(s string) (string, bool) {
 		return s, false
 	}
 
+	if v, ok := FormatTwoDigitYearDate(s); ok {
+		return v, true
+	}
+
 	// 2. Plausible year
 	if IsPlausibleYearText(s) {
 		return fmt.Sprintf("01/01/%s - 12/31/%s", s, s), false
@@ -459,7 +503,7 @@ func CustomFormatDate(s string) (string, bool) {
 		sy := m[1]
 		suffix := atoi(m[2])
 		lastTwo := atoi(sy[2:])
-		ey := atoi(sy[:2]+m[2])
+		ey := atoi(sy[:2] + m[2])
 		if suffix < lastTwo {
 			ey += 100
 		}
@@ -508,6 +552,11 @@ func CustomFormatDate(s string) (string, bool) {
 	if strings.Contains(s, " - ") {
 		sd, ed, ok := splitRange(s)
 		if ok {
+			if sdy, ok1 := FormatTwoDigitYearDate(sd); ok1 {
+				if edy, ok2 := FormatTwoDigitYearDate(ed); ok2 {
+					return fmt.Sprintf("%s - %s", sdy, edy), true
+				}
+			}
 			if hasFuzzyDay(sd) || hasFuzzyDay(ed) {
 				smo, sys, emo, eye, ok2 := extractMonthYear(sd, ed)
 				if ok2 {
@@ -756,6 +805,20 @@ func ConvertDatePattern(s string) string {
 	// Strip parenthetical content
 	s = strings.TrimSpace(reParens.ReplaceAllString(s, ""))
 
+	if v, ok := FormatTwoDigitYearDate(s); ok {
+		return v
+	}
+	if strings.Contains(s, " - ") {
+		sd, ed, ok := splitRange(s)
+		if ok {
+			if sdy, ok1 := FormatTwoDigitYearDate(sd); ok1 {
+				if edy, ok2 := FormatTwoDigitYearDate(ed); ok2 {
+					return fmt.Sprintf("%s - %s", sdy, edy)
+				}
+			}
+		}
+	}
+
 	// 2. Excel serial (5 digits)
 	if IsExcelSerialText(s) {
 		return excelSerial(s)
@@ -866,7 +929,7 @@ func ConvertDatePattern(s string) string {
 		suffix := atoi(suffStr)
 		if suffix > 12 {
 			// abbreviated year range, e.g. 1898-01 → 1898–1901
-			ey := atoi(yStr[:2]+suffStr)
+			ey := atoi(yStr[:2] + suffStr)
 			if suffix < atoi(yStr[2:]) {
 				ey += 100
 			}

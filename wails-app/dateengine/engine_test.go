@@ -211,6 +211,39 @@ func TestMonthAbbreviationsStillWork(t *testing.T) {
 	}
 }
 
+func TestTwoDigitNumericDatesConvertAndFlag(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"5/29/26", "05/29/2026"},
+		{"5/29/80", "05/29/1980"},
+		{"5/29/00", "05/29/2000"},
+		{"5/29/30", "05/29/1930"},
+	}
+	for _, c := range cases {
+		for _, mode := range []Mode{ModeSingle, ModeAE, ModeDC} {
+			got := Convert(c.in, mode)
+			if got.Value != c.want {
+				t.Errorf("Convert(%q, %v).Value = %q, want %q", c.in, mode, got.Value, c.want)
+			}
+			if !got.Flagged {
+				t.Errorf("Convert(%q, %v).Flagged = false, want true", c.in, mode)
+			}
+		}
+	}
+}
+
+func TestTwoDigitNumericRangesConvertAndFlag(t *testing.T) {
+	want := "05/29/2026 - 06/02/2026"
+	for _, mode := range []Mode{ModeAE, ModeDC} {
+		got := Convert("5/29/26 - 6/2/26", mode)
+		if got.Value != want {
+			t.Errorf("Convert range %v = %q, want %q", mode, got.Value, want)
+		}
+		if !got.Flagged {
+			t.Errorf("Convert range %v Flagged = false, want true", mode)
+		}
+	}
+}
+
 // ── Stale fixture overrides ───────────────────────────────────────────────────
 // These rows have Expected Result values that predate the D-003/D-006 fixes.
 
@@ -297,7 +330,7 @@ func TestStrangeRangeAllRows(t *testing.T) {
 		if excelRow == 1 {
 			continue // header
 		}
-		rawVal := colVal(row, 1) // FullDate
+		rawVal := colVal(row, 1)   // FullDate
 		expected := colVal(row, 2) // ExpectedFFD
 		if rawVal == "" || expected == "" {
 			continue
@@ -325,7 +358,7 @@ func TestWWIIAllRowsDC(t *testing.T) {
 		if excelRow == 1 {
 			continue // header
 		}
-		rawVal := colVal(row, 0) // Date Original (Cdm)
+		rawVal := colVal(row, 0)   // Date Original (Cdm)
 		expected := colVal(row, 1) // DC-FormattedDate Original (Cdm)
 		t.Run(fmt.Sprintf("row%d", excelRow), func(t *testing.T) {
 			got := dcConvert(rawVal)

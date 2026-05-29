@@ -181,6 +181,28 @@ class TestKnownBugRegressions(unittest.TestCase):
         self.assertEqual(parse_single("1900"), "01/01/1900")
         self.assertEqual(parse_single("1980"), "01/01/1980")
 
+    def test_two_digit_numeric_dates_convert_but_require_review(self):
+        cases = [
+            ("5/29/26", "05/29/2026"),
+            ("5/29/80", "05/29/1980"),
+            ("5/29/00", "05/29/2000"),
+            ("5/29/30", "05/29/1930"),
+        ]
+        for raw, expected in cases:
+            with self.subTest(raw=raw):
+                self.assertEqual(parse_single(raw), expected)
+                formatted, flag = GUI.custom_format_date(raw)
+                self.assertEqual(formatted, expected)
+                self.assertEqual(flag, "Yes")
+                self.assertEqual(parse_dc(raw), expected)
+                self.assertTrue(GUI.has_two_digit_year_date(raw))
+
+    def test_two_digit_numeric_ranges_convert_but_require_review(self):
+        formatted, flag = GUI.custom_format_date("5/29/26 - 6/2/26")
+        self.assertEqual(formatted, "05/29/2026 - 06/02/2026")
+        self.assertEqual(flag, "Yes")
+        self.assertEqual(parse_dc("5/29/26 - 6/2/26"), "05/29/2026 - 06/02/2026")
+
     # AE mode regressions
     def test_ae_parenthetical_content_does_not_corrupt_output(self):
         row = self._tc(42)

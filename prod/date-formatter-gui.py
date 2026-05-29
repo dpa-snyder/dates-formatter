@@ -52,7 +52,7 @@ import sys
 from datetime import datetime, timedelta
 import os
 
-APP_VERSION = "2026.05.11"
+APP_VERSION = "2026.05.29"
 
 MANUAL_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "user-manual.html")
@@ -159,6 +159,28 @@ def excel_serial_to_date(serial_text):
     return (base + timedelta(days=serial)).strftime('%m/%d/%Y')
 
 
+def expand_two_digit_year(year_text):
+    yy = int(year_text)
+    return 2000 + yy if yy <= 29 else 1900 + yy
+
+
+def format_two_digit_year_date(date_str):
+    m = re.fullmatch(r'(\d{1,2})([/-])(\d{1,2})\2(\d{2})', str(date_str).strip())
+    if not m:
+        return None
+    mo, _, day, yy = m.groups()
+    year = expand_two_digit_year(yy)
+    try:
+        datetime(year, int(mo), int(day))
+    except ValueError:
+        return None
+    return f'{int(mo):02d}/{int(day):02d}/{year}'
+
+
+def has_two_digit_year_date(date_str):
+    return bool(re.search(r'(?<!\d)\d{1,2}([/-])\d{1,2}\1\d{2}(?!\d)', str(date_str)))
+
+
 # ─── Single-date pipeline ─────────────────────────────────────────────────────
 
 def format_single_date(date_str):
@@ -198,6 +220,10 @@ def custom_format_date(date_str):
 
         if re.match(r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$', date_str):
             return (date_str, '')
+
+        yy_date = format_two_digit_year_date(date_str)
+        if yy_date:
+            return (yy_date, 'Yes')
 
         if is_plausible_year_text(date_str):
             return (f'01/01/{date_str} - 12/31/{date_str}', '')
@@ -343,6 +369,10 @@ def custom_format_date(date_str):
 
         if ' - ' in date_str:
             sd, ed = date_str.split(' - ', 1)
+            yy_start = format_two_digit_year_date(sd)
+            yy_end = format_two_digit_year_date(ed)
+            if yy_start and yy_end:
+                return (f'{yy_start} - {yy_end}', 'Yes')
             try:
                 if '??' in sd or '??' in ed or '00' in sd or '00' in ed:
                     ms, _, ys = sd.split('/')
@@ -483,6 +513,15 @@ def convert_date_pattern(date_str):
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
         date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
+        yy_date = format_two_digit_year_date(date_str)
+        if yy_date:
+            return yy_date
+        if ' - ' in date_str:
+            sd, ed = date_str.split(' - ', 1)
+            yy_start = format_two_digit_year_date(sd)
+            yy_end = format_two_digit_year_date(ed)
+            if yy_start and yy_end:
+                return f'{yy_start} - {yy_end}'
         if is_excel_serial_text(date_str):
             return excel_serial_to_date(date_str)
         m = re.fullmatch(r'(\d{5})?\s*-\s*(\d{5})?', date_str)
@@ -1799,8 +1838,10 @@ class DateFormatterApp(ctk.CTk):
                     progress(0.05 + (i / total) * 0.80)
             df[column] = results
             pat = re.compile(r'^\d{2}/\d{2}/\d{4}$')
-            df[check_col] = df[column].apply(
-                lambda s: 'Yes' if not isinstance(s, str) or not pat.match(s) else '')
+            df[check_col] = df.apply(
+                lambda r: 'Yes' if has_two_digit_year_date(r[original_col])
+                          or not isinstance(r[column], str)
+                          or not pat.match(r[column]) else '', axis=1)
 
         # ── Date Range ───────────────────────────────────────────────────────
         elif mode == "Date Range":
@@ -1843,8 +1884,10 @@ class DateFormatterApp(ctk.CTk):
                 r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$',
                 r'^undated$',
             ]
-            df[check_col] = df[column].apply(
-                lambda s: 'Yes' if not any(re.match(p, str(s)) for p in dc_valid) else '')
+            df[check_col] = df.apply(
+                lambda r: 'Yes' if has_two_digit_year_date(r[original_col])
+                          or not any(re.match(p, str(r[column])) for p in dc_valid)
+                          else '', axis=1)
 
         progress(0.88)
         df = reorder_columns(df, column, original_col, check_col)
