@@ -11,17 +11,19 @@ const (
 
 // ProcessOptions is passed from the frontend to StartProcess.
 type ProcessOptions struct {
-	FilePath   string   `json:"filePath"`
-	Columns    []string `json:"columns"`
-	Mode       Mode     `json:"mode"`
-	OutputMode string   `json:"outputMode"` // "overwrite" | "copy"
+	FilePath          string   `json:"filePath"`
+	Columns           []string `json:"columns"`
+	Mode              Mode     `json:"mode"`
+	OutputMode        string   `json:"outputMode"` // "overwrite" | "copy"
+	YYOverrideEnabled bool     `json:"yyOverrideEnabled"`
+	YYPrefix          string   `json:"yyPrefix"`
 }
 
 // ColumnsResult is returned by GetColumns.
 type ColumnsResult struct {
-	Columns       []string `json:"columns"`
-	RowCount      int      `json:"rowCount"`
-	DateyColumns  []string `json:"dateyColumns"` // T-013: likely-date columns
+	Columns      []string `json:"columns"`
+	RowCount     int      `json:"rowCount"`
+	DateyColumns []string `json:"dateyColumns"` // T-013: likely-date columns
 }
 
 // ProcessProgress is emitted as event "process:progress" during a run.
@@ -42,10 +44,12 @@ type ProcessResult struct {
 
 // Settings mirrors the keys in dates-formatter-settings.json for forward-compat.
 type Settings struct {
-	Theme           string   `json:"theme"`            // "light" | "dark" | "system"
-	LastMode        Mode     `json:"lastMode"`
-	LastOutputMode  string   `json:"lastOutputMode"`   // "overwrite" | "copy"
-	RecentFiles     []string `json:"recentFiles"`      // last 5 paths
-	WindowWidth     int      `json:"windowWidth"`
-	WindowHeight    int      `json:"windowHeight"`
+	Theme             string   `json:"theme"` // "light" | "dark" | "system"
+	LastMode          Mode     `json:"lastMode"`
+	LastOutputMode    string   `json:"lastOutputMode"` // "overwrite" | "copy"
+	RecentFiles       []string `json:"recentFiles"`    // last 5 paths
+	WindowWidth       int      `json:"windowWidth"`
+	WindowHeight      int      `json:"windowHeight"`
+	YYOverrideEnabled bool     `json:"yyOverrideEnabled"`
+	YYPrefix          string   `json:"yyPrefix"`
 }

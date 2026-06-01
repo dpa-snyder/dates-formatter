@@ -30,15 +30,15 @@ var (
 
 // leadingZerosCols maps (lowercased) column header → pad width.
 var leadingZerosCols = map[string]int{
-	"rg":                   4,
-	"record group number":  4,
-	"sg":                   3,
-	"subgr":                3,
-	"subgroup":             3,
-	"subgroup number":      3,
-	"series":               3,
-	"series number":        3,
-	"subseries number":     3,
+	"rg":                  4,
+	"record group number": 4,
+	"sg":                  3,
+	"subgr":               3,
+	"subgroup":            3,
+	"subgroup number":     3,
+	"series":              3,
+	"series number":       3,
+	"subseries number":    3,
 }
 
 // ── Public types ──────────────────────────────────────────────────────────────
@@ -183,6 +183,13 @@ func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc
 	}
 
 	deMode := toEngineMode(opts.Mode)
+	engineOpts := dateengine.ConvertOptions{}
+	if opts.YYOverrideEnabled {
+		engineOpts.YYPrefix = dateengine.NormalizeYYPrefix(opts.YYPrefix)
+		if engineOpts.YYPrefix == "" {
+			return ProcessResult{}, fmt.Errorf("YY prefix must be exactly two digits")
+		}
+	}
 	tick := numRows / 100
 	if tick < 1 {
 		tick = 1
@@ -222,7 +229,7 @@ func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc
 				raw = row[colIdx]
 			}
 
-			res := dateengine.Convert(raw, deMode)
+			res := dateengine.ConvertWithOptions(raw, deMode, engineOpts)
 			cr.converted[i] = res.Value
 
 			// Determine flagged state

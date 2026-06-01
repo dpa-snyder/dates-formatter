@@ -192,6 +192,7 @@ func (a *App) loadSettings() Settings {
 		RecentFiles:    []string{},
 		WindowWidth:    1020,
 		WindowHeight:   770,
+		YYPrefix:       "",
 	}
 	data, err := os.ReadFile(settingsPath())
 	if err != nil {

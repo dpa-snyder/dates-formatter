@@ -21,6 +21,8 @@ export namespace main {
 	    columns: string[];
 	    mode: number;
 	    outputMode: string;
+	    yyOverrideEnabled: boolean;
+	    yyPrefix: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ProcessOptions(source);
@@ -32,6 +34,8 @@ export namespace main {
 	        this.columns = source["columns"];
 	        this.mode = source["mode"];
 	        this.outputMode = source["outputMode"];
+	        this.yyOverrideEnabled = source["yyOverrideEnabled"];
+	        this.yyPrefix = source["yyPrefix"];
 	    }
 	}
 	export class Settings {
@@ -41,6 +45,8 @@ export namespace main {
 	    recentFiles: string[];
 	    windowWidth: number;
 	    windowHeight: number;
+	    yyOverrideEnabled: boolean;
+	    yyPrefix: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -54,6 +60,8 @@ export namespace main {
 	        this.recentFiles = source["recentFiles"];
 	        this.windowWidth = source["windowWidth"];
 	        this.windowHeight = source["windowHeight"];
+	        this.yyOverrideEnabled = source["yyOverrideEnabled"];
+	        this.yyPrefix = source["yyPrefix"];
 	    }
 	}
 

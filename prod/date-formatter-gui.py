@@ -52,7 +52,7 @@ import sys
 from datetime import datetime, timedelta
 import os
 
-APP_VERSION = "2026.05.29"
+APP_VERSION = "2026.06.01"
 
 MANUAL_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "user-manual.html")
@@ -79,6 +79,8 @@ DEFAULT_SETTINGS = {
     "theme": "dark",             # "dark" | "light" | "system"
     "geometry": None,            # "WxH+X+Y" or None
     "output_mode": "overwrite",  # "overwrite" | "copy"
+    "yy_override_enabled": False,
+    "yy_prefix": "",
 }
 
 
@@ -159,31 +161,40 @@ def excel_serial_to_date(serial_text):
     return (base + timedelta(days=serial)).strftime('%m/%d/%Y')
 
 
-def expand_two_digit_year(year_text):
-    yy = int(year_text)
-    return 2000 + yy if yy <= 29 else 1900 + yy
+def normalize_yy_prefix(prefix):
+    prefix = str(prefix or '').strip()
+    return prefix if re.fullmatch(r'\d{2}', prefix) else None
 
 
-def format_two_digit_year_date(date_str):
+def format_two_digit_year_date(date_str, yy_prefix=None):
     m = re.fullmatch(r'(\d{1,2})([/-])(\d{1,2})\2(\d{2})', str(date_str).strip())
     if not m:
         return None
     mo, _, day, yy = m.groups()
-    year = expand_two_digit_year(yy)
+    prefix = normalize_yy_prefix(yy_prefix)
+    year = f'{prefix}{yy}' if prefix else yy
     try:
-        datetime(year, int(mo), int(day))
+        validation_year = int(year) if prefix else 2000 + int(yy)
+        datetime(validation_year, int(mo), int(day))
     except ValueError:
         return None
-    return f'{int(mo):02d}/{int(day):02d}/{year}'
+    return f'{int(mo):02d}/{int(day):02d}/{year}', bool(prefix)
 
 
 def has_two_digit_year_date(date_str):
-    return bool(re.search(r'(?<!\d)\d{1,2}([/-])\d{1,2}\1\d{2}(?!\d)', str(date_str)))
+    s = str(date_str)
+    if re.search(r'(?<!\d)\d{1,2}([/-])\d{1,2}\1\d{2}(?!\d)', s):
+        return True
+    return bool(re.search(
+        r'\b(January|February|March|April|May|June|July|August|'
+        r'September|October|November|December|'
+        r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)[-.]\s*\d{2}\b',
+        s, re.IGNORECASE))
 
 
 # ─── Single-date pipeline ─────────────────────────────────────────────────────
 
-def format_single_date(date_str):
+def format_single_date(date_str, yy_prefix=None):
     """Return MM/DD/YYYY for the first date of any range, or '' if not parseable."""
     if date_str is None:
         return ''
@@ -191,11 +202,11 @@ def format_single_date(date_str):
     if s == '' or s.lower() in {'undated', 'n.d.', 'nd', 'n d', 'no date'}:
         return ''
     try:
-        result, _ = custom_format_date(s)
+        result, _ = custom_format_date(s, yy_prefix)
         result = ensure_chronological_order(result)
         if ' - ' in result:
             return result.split(' - ')[0]
-        if re.match(r'^\d{2}/\d{2}/\d{4}$', result):
+        if re.match(r'^\d{2}/\d{2}/(?:\d{2}|\d{4})$', result):
             return result
     except Exception:
         pass
@@ -204,7 +215,7 @@ def format_single_date(date_str):
 
 # ─── Range pipeline ───────────────────────────────────────────────────────────
 
-def custom_format_date(date_str):
+def custom_format_date(date_str, yy_prefix=None):
     """Return (formatted_str, flag) where flag is 'Yes' or ''."""
     try:
         date_str = str(date_str)
@@ -221,9 +232,10 @@ def custom_format_date(date_str):
         if re.match(r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$', date_str):
             return (date_str, '')
 
-        yy_date = format_two_digit_year_date(date_str)
+        yy_date = format_two_digit_year_date(date_str, yy_prefix)
         if yy_date:
-            return (yy_date, 'Yes')
+            value, resolved = yy_date
+            return (value, '' if resolved else 'Yes')
 
         if is_plausible_year_text(date_str):
             return (f'01/01/{date_str} - 12/31/{date_str}', '')
@@ -369,10 +381,14 @@ def custom_format_date(date_str):
 
         if ' - ' in date_str:
             sd, ed = date_str.split(' - ', 1)
-            yy_start = format_two_digit_year_date(sd)
-            yy_end = format_two_digit_year_date(ed)
+            yy_start = format_two_digit_year_date(sd, yy_prefix)
+            yy_end = format_two_digit_year_date(ed, yy_prefix)
             if yy_start and yy_end:
-                return (f'{yy_start} - {yy_end}', 'Yes')
+                start_value, start_resolved = yy_start
+                end_value, end_resolved = yy_end
+                return (
+                    f'{start_value} - {end_value}',
+                    '' if start_resolved and end_resolved else 'Yes')
             try:
                 if '??' in sd or '??' in ed or '00' in sd or '00' in ed:
                     ms, _, ys = sd.split('/')
@@ -434,10 +450,12 @@ def custom_format_date(date_str):
             date_str, re.IGNORECASE)
         if m:
             mo, y2 = m.groups()
-            y = f'20{y2}' if int(y2) < 50 else f'19{y2}'
+            prefix = normalize_yy_prefix(yy_prefix)
+            y = f'{prefix}{y2}' if prefix else y2
             num = month_map[mo.capitalize()[:3]]
-            last = get_last_day_of_month(int(y), int(num))
-            return (f'{num}/01/{y} - {num}/{last}/{y}', '')
+            validation_year = int(y) if prefix else 2000 + int(y2)
+            last = get_last_day_of_month(validation_year, int(num))
+            return (f'{num}/01/{y} - {num}/{last}/{y}', '' if prefix else 'Yes')
 
         m = re.match(
             r'(January|February|March|April|May|June|July|August|September|October|November|December)'
@@ -505,7 +523,7 @@ def is_valid_date_format(date_str):
 
 # ─── Dublin Core pipeline ─────────────────────────────────────────────────────
 
-def convert_date_pattern(date_str):
+def convert_date_pattern(date_str, yy_prefix=None):
     try:
         date_str = str(date_str)
         if not date_str.strip():
@@ -513,15 +531,15 @@ def convert_date_pattern(date_str):
         if re.match(r'\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}', date_str):
             return date_str
         date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
-        yy_date = format_two_digit_year_date(date_str)
+        yy_date = format_two_digit_year_date(date_str, yy_prefix)
         if yy_date:
-            return yy_date
+            return yy_date[0]
         if ' - ' in date_str:
             sd, ed = date_str.split(' - ', 1)
-            yy_start = format_two_digit_year_date(sd)
-            yy_end = format_two_digit_year_date(ed)
+            yy_start = format_two_digit_year_date(sd, yy_prefix)
+            yy_end = format_two_digit_year_date(ed, yy_prefix)
             if yy_start and yy_end:
-                return f'{yy_start} - {yy_end}'
+                return f'{yy_start[0]} - {yy_end[0]}'
         if is_excel_serial_text(date_str):
             return excel_serial_to_date(date_str)
         m = re.fullmatch(r'(\d{5})?\s*-\s*(\d{5})?', date_str)
@@ -612,6 +630,19 @@ def convert_date_pattern(date_str):
             mo, y = m.groups()
             num = month_map[mo.capitalize()[:3]]
             last = get_last_day_of_month(int(y), int(num))
+            return f'{num}/01/{y} - {num}/{last}/{y}'
+        m = re.match(
+            r'(January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)[-.]\s*(\d{2})',
+            date_str, re.IGNORECASE)
+        if m:
+            mo, y2 = m.groups()
+            prefix = normalize_yy_prefix(yy_prefix)
+            y = f'{prefix}{y2}' if prefix else y2
+            num = month_map[mo.capitalize()[:3]]
+            validation_year = int(y) if prefix else 2000 + int(y2)
+            last = get_last_day_of_month(validation_year, int(num))
             return f'{num}/01/{y} - {num}/{last}/{y}'
         m = re.match(r'(\d{1,2})/0{1,2}/(\d{4})', date_str)
         if m:
@@ -799,6 +830,10 @@ class DateFormatterApp(ctk.CTk):
         self._modal_btn_row = None
         self._modal_summary_body = None
         self._cols_modal_search = None
+        self.yy_override_var = ctk.BooleanVar(
+            value=bool(SETTINGS.get("yy_override_enabled", False)))
+        self.yy_prefix_var = ctk.StringVar(
+            value=str(SETTINGS.get("yy_prefix", ""))[:2])
 
         self._build_ui()
         self._update_stepper(1)
@@ -1409,6 +1444,36 @@ class DateFormatterApp(ctk.CTk):
             text_color=("gray45", "gray60"),
             wraplength=600, justify="left", anchor="w")
         self._output_hint.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+
+        yy_wrap = ctk.CTkFrame(body, fg_color="transparent")
+        yy_wrap.grid(row=2, column=0, sticky="ew", pady=(12, 0))
+        yy_wrap.grid_columnconfigure(1, weight=1)
+
+        self.yy_override_cb = ctk.CTkCheckBox(
+            yy_wrap,
+            text="Use a year prefix for 2-digit years",
+            variable=self.yy_override_var,
+            command=self._on_yy_override_change,
+            font=self._font(12))
+        self.yy_override_cb.grid(row=0, column=0, columnspan=2, sticky="w")
+        Tooltip(
+            self.yy_override_cb,
+            "When enabled, dates like 5/29/26 use the prefix you enter. "
+            "Example: prefix 18 makes 5/29/26 become 05/29/1826.")
+
+        ctk.CTkLabel(
+            yy_wrap, text="YY prefix", font=self._font(11),
+            text_color=("gray35", "gray65")
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0), padx=(28, 8))
+        self.yy_prefix_entry = ctk.CTkEntry(
+            yy_wrap, width=70, textvariable=self.yy_prefix_var,
+            placeholder_text="18", font=self._font(12))
+        self.yy_prefix_entry.grid(row=1, column=1, sticky="w", pady=(8, 0))
+        Tooltip(
+            self.yy_prefix_entry,
+            "Enter exactly two digits. 15 means YY dates become 15YY; "
+            "20 means YY dates become 20YY.")
+        self._update_yy_prefix_state()
         self._update_output_hint()
 
     def _update_output_hint(self):
@@ -1504,6 +1569,33 @@ class DateFormatterApp(ctk.CTk):
         SETTINGS["output_mode"] = val
         save_settings(SETTINGS)
         self._update_output_hint()
+
+    def _on_yy_override_change(self):
+        SETTINGS["yy_override_enabled"] = bool(self.yy_override_var.get())
+        SETTINGS["yy_prefix"] = self.yy_prefix_var.get().strip()
+        save_settings(SETTINGS)
+        self._update_yy_prefix_state()
+
+    def _update_yy_prefix_state(self):
+        state = "normal" if self.yy_override_var.get() else "disabled"
+        try:
+            self.yy_prefix_entry.configure(state=state)
+        except Exception:
+            pass
+
+    def _yy_prefix_for_run(self):
+        SETTINGS["yy_override_enabled"] = bool(self.yy_override_var.get())
+        SETTINGS["yy_prefix"] = self.yy_prefix_var.get().strip()
+        save_settings(SETTINGS)
+        if not self.yy_override_var.get():
+            return None
+        prefix = normalize_yy_prefix(self.yy_prefix_var.get())
+        if prefix is None:
+            messagebox.showerror(
+                "YY prefix needed",
+                "Enter exactly two digits for the YY prefix, such as 15, 18, 19, or 20.")
+            return False
+        return prefix
 
     def _on_configure(self, event):
         if event.widget is not self:
@@ -1683,6 +1775,9 @@ class DateFormatterApp(ctk.CTk):
         columns = [col for col, var in self.col_vars.items() if var.get()]
         if not columns:
             return
+        yy_prefix = self._yy_prefix_for_run()
+        if yy_prefix is False:
+            return
         # If the columns modal is open, close it before starting the run
         if self._columns_modal is not None:
             try:
@@ -1696,7 +1791,7 @@ class DateFormatterApp(ctk.CTk):
         self._log(f"Run start. Mode: {mode}. "
                   f"Columns: {', '.join(columns)}.", "info")
         threading.Thread(
-            target=self._run_all, args=(columns, mode), daemon=True).start()
+            target=self._run_all, args=(columns, mode, yy_prefix), daemon=True).start()
 
     # ── Progress modal ──
 
@@ -1782,7 +1877,7 @@ class DateFormatterApp(ctk.CTk):
             return f"{root}_formatted{ext}"
         return self.file_path
 
-    def _run_all(self, columns, mode):
+    def _run_all(self, columns, mode, yy_prefix=None):
         logging.info("Run start: mode=%s columns=%s file=%s",
                      mode, columns, self.file_path)
         start = time.monotonic()
@@ -1795,7 +1890,7 @@ class DateFormatterApp(ctk.CTk):
                 self.after(0, self._log,
                            f"Processing {column} ({i+1}/{n})…", "info")
                 df, flagged = self._process_column(
-                    df, column, mode, i / n, (i + 1) / n)
+                    df, column, mode, i / n, (i + 1) / n, yy_prefix)
                 total_flagged += flagged
 
             self.after(0, self._log,
@@ -1816,7 +1911,7 @@ class DateFormatterApp(ctk.CTk):
                           traceback.format_exc())
             self.after(0, self._error, f"{e}\n\nDetails logged to: {LOG_PATH}")
 
-    def _process_column(self, df, column, mode, p_start, p_end):
+    def _process_column(self, df, column, mode, p_start, p_end, yy_prefix=None):
         total = len(df)
         tick  = max(1, total // 100)
 
@@ -1833,13 +1928,13 @@ class DateFormatterApp(ctk.CTk):
         if mode == "Single Date":
             results = []
             for i, val in enumerate(df[column]):
-                results.append(format_single_date(val) if val else '')
+                results.append(format_single_date(val, yy_prefix) if val else '')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80)
             df[column] = results
-            pat = re.compile(r'^\d{2}/\d{2}/\d{4}$')
+            pat = re.compile(r'^\d{2}/\d{2}/(?:\d{2}|\d{4})$')
             df[check_col] = df.apply(
-                lambda r: 'Yes' if has_two_digit_year_date(r[original_col])
+                lambda r: 'Yes' if (yy_prefix is None and has_two_digit_year_date(r[original_col]))
                           or not isinstance(r[column], str)
                           or not pat.match(r[column]) else '', axis=1)
 
@@ -1847,7 +1942,7 @@ class DateFormatterApp(ctk.CTk):
         elif mode == "Date Range":
             formatted, flags = [], []
             for i, val in enumerate(df[column]):
-                v, f = custom_format_date(val) if val else ('undated', '')
+                v, f = custom_format_date(val, yy_prefix) if val else ('undated', '')
                 formatted.append(v)
                 flags.append(f)
                 if i % tick == 0:
@@ -1875,17 +1970,17 @@ class DateFormatterApp(ctk.CTk):
             for i, val in enumerate(df[column]):
                 results.append(
                     ensure_chronological_order(
-                        convert_date_pattern(val)) if val else 'undated')
+                        convert_date_pattern(val, yy_prefix)) if val else 'undated')
                 if i % tick == 0:
                     progress(0.05 + (i / total) * 0.80)
             df[column] = results
             dc_valid = [
-                r'^\d{2}/\d{2}/\d{4}$',
-                r'^\d{2}/\d{2}/\d{4} - \d{2}/\d{2}/\d{4}$',
+                r'^\d{2}/\d{2}/(?:\d{2}|\d{4})$',
+                r'^\d{2}/\d{2}/(?:\d{2}|\d{4}) - \d{2}/\d{2}/(?:\d{2}|\d{4})$',
                 r'^undated$',
             ]
             df[check_col] = df.apply(
-                lambda r: 'Yes' if has_two_digit_year_date(r[original_col])
+                lambda r: 'Yes' if (yy_prefix is None and has_two_digit_year_date(r[original_col]))
                           or not any(re.match(p, str(r[column])) for p in dc_valid)
                           else '', axis=1)
 

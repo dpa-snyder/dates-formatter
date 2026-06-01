@@ -198,7 +198,7 @@ func TestEmptyInputUndated(t *testing.T) {
 
 func TestMonthAbbreviationsStillWork(t *testing.T) {
 	cases := []struct{ in, want string }{
-		{"Jun-62", "06/01/1962 - 06/30/1962"},
+		{"Jun-62", "06/01/62 - 06/30/62"},
 		{"June 1962", "06/01/1962 - 06/30/1962"},
 		{"January 11, 2012", "01/11/2012"},
 		{"Feb 21 2012", "02/21/2012"},
@@ -209,14 +209,23 @@ func TestMonthAbbreviationsStillWork(t *testing.T) {
 			t.Errorf("aeConvert(%q) = %q, want %q", c.in, got, c.want)
 		}
 	}
+	if got, flagged := CustomFormatDateWithOptions("Jun-62", ConvertOptions{YYPrefix: "19"}); got != "06/01/1962 - 06/30/1962" || flagged {
+		t.Errorf("CustomFormatDateWithOptions(Jun-62, 19) = (%q, %v), want 1962 range and false", got, flagged)
+	}
+	if got := Convert("Jun-62", ModeDC); got.Value != "06/01/62 - 06/30/62" || !got.Flagged {
+		t.Errorf("Convert(Jun-62, ModeDC) = (%q, %v), want unresolved YY range and true", got.Value, got.Flagged)
+	}
+	if got := ConvertWithOptions("Jun-62", ModeDC, ConvertOptions{YYPrefix: "19"}); got.Value != "06/01/1962 - 06/30/1962" || got.Flagged {
+		t.Errorf("ConvertWithOptions(Jun-62, ModeDC, 19) = (%q, %v), want 1962 range and false", got.Value, got.Flagged)
+	}
 }
 
-func TestTwoDigitNumericDatesConvertAndFlag(t *testing.T) {
+func TestTwoDigitNumericDatesPreserveYearAndFlag(t *testing.T) {
 	cases := []struct{ in, want string }{
-		{"5/29/26", "05/29/2026"},
-		{"5/29/80", "05/29/1980"},
-		{"5/29/00", "05/29/2000"},
-		{"5/29/30", "05/29/1930"},
+		{"5/29/26", "05/29/26"},
+		{"5/29/80", "05/29/80"},
+		{"5/29/00", "05/29/00"},
+		{"5/29/30", "05/29/30"},
 	}
 	for _, c := range cases {
 		for _, mode := range []Mode{ModeSingle, ModeAE, ModeDC} {
@@ -231,8 +240,8 @@ func TestTwoDigitNumericDatesConvertAndFlag(t *testing.T) {
 	}
 }
 
-func TestTwoDigitNumericRangesConvertAndFlag(t *testing.T) {
-	want := "05/29/2026 - 06/02/2026"
+func TestTwoDigitNumericRangesPreserveYearAndFlag(t *testing.T) {
+	want := "05/29/26 - 06/02/26"
 	for _, mode := range []Mode{ModeAE, ModeDC} {
 		got := Convert("5/29/26 - 6/2/26", mode)
 		if got.Value != want {
@@ -240,6 +249,43 @@ func TestTwoDigitNumericRangesConvertAndFlag(t *testing.T) {
 		}
 		if !got.Flagged {
 			t.Errorf("Convert range %v Flagged = false, want true", mode)
+		}
+	}
+}
+
+func TestTwoDigitNumericDatesPrefixOverrideClearsFlag(t *testing.T) {
+	cases := []struct {
+		in     string
+		prefix string
+		want   string
+	}{
+		{"5/29/26", "18", "05/29/1826"},
+		{"5/29/80", "19", "05/29/1980"},
+		{"5/29/00", "20", "05/29/2000"},
+		{"5/29/30", "15", "05/29/1530"},
+	}
+	for _, c := range cases {
+		for _, mode := range []Mode{ModeSingle, ModeAE, ModeDC} {
+			got := ConvertWithOptions(c.in, mode, ConvertOptions{YYPrefix: c.prefix})
+			if got.Value != c.want {
+				t.Errorf("ConvertWithOptions(%q, %v, %q).Value = %q, want %q", c.in, mode, c.prefix, got.Value, c.want)
+			}
+			if got.Flagged {
+				t.Errorf("ConvertWithOptions(%q, %v, %q).Flagged = true, want false", c.in, mode, c.prefix)
+			}
+		}
+	}
+}
+
+func TestTwoDigitNumericRangesPrefixOverrideClearsFlag(t *testing.T) {
+	want := "05/29/1826 - 06/02/1826"
+	for _, mode := range []Mode{ModeAE, ModeDC} {
+		got := ConvertWithOptions("5/29/26 - 6/2/26", mode, ConvertOptions{YYPrefix: "18"})
+		if got.Value != want {
+			t.Errorf("ConvertWithOptions range %v = %q, want %q", mode, got.Value, want)
+		}
+		if got.Flagged {
+			t.Errorf("ConvertWithOptions range %v Flagged = true, want false", mode)
 		}
 	}
 }

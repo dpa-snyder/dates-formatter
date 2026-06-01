@@ -4,7 +4,7 @@ Per-mode input/output spec in parser order. First match wins. See `MANUAL.md` an
 
 ## Conventions
 
-* **Output column** is `MM/DD/YYYY` or `MM/DD/YYYY - MM/DD/YYYY`, or a descriptive token (`undated`, `circa YYYY`, `before MM/DD/YYYY`, `after MM/DD/YYYY`).
+* **Output column** is usually `MM/DD/YYYY` or `MM/DD/YYYY - MM/DD/YYYY`, or a descriptive token (`undated`, `circa YYYY`, `before MM/DD/YYYY`, `after MM/DD/YYYY`). When a source value uses an unresolved 2-digit year, the output preserves `YY` and flags the row.
 * **Check column** is `Yes` when the row needs human review. Blank otherwise.
 * Parenthetical content like `"... (circa)"` is stripped before matching in all modes.
 * Single-digit month and day are zero-padded before matching (`1/5/1991` becomes `01/05/1991`).
@@ -18,29 +18,31 @@ All three modes enforce the following invariants on any generated date or range.
 * **Leap-year awareness.** `is_leap_year(year)` returns `True` only for years divisible by 4, except century years not divisible by 400. February 29 is only emitted when valid for the given year. `02/29/2000` is valid. `02/29/1900` is not.
 * **Chronological order.** After parsing, every range is passed through `ensure_chronological_order`, which swaps the two sides if the start date is after the end date. Single Date mode applies the same check via `format_single_date`. Output ranges always satisfy `start <= end`.
 * **Excel serial values match Excel's display.** `excel_serial_to_date` corrects for Excel's 1900 leap-year bug: serials `< 60` use a `1899-12-31` base, serials `>= 60` use a `1899-12-30` base. Result matches what Excel itself shows for the same serial. Example: `44197` returns `01/01/2021`, the same date Excel displays for that serial. Matches `openpyxl.utils.datetime.from_excel`.
-* **`MonthName-YY` 2-digit year pivot.** `int(yy) < 50` yields `20YY`. `int(yy) >= 50` yields `19YY`. Archival convention: high values are older. `Jun-62` becomes `06/01/1962`. `Jun-22` becomes `06/01/2022`.
+* **2-digit years stay ambiguous unless the user resolves them.** Inputs like `5/29/26` and `Jun-62` preserve `YY` and set `Check = Yes`. If the user enables the YY prefix override and enters a two-digit prefix, the app expands `YY` with that prefix and leaves Check blank. Example: prefix `18` makes `5/29/26` become `05/29/1826`.
 
 Invalid input dates (for example `02/30/1990`) do not crash the parser. They fall through the recognized-pattern list and are returned as-is with `Check = Yes`. The parser does not attempt to correct invalid input dates.
 
 ## Mode 1: Single Date Conversion
 
-Output: `MM/DD/YYYY`. The pipeline first runs the full **Date Range** parser (Mode 2), then collapses any resulting range to its start date.
+Output: `MM/DD/YYYY`, or `MM/DD/YY` when a 2-digit year is unresolved. The pipeline first runs the full **Date Range** parser (Mode 2), then collapses any resulting range to its start date.
 
 | # | Step | Behavior |
 |---|------|----------|
 | 1 | Empty or undated keywords (`undated`, `n.d.`, `nd`, `n d`, `no date`) | Output: `""` (empty) |
 | 2 | Run Date Range pipeline (Mode 2) | See below |
 | 3 | If result contains ` - ` | Keep portion before the dash |
-| 4 | If result matches `MM/DD/YYYY` | Use as-is |
+| 4 | If result matches `MM/DD/YYYY` or unresolved `MM/DD/YY` | Use as-is |
 | 5 | Anything else | Output: `""` |
 
-Check column: `Yes` if output is not `MM/DD/YYYY`. Blank otherwise.
+Check column: `Yes` if output is not `MM/DD/YYYY`, or if it contains unresolved `YY`. Blank otherwise.
 
 ### Examples
 
 | Input | Output | Check |
 |-------|--------|-------|
 | `5/8/2026` | `05/08/2026` | |
+| `5/29/26` | `05/29/26` | Yes |
+| `5/29/26` with YY prefix `18` | `05/29/1826` | |
 | `05/31/1964` | `05/31/1964` | |
 | `01/01/1962 - 12/31/1962` | `01/01/1962` | |
 | `1962` | `01/01/1962` | |
@@ -64,6 +66,8 @@ Parser tries each step in this order. First match wins.
 | 0a | Strip parens `... (anything) ...` | `1962 (uncertain)` | (continues parsing as `1962`) | |
 | 0b | Zero-pad month and day to 2 digits | `1/5/1991` | (continues as `01/05/1991`) | |
 | 1 | Already-formatted range `MM/DD/YYYY - MM/DD/YYYY` | `01/01/1962 - 12/31/1962` | `01/01/1962 - 12/31/1962` | |
+| 1a | Numeric date with unresolved `YY` | `5/29/26` | `05/29/26` | Yes |
+| 1b | Numeric date with YY prefix override | `5/29/26` with prefix `18` | `05/29/1826` | |
 | 2 | 4-digit year (1000 to 2100) | `1962` | `01/01/1962 - 12/31/1962` | |
 | 3 | Excel serial (5-digit number) | `44197` | `01/01/2021` | Yes |
 | 4 | Year list separated by `, ; -` or whitespace, 2+ years | `1962, 1965, 1971` | `01/01/1962 - 12/31/1971` | Yes |
@@ -94,7 +98,8 @@ Parser tries each step in this order. First match wins.
 | 25 | Decade `YYYYs` / decade range / lone year (revisit) | `1960s` | `01/01/1960 - 12/31/1969` | |
 | 26 | `??` wildcards (`06/??/1962`) | `06/??/1962` | `06/01/1962 - 06/30/1962` | |
 | 27 | `MonthName YYYY` (case-insensitive, abbreviations) | `Jun 1962` | `06/01/1962 - 06/30/1962` | |
-| 28 | `MonthName-YY` (2-digit year, 50+ becomes 19YY, else 20YY) | `Jun-62` | `06/01/1962 - 06/30/1962` | |
+| 28 | `MonthName-YY` unresolved | `Jun-62` | `06/01/62 - 06/30/62` | Yes |
+| 28a | `MonthName-YY` with YY prefix override | `Jun-62` with prefix `18` | `06/01/1862 - 06/30/1862` | |
 | 29 | `Month D - D YYYY` (single month, day range) | `June 1 - 5 1962` | `06/01/1962 - 06/05/1962` | |
 | 30 | Fallthrough (pattern not matched) | `Spring 1962` | `Spring 1962` (unchanged) | Yes |
 
@@ -107,7 +112,8 @@ After the per-row parser runs, the column gets two clean-up passes.
 
 Then `is_valid_date_format` decides the Check value:
 
-* `Yes` if output is not `MM/DD/YYYY`, not `MM/DD/YYYY - MM/DD/YYYY`, and not `undated`.
+* `Yes` if output is not `MM/DD/YYYY`, not `MM/DD/YYYY - MM/DD/YYYY`, not unresolved `MM/DD/YY` / `MM/DD/YY - MM/DD/YY`, and not `undated`.
+* `Yes` if the original input contained unresolved `YY`.
 * `Yes` if the original input contained `;` (likely a multi-value field).
 
 ## Mode 3: Dublin Core Conversion

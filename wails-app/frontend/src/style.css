@@ -488,8 +488,16 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 0.05em;
 }
 
-/* ── Run section ───────────────────────────────────────── */
+/* ── Date interpretation + run section ─────────────────── */
+.interpretation-section,
 .run-section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+
+.interpretation-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 .run-row { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
 
@@ -529,6 +537,42 @@ button { font-family: inherit; cursor: pointer; }
 [data-theme="dark"] .seg-btn.active { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
 
 .output-preview { font-size: 0.72rem; color: var(--muted); margin-top: 6px; font-family: "IBM Plex Mono", monospace; }
+
+.yy-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.yy-check input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--blue);
+}
+
+.yy-prefix-input {
+  width: 54px;
+  height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.yy-prefix-input:focus { border-color: var(--blue); }
+.yy-prefix-input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.yy-help {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
 
 .run-controls { display: flex; align-items: center; }
 

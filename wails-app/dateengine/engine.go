@@ -31,24 +31,35 @@ type Result struct {
 	Flagged bool
 }
 
+// ConvertOptions controls ambiguous date choices made by the caller.
+type ConvertOptions struct {
+	YYPrefix string
+}
+
 // ── Entry points ──────────────────────────────────────────────────────────────
 
 // Convert applies the given mode to a single input string.
 func Convert(input string, mode Mode) Result {
+	return ConvertWithOptions(input, mode, ConvertOptions{})
+}
+
+// ConvertWithOptions applies the given mode and caller-provided ambiguity options.
+func ConvertWithOptions(input string, mode Mode, opts ConvertOptions) Result {
 	s := strings.TrimSpace(input)
+	yyResolved := NormalizeYYPrefix(opts.YYPrefix) != ""
 	switch mode {
 	case ModeSingle:
-		v := FormatSingleDate(s)
-		return Result{Value: v, Flagged: v == "" || HasTwoDigitYearDate(s)}
+		v := FormatSingleDateWithOptions(s, opts)
+		return Result{Value: v, Flagged: v == "" || (!yyResolved && HasAmbiguousYY(s))}
 	case ModeAE:
-		v, flagged := CustomFormatDate(s)
+		v, flagged := CustomFormatDateWithOptions(s, opts)
 		v = ConvertStrangeNamedRanges(v)
 		v = EnsureChronologicalOrder(v)
 		return Result{Value: v, Flagged: flagged}
 	case ModeDC:
-		v := ConvertDatePattern(s)
+		v := ConvertDatePatternWithOptions(s, opts)
 		v = EnsureChronologicalOrder(v)
-		return Result{Value: v, Flagged: isNonStandard(v) || HasTwoDigitYearDate(s)}
+		return Result{Value: v, Flagged: isNonStandard(v) || (!yyResolved && HasAmbiguousYY(s))}
 	}
 	return Result{Value: input}
 }
@@ -192,25 +203,34 @@ func ExcelSerialToDate(serial int) string {
 	return fmt.Sprintf("%02d/%02d/%04d", d.Month(), d.Day(), d.Year())
 }
 
-// ExpandTwoDigitYear uses the project pivot for ambiguous numeric YY dates.
-func ExpandTwoDigitYear(yy int) int {
-	if yy <= 29 {
-		return 2000 + yy
+// NormalizeYYPrefix returns a two-digit prefix, or empty string when unset.
+func NormalizeYYPrefix(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if regexp.MustCompile(`^\d{2}$`).MatchString(prefix) {
+		return prefix
 	}
-	return 1900 + yy
+	return ""
 }
 
-// FormatTwoDigitYearDate converts M/D/YY or M-D-YY to MM/DD/YYYY.
-func FormatTwoDigitYearDate(s string) (string, bool) {
+// FormatTwoDigitYearDate converts M/D/YY or M-D-YY to MM/DD/YY,
+// or MM/DD/YYYY when the caller supplies a two-digit prefix.
+func FormatTwoDigitYearDate(s string, yyPrefix string) (value string, resolved bool, ok bool) {
 	m := reYYDate.FindStringSubmatch(strings.TrimSpace(s))
 	if m == nil || m[2] != m[4] {
-		return "", false
+		return "", false, false
 	}
-	mo, day, year := atoi(m[1]), atoi(m[3]), ExpandTwoDigitYear(atoi(m[5]))
-	if !validDate(year, mo, day) {
-		return "", false
+	mo, day, yy := atoi(m[1]), atoi(m[3]), m[5]
+	prefix := NormalizeYYPrefix(yyPrefix)
+	year := yy
+	validationYear := 2000 + atoi(yy)
+	if prefix != "" {
+		year = prefix + yy
+		validationYear = atoi(year)
 	}
-	return fmt.Sprintf("%02d/%02d/%04d", mo, day, year), true
+	if !validDate(validationYear, mo, day) {
+		return "", false, false
+	}
+	return fmt.Sprintf("%02d/%02d/%s", mo, day, year), prefix != "", true
 }
 
 // HasTwoDigitYearDate reports whether input contains an ambiguous M/D/YY date.
@@ -221,6 +241,11 @@ func HasTwoDigitYearDate(s string) bool {
 		}
 	}
 	return false
+}
+
+// HasAmbiguousYY reports whether input contains a recognized unresolved YY date.
+func HasAmbiguousYY(s string) bool {
+	return HasTwoDigitYearDate(s) || reMonthYY.MatchString(s)
 }
 
 func validDate(year, month, day int) bool {
@@ -358,6 +383,11 @@ func circaResult(s string) (string, bool, bool) {
 // CustomFormatDate converts input using the ArchivEra range pipeline.
 // Returns (value, flagged).
 func CustomFormatDate(s string) (string, bool) {
+	return CustomFormatDateWithOptions(s, ConvertOptions{})
+}
+
+// CustomFormatDateWithOptions converts input using the ArchivEra range pipeline.
+func CustomFormatDateWithOptions(s string, opts ConvertOptions) (string, bool) {
 	defer func() { recover() }() // match Python's broad except
 
 	if strings.TrimSpace(s) == "" {
@@ -373,8 +403,8 @@ func CustomFormatDate(s string) (string, bool) {
 		return s, false
 	}
 
-	if v, ok := FormatTwoDigitYearDate(s); ok {
-		return v, true
+	if v, resolved, ok := FormatTwoDigitYearDate(s, opts.YYPrefix); ok {
+		return v, !resolved
 	}
 
 	// 2. Plausible year
@@ -552,9 +582,9 @@ func CustomFormatDate(s string) (string, bool) {
 	if strings.Contains(s, " - ") {
 		sd, ed, ok := splitRange(s)
 		if ok {
-			if sdy, ok1 := FormatTwoDigitYearDate(sd); ok1 {
-				if edy, ok2 := FormatTwoDigitYearDate(ed); ok2 {
-					return fmt.Sprintf("%s - %s", sdy, edy), true
+			if sdy, sResolved, ok1 := FormatTwoDigitYearDate(sd, opts.YYPrefix); ok1 {
+				if edy, eResolved, ok2 := FormatTwoDigitYearDate(ed, opts.YYPrefix); ok2 {
+					return fmt.Sprintf("%s - %s", sdy, edy), !(sResolved && eResolved)
 				}
 			}
 			if hasFuzzyDay(sd) || hasFuzzyDay(ed) {
@@ -632,15 +662,18 @@ func CustomFormatDate(s string) (string, bool) {
 
 	// 29. Month-YY (Jun-62)
 	if m := reMonthYY.FindStringSubmatch(s); m != nil {
-		mo, y2 := m[1], atoi(m[2])
+		mo, y2 := m[1], m[2]
 		mn, ok := toMonthNum(mo)
 		if ok {
-			y := 1900 + y2
-			if y2 < 50 {
-				y = 2000 + y2
+			prefix := NormalizeYYPrefix(opts.YYPrefix)
+			y := y2
+			validationYear := 2000 + atoi(y2)
+			if prefix != "" {
+				y = prefix + y2
+				validationYear = atoi(y)
 			}
-			last := GetLastDayOfMonth(y, mn)
-			return fmt.Sprintf("%02d/01/%04d - %02d/%02d/%04d", mn, y, mn, last, y), false
+			last := GetLastDayOfMonth(validationYear, mn)
+			return fmt.Sprintf("%02d/01/%s - %02d/%02d/%s", mn, y, mn, last, y), prefix == ""
 		}
 	}
 
@@ -791,6 +824,11 @@ func EnsureChronologicalOrder(s string) string {
 
 // ConvertDatePattern converts input using the Dublin Core pipeline.
 func ConvertDatePattern(s string) string {
+	return ConvertDatePatternWithOptions(s, ConvertOptions{})
+}
+
+// ConvertDatePatternWithOptions converts input using the Dublin Core pipeline.
+func ConvertDatePatternWithOptions(s string, opts ConvertOptions) string {
 	defer func() { recover() }()
 
 	if strings.TrimSpace(s) == "" {
@@ -805,14 +843,14 @@ func ConvertDatePattern(s string) string {
 	// Strip parenthetical content
 	s = strings.TrimSpace(reParens.ReplaceAllString(s, ""))
 
-	if v, ok := FormatTwoDigitYearDate(s); ok {
+	if v, _, ok := FormatTwoDigitYearDate(s, opts.YYPrefix); ok {
 		return v
 	}
 	if strings.Contains(s, " - ") {
 		sd, ed, ok := splitRange(s)
 		if ok {
-			if sdy, ok1 := FormatTwoDigitYearDate(sd); ok1 {
-				if edy, ok2 := FormatTwoDigitYearDate(ed); ok2 {
+			if sdy, _, ok1 := FormatTwoDigitYearDate(sd, opts.YYPrefix); ok1 {
+				if edy, _, ok2 := FormatTwoDigitYearDate(ed, opts.YYPrefix); ok2 {
 					return fmt.Sprintf("%s - %s", sdy, edy)
 				}
 			}
@@ -987,7 +1025,24 @@ func ConvertDatePattern(s string) string {
 		}
 	}
 
-	// 20. Zero-day: MM/0/YYYY
+	// 20. Month-YY
+	if m := reMonthYY.FindStringSubmatch(s); m != nil {
+		mo, y2 := m[1], m[2]
+		mn, ok := toMonthNum(mo)
+		if ok {
+			prefix := NormalizeYYPrefix(opts.YYPrefix)
+			y := y2
+			validationYear := 2000 + atoi(y2)
+			if prefix != "" {
+				y = prefix + y2
+				validationYear = atoi(y)
+			}
+			last := GetLastDayOfMonth(validationYear, mn)
+			return fmt.Sprintf("%02d/01/%s - %02d/%02d/%s", mn, y, mn, last, y)
+		}
+	}
+
+	// 21. Zero-day: MM/0/YYYY
 	if m := reDCZeroDay.FindStringSubmatch(s); m != nil {
 		mo, y := atoi(m[1]), m[2]
 		last := GetLastDayOfMonth(atoi(y), mo)
@@ -1002,6 +1057,11 @@ func ConvertDatePattern(s string) string {
 // FormatSingleDate returns the first date (MM/DD/YYYY) from any input,
 // or "" if the input cannot be resolved to a single date.
 func FormatSingleDate(s string) string {
+	return FormatSingleDateWithOptions(s, ConvertOptions{})
+}
+
+// FormatSingleDateWithOptions returns the first date from any input.
+func FormatSingleDateWithOptions(s string, opts ConvertOptions) string {
 	if s == "" {
 		return ""
 	}
@@ -1011,12 +1071,12 @@ func FormatSingleDate(s string) string {
 			return ""
 		}
 	}
-	v, _ := CustomFormatDate(s)
+	v, _ := CustomFormatDateWithOptions(s, opts)
 	v = EnsureChronologicalOrder(v)
 	if strings.Contains(v, " - ") {
 		return strings.SplitN(v, " - ", 2)[0]
 	}
-	if regexp.MustCompile(`^\d{2}/\d{2}/\d{4}$`).MatchString(v) {
+	if regexp.MustCompile(`^\d{2}/\d{2}/(?:\d{2}|\d{4})$`).MatchString(v) {
 		return v
 	}
 	return ""

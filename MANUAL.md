@@ -185,12 +185,12 @@ The conversion engine tries many input formats. Below are the most common patter
 |-------|--------|
 | `June 1962` | `06/01/1962 - 06/30/1962` |
 | `Jun 1962` | `06/01/1962 - 06/30/1962` |
-| `Jun-62` | `06/01/1962 - 06/30/1962` |
-| `Jun-22` | `06/01/2022 - 06/30/2022` |
+| `Jun-62` | `06/01/62 - 06/30/62` |
+| `Jun-62` with YY prefix `18` | `06/01/1862 - 06/30/1862` |
 | `June 5, 1964` | `06/05/1964` |
 | `June 5th, 1964` | `06/05/1964` |
 
-For `MonthName-YY` inputs, two-digit years 50 and above become 19YY. Values below 50 become 20YY. Archival convention: high two-digit years are older.
+For 2-digit year inputs, the app preserves `YY` and flags the row unless you enable the YY prefix override. Enter the first two digits of the intended year, such as `15`, `18`, `19`, or `20`.
 
 ### Month and year ranges
 

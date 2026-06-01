@@ -1,4 +1,4 @@
-# Issue 6: 2-digit year dates should convert, but stay flagged for review
+# Issue 6: 2-digit year dates should normalize, but stay flagged unless resolved
 
 GitHub issue: [#6](https://github.com/dpa-snyder/dates-formatter/issues/6)
 
@@ -12,24 +12,24 @@ That input is ambiguous because `26` could mean `1926` or `2026` depending on co
 
 When the formatter sees a date with a 2-digit year:
 
-- Convert `YY` to `YYYY`
+- Normalize month and day while preserving `YY`
 - Mark the row's `Check ...` column as `Yes`
 - Leave the original value available for review in the output columns
 
-## Recommended year expansion rule
+If the user enables the YY prefix override:
 
-Use a simple century pivot:
+- Require a user-entered 2-digit prefix, such as `15`, `18`, `19`, or `20`
+- Convert `YY` to `{prefix}YY`
+- Leave `Check ...` blank for that ambiguity because the user resolved it
 
-- `00` through `29` → `2000` through `2029`
-- `30` through `99` → `1930` through `1999`
-
-This matches the common “19xx vs 20xx” ambiguity and gives a predictable conversion path.
+No automatic century pivot is safe for historical data.
 
 ## Examples
 
-- `5/29/26` → `05/29/2026` and `Check ... = Yes`
-- `5/29/80` → `05/29/1980` and `Check ... = Yes`
-- `5/29/00` → `05/29/2000` and `Check ... = Yes`
+- `5/29/26` → `05/29/26` and `Check ... = Yes`
+- `5/29/80` → `05/29/80` and `Check ... = Yes`
+- `5/29/00` → `05/29/00` and `Check ... = Yes`
+- `5/29/26` with prefix `18` → `05/29/1826` and blank `Check ...`
 
 ## Test coverage to add
 

@@ -25,6 +25,8 @@ export default function Converter() {
   const [selectedCols, setSelectedCols] = useState<string[]>([])
   const [outputMode, setOutputMode] = useState<'overwrite' | 'copy'>('overwrite')
   const [colFilter, setColFilter] = useState<string>('')
+  const [yyOverrideEnabled, setYyOverrideEnabled] = useState<boolean>(false)
+  const [yyPrefix, setYyPrefix] = useState<string>('')
 
   // Processing state
   const [stage, setStage] = useState<Stage>('idle')
@@ -42,6 +44,8 @@ export default function Converter() {
         if (s.lastMode !== undefined) setMode(s.lastMode)
         if (s.lastOutputMode) setOutputMode(s.lastOutputMode as 'overwrite' | 'copy')
         if (s.recentFiles?.length) setRecentFiles(s.recentFiles)
+        if ((s as any).yyOverrideEnabled !== undefined) setYyOverrideEnabled(Boolean((s as any).yyOverrideEnabled))
+        if ((s as any).yyPrefix !== undefined) setYyPrefix(String((s as any).yyPrefix).slice(0, 2))
       }
     }).catch(() => {})
   }, [])
@@ -138,6 +142,12 @@ export default function Converter() {
 
   const handleRun = async () => {
     if (!filePath || selectedCols.length === 0) return
+    const cleanPrefix = yyPrefix.trim()
+    if (yyOverrideEnabled && !/^\d{2}$/.test(cleanPrefix)) {
+      setErrorMsg('Enter exactly two digits for the YY prefix.')
+      setStage('error')
+      return
+    }
     setStage('running')
     setLog([])
     setProgress(null)
@@ -148,6 +158,8 @@ export default function Converter() {
       columns: selectedCols,
       mode,
       outputMode,
+      yyOverrideEnabled,
+      yyPrefix: cleanPrefix,
     })
     StartProcess(opts)
   }
@@ -308,13 +320,42 @@ export default function Converter() {
         </section>
       )}
 
+      {/* ── Date interpretation ── */}
+      {columnsInfo && (
+        <section className="cv-section interpretation-section">
+          <div className="cv-section-label" style={{marginBottom: 8}}>4 · Date Interpretation</div>
+          <div className="interpretation-row">
+            <label className="yy-check">
+              <input
+                type="checkbox"
+                checked={yyOverrideEnabled}
+                onChange={e => setYyOverrideEnabled(e.target.checked)}
+              />
+              <span>Use YY prefix</span>
+            </label>
+            <input
+              className="yy-prefix-input"
+              inputMode="numeric"
+              maxLength={2}
+              placeholder="18"
+              disabled={!yyOverrideEnabled}
+              value={yyPrefix}
+              onChange={e => setYyPrefix(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            />
+            <span className="yy-help">
+              Applies to dates with 2-digit years. Leave off to preserve YY and flag for review.
+            </span>
+          </div>
+        </section>
+      )}
+
       {/* ── Output mode + run ── */}
       {columnsInfo && (
         <section className="cv-section run-section">
           <div className="run-row">
             {/* Output mode */}
             <div className="output-toggle">
-              <div className="cv-section-label" style={{marginBottom: 8}}>Output</div>
+              <div className="cv-section-label" style={{marginBottom: 8}}>5 · Output</div>
               <div className="seg-ctrl">
                 <button
                   className={`seg-btn${outputMode === 'overwrite' ? ' active' : ''}`}

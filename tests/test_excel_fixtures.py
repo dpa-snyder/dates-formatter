@@ -39,14 +39,28 @@ def parse_single(raw):
     return GUI.format_single_date(cell(raw))
 
 
+def parse_single_with_prefix(raw, prefix):
+    return GUI.format_single_date(cell(raw), prefix)
+
+
 def parse_ae(raw):
     formatted, _flag = GUI.custom_format_date(cell(raw))
     formatted = GUI.convert_strange_named_ranges(formatted)
     return GUI.ensure_chronological_order(formatted)
 
 
+def parse_ae_with_prefix(raw, prefix):
+    formatted, _flag = GUI.custom_format_date(cell(raw), prefix)
+    formatted = GUI.convert_strange_named_ranges(formatted)
+    return GUI.ensure_chronological_order(formatted)
+
+
 def parse_dc(raw):
     return GUI.ensure_chronological_order(GUI.convert_date_pattern(cell(raw)))
+
+
+def parse_dc_with_prefix(raw, prefix):
+    return GUI.ensure_chronological_order(GUI.convert_date_pattern(cell(raw), prefix))
 
 
 def load_fixture(filename):
@@ -181,12 +195,12 @@ class TestKnownBugRegressions(unittest.TestCase):
         self.assertEqual(parse_single("1900"), "01/01/1900")
         self.assertEqual(parse_single("1980"), "01/01/1980")
 
-    def test_two_digit_numeric_dates_convert_but_require_review(self):
+    def test_two_digit_numeric_dates_preserve_year_and_require_review(self):
         cases = [
-            ("5/29/26", "05/29/2026"),
-            ("5/29/80", "05/29/1980"),
-            ("5/29/00", "05/29/2000"),
-            ("5/29/30", "05/29/1930"),
+            ("5/29/26", "05/29/26"),
+            ("5/29/80", "05/29/80"),
+            ("5/29/00", "05/29/00"),
+            ("5/29/30", "05/29/30"),
         ]
         for raw, expected in cases:
             with self.subTest(raw=raw):
@@ -197,11 +211,44 @@ class TestKnownBugRegressions(unittest.TestCase):
                 self.assertEqual(parse_dc(raw), expected)
                 self.assertTrue(GUI.has_two_digit_year_date(raw))
 
-    def test_two_digit_numeric_ranges_convert_but_require_review(self):
+    def test_two_digit_numeric_ranges_preserve_year_and_require_review(self):
         formatted, flag = GUI.custom_format_date("5/29/26 - 6/2/26")
-        self.assertEqual(formatted, "05/29/2026 - 06/02/2026")
+        self.assertEqual(formatted, "05/29/26 - 06/02/26")
         self.assertEqual(flag, "Yes")
-        self.assertEqual(parse_dc("5/29/26 - 6/2/26"), "05/29/2026 - 06/02/2026")
+        self.assertEqual(parse_dc("5/29/26 - 6/2/26"), "05/29/26 - 06/02/26")
+
+    def test_two_digit_numeric_dates_prefix_override_clears_review(self):
+        cases = [
+            ("5/29/26", "18", "05/29/1826"),
+            ("5/29/80", "19", "05/29/1980"),
+            ("5/29/00", "20", "05/29/2000"),
+            ("5/29/30", "15", "05/29/1530"),
+        ]
+        for raw, prefix, expected in cases:
+            with self.subTest(raw=raw, prefix=prefix):
+                self.assertEqual(parse_single_with_prefix(raw, prefix), expected)
+                formatted, flag = GUI.custom_format_date(raw, prefix)
+                self.assertEqual(formatted, expected)
+                self.assertEqual(flag, "")
+                self.assertEqual(parse_dc_with_prefix(raw, prefix), expected)
+
+    def test_two_digit_numeric_ranges_prefix_override_clears_review(self):
+        formatted, flag = GUI.custom_format_date("5/29/26 - 6/2/26", "18")
+        self.assertEqual(formatted, "05/29/1826 - 06/02/1826")
+        self.assertEqual(flag, "")
+        self.assertEqual(
+            parse_dc_with_prefix("5/29/26 - 6/2/26", "18"),
+            "05/29/1826 - 06/02/1826")
+
+    def test_month_two_digit_year_prefix_override(self):
+        formatted, flag = GUI.custom_format_date("Jun-62")
+        self.assertEqual(formatted, "06/01/62 - 06/30/62")
+        self.assertEqual(flag, "Yes")
+        self.assertEqual(parse_dc("Jun-62"), "06/01/62 - 06/30/62")
+        formatted, flag = GUI.custom_format_date("Jun-62", "18")
+        self.assertEqual(formatted, "06/01/1862 - 06/30/1862")
+        self.assertEqual(flag, "")
+        self.assertEqual(parse_dc_with_prefix("Jun-62", "18"), "06/01/1862 - 06/30/1862")
 
     # AE mode regressions
     def test_ae_parenthetical_content_does_not_corrupt_output(self):
@@ -256,7 +303,8 @@ class TestKnownBugRegressions(unittest.TestCase):
 
     # Named month abbreviations still work after Mayo fix
     def test_month_abbreviations_still_convert(self):
-        self.assertEqual(parse_ae("Jun-62"), "06/01/1962 - 06/30/1962")
+        self.assertEqual(parse_ae("Jun-62"), "06/01/62 - 06/30/62")
+        self.assertEqual(parse_ae_with_prefix("Jun-62", "19"), "06/01/1962 - 06/30/1962")
         self.assertEqual(parse_ae("June 1962"), "06/01/1962 - 06/30/1962")
         self.assertEqual(parse_ae("January 11, 2012"), "01/11/2012")
         self.assertEqual(parse_ae("Feb 21 2012"), "02/21/2012")
