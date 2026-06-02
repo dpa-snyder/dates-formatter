@@ -743,9 +743,10 @@
             </tbody>
           </table>
           <div class="note" style="margin-top:12px">
-            Current public builds are not enterprise-signed or Apple-notarized. Browsers and operating
-            systems may warn that the file is unknown, untrusted, unsafe, or potentially dangerous.
-            Continue only if the file came from the official release page or your IT department.
+            Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows,
+            macOS, or your browser. Enterprise or IT-distributed builds may be signed and managed, and
+            may launch without these warnings. For public downloads, continue only if the file came from
+            the official release page.
           </div>
         </div>
         <div class="card">
@@ -795,7 +796,10 @@
             <li><strong>Result.</strong> Shows rows processed, flagged rows, output path, and buttons to open the file or folder.</li>
           </ol>
           <div class="note" style="margin-top:14px">
-            The legacy Python app has the same conversion modes and YY behavior, but its launcher and layout are older.
+            The legacy Python app has the same core GUI workflow and conversion functionality as the desktop app,
+            including the same conversion modes and YY behavior. Important differences: the Wails desktop app is
+            faster on larger files and is packaged as a normal app or EXE; the Python app may require Python
+            dependencies and can run slower, especially on large spreadsheets.
           </div>
         </div>
       </div>
@@ -998,8 +1002,10 @@
               <tr><td><code>Check {your column}</code></td><td><span class="flag">Yes</span> if the app was uncertain. Blank otherwise.</td></tr>
             </tbody>
           </table>
-          <p style="margin-top:10px">For example, if you ticked <strong>Full Date</strong>, the result looks like:</p>
+          <p style="margin-top:10px">Single-column example:</p>
           <pre><code>... | Full Date | Original_Full Date | Check Full Date | ...</code></pre>
+          <p style="margin-top:10px">Two-column example:</p>
+          <pre><code>... | Start Date | Original_Start Date | Check Start Date | End Date | Original_End Date | Check End Date | ...</code></pre>
         </div>
         <div class="card">
           <h3>When is a row flagged?</h3>

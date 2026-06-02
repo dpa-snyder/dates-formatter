@@ -27,7 +27,7 @@ The current public release includes:
 | Windows | `date-formatter.exe` | Standalone Wails desktop app. |
 | macOS | `date-formatter-v0.2.7-macos-arm64.zip` | Apple silicon macOS app bundle. Unzip before launching. |
 
-Current public builds are not enterprise-signed or Apple-notarized. Browsers and operating systems may warn that the file is unknown, untrusted, unsafe, or potentially dangerous. Only continue if the file came from the official release page or from your IT department. Do not bypass warnings for copies from email, chat, or an unknown website.
+Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, or your browser. Enterprise or IT-distributed builds may be signed and managed, and may launch without these warnings. For public downloads, continue only if the file came from the official release page. Do not bypass warnings for copies from email, chat, or an unknown website.
 
 ### Windows EXE warnings
 
@@ -39,7 +39,7 @@ On first launch, Windows SmartScreen may show "Windows protected your PC" or "Un
 
 Download the macOS zip, unzip it, and move `date-formatter.app` to Applications or another normal app folder.
 
-Because the public macOS build is not Apple-notarized, macOS may show a message that the app cannot be opened, is from an unidentified developer, or is damaged. First try Control-clicking the app, choosing **Open**, then choosing **Open** again.
+Because the public macOS download may not yet be recognized as a trusted publisher build, macOS may show a message that the app cannot be opened, is from an unidentified developer, or is damaged. First try Control-clicking the app, choosing **Open**, then choosing **Open** again.
 
 If macOS still blocks the app and your IT policy allows it, remove the quarantine flag in Terminal:
 
@@ -73,7 +73,7 @@ The Wails desktop app has these main areas:
 | Output | Choose overwrite or save-copy behavior, then run or cancel. |
 | Result | Shows rows processed, flagged rows, output path, and buttons to open the file or folder. |
 
-The legacy Python app has the same conversion modes and YY behavior, but its layout and launcher are older.
+The legacy Python app has the same core GUI workflow and conversion functionality as the desktop app, including the same conversion modes and YY behavior. Important differences: the Wails desktop app is faster on larger files and is packaged as a normal app or EXE; the Python app may require Python dependencies and can run slower, especially on large spreadsheets.
 
 ## Conversion modes
 
@@ -164,10 +164,16 @@ For every selected column, the app keeps the chosen column name and inserts two 
 | `Original_{your column}` | Raw original value. |
 | `Check {your column}` | `Yes` if the row needs review. Blank otherwise. |
 
-Example:
+Single-column example:
 
 ```text
 ... | Full Date | Original_Full Date | Check Full Date | ...
+```
+
+Two-column example:
+
+```text
+... | Start Date | Original_Start Date | Check Start Date | End Date | Original_End Date | Check End Date | ...
 ```
 
 Rows are flagged when the source value is vague, unrecognized, ambiguous, contains multiple values separated by semicolons, or produces a non-standard output.

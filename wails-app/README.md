@@ -53,7 +53,7 @@ wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.v
 
 ## Signing status
 
-Public GitHub builds are currently not enterprise-signed or Apple-notarized.
+Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, or your browser.
 
 * Windows users may see browser warnings and SmartScreen "Unknown publisher" prompts.
 * macOS users may need Control-click, Open, or an allowed quarantine removal command.

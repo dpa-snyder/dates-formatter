@@ -16,7 +16,7 @@ Maps Date Formatter launchers, release assets, companion files, and output behav
 * **Asset:** `date-formatter-v0.2.7-macos-arm64.zip`
 * **Contents:** `date-formatter.app`
 * **Purpose:** Apple silicon macOS desktop app with all conversion modes.
-* **Signing status:** Public build is locally code-signed but not Developer ID signed or Apple-notarized. Gatekeeper may require Control-click, Open, or an IT-approved quarantine removal step.
+* **Trust prompts:** Public GitHub downloads may not yet be recognized as trusted publisher builds by macOS. Gatekeeper may require Control-click, Open, or an IT-approved quarantine removal step.
 
 ### Enterprise release
 

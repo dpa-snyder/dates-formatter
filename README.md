@@ -14,10 +14,10 @@ https://github.com/dpa-snyder/dates-formatter/releases/latest
 
 | Platform | Asset | Notes |
 |----------|-------|-------|
-| Windows | `date-formatter.exe` | Standalone Wails desktop app. Public build is currently unsigned, so browsers and SmartScreen may warn. |
-| macOS | `date-formatter-v0.2.7-macos-arm64.zip` | Apple silicon app bundle. Public build is code-signed locally but not Developer ID signed or notarized, so Gatekeeper may warn. |
+| Windows | `date-formatter.exe` | Standalone Wails desktop app. Public downloads may trigger browser or SmartScreen trust prompts. |
+| macOS | `date-formatter-v0.2.7-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
 
-Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
+Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, or your browser. Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
 
 ## App modes
 
