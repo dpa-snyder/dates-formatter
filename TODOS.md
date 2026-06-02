@@ -1,19 +1,19 @@
 # TODOs
 
-Indexed task list. Each task has an **ID**, **Importance** (1 = nice-to-have, 5 = critical), and an **Order** value (suggested execution sequence, lower runs first).
+Indexed active task list. Each task has an **ID**, **Order**, **Importance** (1 = nice-to-have, 5 = critical), and notes.
 
 See `CONVERSIONS.md` for the full input/output spec.
 See `DONE.md` for completed work.
-See `recommendations.md` for review notes (R-001 through R-007).
+See `recommendations.md` for older review notes.
 
 ## Active
 
 | ID | Order | Importance | Title | Notes |
 |----|-------|------------|-------|-------|
-| T-001 | 1 | 4 | Deploy fixed `prod/date-formatter-gui.py` and `prod/user-manual.html` to `%USERPROFILE%\scripts\` on client machine | Validates all fixes plus the GUI refresh (cards, stepper, segmented theme, search, recent files, mode hint, output mode, completion dialog, status panel) in real Windows env. Smoke-test with `9200-W22.xlsx`. Dependency upgrade required: `pip install --upgrade openpyxl==3.1.5` (or `py -m pip install --upgrade openpyxl==3.1.5` if `pip` is not on PATH). Verify with `py -c "import openpyxl; print(openpyxl.__version__)"`. After first launch the script creates `dates-formatter-settings.json` next to itself, which is expected. |
-| T-010 | 2 | 2 | Bundle as Windows installer (PyInstaller or similar). Pinned for later. | So end users do not need to install Python separately. T-005 unblocked this. The sidecar path uses `os.path.dirname(os.path.abspath(__file__))` which points into a PyInstaller temp extract dir when frozen. Will need a path switch to `%APPDATA%\date-formatter\dates-formatter-settings.json` at bundle time. The same applies to `MANUAL_PATH`. |
-| T-013 | 3 | 3 | G-04: Auto-detect date-looking columns on file load | When the file loads, scan each column. For columns where most non-empty values match a date pattern, pre-check the box and/or surface them at the top with a small "looks like dates" badge. Today the mode hint already does the reverse check (column vs current mode). This task is about positive detection. |
-| T-014 | 4 | 2 | G-06: Keyboard shortcuts | Bind `Ctrl+O` (browse), `Ctrl+R` (run), `Ctrl+,` (settings, blocked on T-017), `Ctrl+/` (open manual). Mac equivalents (`Cmd+`). |
-| T-015 | 5 | 2 | G-12: Drag-and-drop file zone | Requires the `tkinterdnd2` dependency (add to `requirements.txt`). Wrap the file card area as a drop target. Highlight on `<<DropEnter>>`, call `_load_file()` on `<<Drop>>`. Falls back gracefully if the library is missing. |
-| T-016 | 6 | 2 | G-17: Settings dialog | Modal opened by `Ctrl+,` or a gear icon. Centralize: default mode, default output behavior, output folder, theme, log level. May need a new `CTkToplevel` subclass. No new deps required. |
-| T-017 | 7 | 3 | Custom output format options | Let the user pick the output shape and date order instead of hardcoded MM/DD/YYYY. Options: range vs single date (independent of input shape), year-first (`YYYY/MM/DD` or `YYYY-MM-DD`), month-first (`MM/DD/YYYY`, current default), day-first / EU (`DD/MM/YYYY`), separator choice (`/`, `-`, `.`), 2- vs 4-digit year. Requires a format engine refactor: every `f'{mo:02d}/{d:02d}/{y}'` style format string in `custom_format_date`, `convert_date_pattern`, `format_single_date`, `ensure_chronological_order`, and `is_valid_date_format` needs to route through a single formatter that reads the user's preferred shape from settings. Easiest to land alongside T-016 (settings dialog) since it adds three or four new preference keys. |
+| T-001 | 1 | 4 | Validate `v0.2.7` release in real Windows and macOS environments | Smoke-test public `date-formatter.exe` and `date-formatter-v0.2.7-macos-arm64.zip` with `9200-W22.xlsx`. Confirm browser warnings, SmartScreen, Gatekeeper behavior, YY prefix, overwrite/copy output, date-column auto-detection, and open file/folder actions. Enterprise signed builds may behave differently. |
+| T-019 | 2 | 5 | Add public code signing and macOS notarization | Public builds are currently unsigned/not notarized for end-user trust prompts. Windows needs a publisher certificate path. macOS needs Developer ID signing and notarization. Keep enterprise signing separate if IT manages it. |
+| T-020 | 3 | 4 | Automate macOS release artifact in GitHub Actions | Windows EXE is built by `.github/workflows/build-windows.yml`. macOS arm64 zip was built locally for `v0.2.7`; add a macOS workflow when signing/notarization path is decided. |
+| T-014 | 4 | 2 | Keyboard shortcuts | Bind `Ctrl+O`/`Cmd+O` browse, `Ctrl+R`/`Cmd+R` run, `Ctrl+,`/`Cmd+,` settings, and `Ctrl+/`/`Cmd+/` manual. |
+| T-016 | 5 | 2 | Settings dialog | Current Wails app persists theme, palette, recent files, output mode, and YY settings. Add a visible settings dialog only if users need central control for defaults, output folder, log level, or advanced options. |
+| T-017 | 6 | 3 | Custom output format options | Let users pick output shape and date order instead of hardcoded `MM/DD/YYYY`: year-first, month-first, day-first, separator choice, range vs single, and 2- vs 4-digit year. Requires a format engine refactor in Go and Python legacy paths. |
+| T-021 | 7 | 2 | Triage stale GitHub issues | Open issues #1 through #5 predate the Wails app. Review against current release and close, update, or replace with current release-specific issues. |

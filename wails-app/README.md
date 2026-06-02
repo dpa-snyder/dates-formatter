@@ -1,19 +1,62 @@
-# README
+# Date Formatter Wails App
 
-## About
+Current desktop app for Dates Formatter. Frontend is React/TypeScript. Backend is Go with a pure Go date engine in `dateengine/`.
 
-This is the official Wails React-TS template.
+## Features
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+* Single Date, ArchivEra, and Dublin Core conversion modes.
+* Drag/drop or native file picker for `.xlsx` and `.csv`.
+* Date-column auto-detection with preselected columns.
+* YY prefix override for ambiguous two-digit years.
+* Overwrite or save `-formatted` copy.
+* Recent files, run progress, cancel, open file, open folder.
+* Embedded user manual at `frontend/public/user-manual.html`.
 
-## Live Development
+## Development
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+Use Nix packages first when possible.
 
-## Building
+```bash
+nix shell nixpkgs#wails nixpkgs#go nixpkgs#nodejs_20
+wails dev
+```
 
-To build a redistributable, production mode package, use `wails build`.
+Wails also starts a browser-accessible dev server at `http://localhost:34115` when running in dev mode.
+
+## Test
+
+```bash
+GOCACHE=/tmp/dates-formatter-go-build go test ./...
+cd frontend
+npm run build
+```
+
+## Build
+
+Release builds inject the app version into `main.version`.
+
+```bash
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.7'"
+```
+
+Windows release build in GitHub Actions uses:
+
+```bash
+wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
+```
+
+macOS arm64 local build uses:
+
+```bash
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.7'"
+```
+
+## Signing status
+
+Public GitHub builds are currently not enterprise-signed or Apple-notarized.
+
+* Windows users may see browser warnings and SmartScreen "Unknown publisher" prompts.
+* macOS users may need Control-click, Open, or an allowed quarantine removal command.
+* Enterprise builds may be signed or managed by IT and may not show these prompts.
+
+Keep `../MANUAL.md`, `../user-manual.html`, and `frontend/public/user-manual.html` current whenever launch behavior, release assets, or app behavior changes.

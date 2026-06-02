@@ -646,7 +646,9 @@
       <a class="nav-link" href="#mode">1. Pick a mode</a>
       <a class="nav-link" href="#file">2. Open your file</a>
       <a class="nav-link" href="#columns">3. Pick columns</a>
-      <a class="nav-link" href="#run">4. Run it</a>
+      <a class="nav-link" href="#date-interpretation">4. Interpret dates</a>
+      <a class="nav-link" href="#output-options">5. Pick output</a>
+      <a class="nav-link" href="#run">6. Run it</a>
 
       <div class="nav-group-label">Reference</div>
       <a class="nav-link" href="#output">Understanding output</a>
@@ -718,22 +720,58 @@
     <section class="section" id="launching">
       <div class="section-header">
         <p class="eyebrow">Getting Started</p>
-        <h2>Launching the app</h2>
+        <h2>Download and launch</h2>
       </div>
       <div class="cards">
         <div class="card">
-          <h3>If your IT Admin set this up</h3>
+          <h3>Enterprise or IT-managed install</h3>
           <p>
-            You have a desktop shortcut, typically called <code>date-formatter-gui.bat</code>.
-            Double-click it to launch the app.
+            If your IT department provided the app, use the shortcut or application they installed.
+            Enterprise builds may be signed and managed, so Windows or macOS may open them without
+            extra warning prompts.
           </p>
-          <p>If the shortcut is not on your desktop, ask your IT Admin where they placed it.</p>
         </div>
         <div class="card">
-          <h3>Manual launch</h3>
-          <p>Open Command Prompt and run:</p>
+          <h3>Public GitHub release</h3>
+          <p>Download only from the official GitHub Releases page:</p>
+          <pre><code>https://github.com/dpa-snyder/dates-formatter/releases/latest</code></pre>
+          <table style="margin-top:10px">
+            <thead><tr><th>Platform</th><th>File</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Windows</td><td><code>date-formatter.exe</code></td><td>Standalone desktop app.</td></tr>
+              <tr><td>macOS</td><td><code>date-formatter-v0.2.7-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-top:12px">
+            Current public builds are not enterprise-signed or Apple-notarized. Browsers and operating
+            systems may warn that the file is unknown, untrusted, unsafe, or potentially dangerous.
+            Continue only if the file came from the official release page or your IT department.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Windows EXE warnings</h3>
+          <p>
+            Chrome or Edge may say the EXE is not commonly downloaded or may be dangerous. Keep it only
+            when it came from the official release page. Windows SmartScreen may then show "Windows
+            protected your PC" or "Unknown publisher." Choose <strong>More info</strong>, then
+            <strong>Run anyway</strong>, only for the official release or an IT-provided build.
+          </p>
+        </div>
+        <div class="card">
+          <h3>macOS app warnings</h3>
+          <p>
+            Unzip the macOS download and move <code>date-formatter.app</code> to Applications or another
+            normal app folder. If macOS blocks it as unidentified or damaged, first Control-click the app,
+            choose <strong>Open</strong>, then choose <strong>Open</strong> again.
+          </p>
+          <p style="margin-top:8px">If your IT policy allows it and macOS still blocks launch, remove quarantine:</p>
+          <pre><code>xattr -dr com.apple.quarantine /Applications/date-formatter.app</code></pre>
+        </div>
+        <div class="card">
+          <h3>Legacy Python launch</h3>
+          <p>Older deployments may still use the Python script and batch shortcut:</p>
           <pre><code>py %USERPROFILE%\scripts\date-formatter-gui.py</code></pre>
-          <p style="margin-top:8px">Your IT Admin may have configured a different path.</p>
+          <p style="margin-top:8px">The script and <code>user-manual.html</code> must live in the same folder.</p>
         </div>
       </div>
     </section>
@@ -746,16 +784,18 @@
       </div>
       <div class="cards">
         <div class="card">
-          <p>The app window contains five sections from top to bottom.</p>
+          <p>The Wails desktop app has these main areas.</p>
           <ol class="steps-list" style="margin-top:12px">
-            <li><strong>Conversion Type.</strong> Three radio buttons. Select the output style you need.</li>
-            <li><strong>File.</strong> A Browse button to select an Excel or CSV file.</li>
-            <li><strong>Columns to Format.</strong> Checkboxes for every column in the loaded file. Tick the columns containing dates.</li>
-            <li><strong>Run.</strong> Starts the conversion.</li>
-            <li><strong>Progress bar and status text.</strong> Shows progress and the number of flagged rows.</li>
+            <li><strong>Sidebar.</strong> Switch between Converter and User Manual. Change theme and palette. View app version.</li>
+            <li><strong>Conversion Mode.</strong> Choose Single Date, ArchivEra, or Dublin Core.</li>
+            <li><strong>File.</strong> Drop an <code>.xlsx</code> or <code>.csv</code> file, browse for one, or reopen a recent file.</li>
+            <li><strong>Date Columns.</strong> Pick columns to convert. Date-looking columns are preselected and marked with a <code>dates</code> badge.</li>
+            <li><strong>Date Interpretation.</strong> Optional YY prefix for ambiguous two-digit years.</li>
+            <li><strong>Output.</strong> Choose overwrite or save-copy behavior, then run or cancel.</li>
+            <li><strong>Result.</strong> Shows rows processed, flagged rows, output path, and buttons to open the file or folder.</li>
           </ol>
           <div class="note" style="margin-top:14px">
-            A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.
+            The legacy Python app has the same conversion modes and YY behavior, but its launcher and layout are older.
           </div>
         </div>
       </div>
@@ -764,7 +804,7 @@
     <!-- ── Step 1: Mode ───────────────────────────────────────────── -->
     <section class="section" id="mode">
       <div class="section-header">
-        <p class="eyebrow">Step 1 of 4</p>
+        <p class="eyebrow">Step 1 of 6</p>
         <h2>Pick a conversion mode</h2>
       </div>
       <div class="cards">
@@ -777,7 +817,7 @@
         <div class="card op-card">
           <span class="pill">Single Date</span>
           <h3 style="margin-bottom:6px">MM/DD/YYYY</h3>
-          <p>Use this when each row should resolve to a single date.</p>
+          <p>Use this when each row should resolve to a single date. Unresolved two-digit years stay as <code>MM/DD/YY</code> and are flagged.</p>
           <ul class="guide-list" style="margin-top:8px">
             <li><code>5/8/2026</code> becomes <code>05/08/2026</code>.</li>
             <li><code>May 8, 2026</code> becomes <code>05/08/2026</code>.</li>
@@ -789,7 +829,7 @@
           <div class="card-row">
             <div class="card op-card">
               <span class="pill">ArchivEra</span>
-              <h3 style="margin-bottom:6px">MM/DD/YYYY – MM/DD/YYYY</h3>
+              <h3 style="margin-bottom:6px">MM/DD/YYYY - MM/DD/YYYY</h3>
               <p>Use this when each row represents a span of time. Designed for ArchivEra imports.</p>
               <ul class="guide-list" style="margin-top:8px">
                 <li><code>1962</code> becomes <code>01/01/1962 - 12/31/1962</code>.</li>
@@ -803,14 +843,14 @@
               <span class="pill">Dublin Core</span>
               <h3 style="margin-bottom:6px">ISO / Dublin Core ranges</h3>
               <p>
-                Like ArchivEra, this mode emits dates as ranges, but accepts a wider variety
+                Like ArchivEra, this mode emits dates in the app's normal shapes, but accepts a wider variety
                 of inputs including ISO and Dublin Core partial formats:
                 <code>2026-05-08</code>, <code>1962-1965</code>, <code>1962-06/1965-08</code>,
                 <code>YYYY-MM-DD/YYYY-MM-DD</code>.
               </p>
             </div>
           </div>
-          <div class="mode-ribbon"><strong>Not sure which to use?</strong> Choose <strong>ArchivEra</strong> — Dublin Core handles the same outputs plus more exotic input formats.</div>
+          <div class="mode-ribbon"><strong>Not sure which to use?</strong> Choose <strong>ArchivEra</strong> unless your source data uses ISO or Dublin Core date strings.</div>
         </div>
       </div>
     </section>
@@ -818,15 +858,14 @@
     <!-- ── Step 2: File ───────────────────────────────────────────── -->
     <section class="section" id="file">
       <div class="section-header">
-        <p class="eyebrow">Step 2 of 4</p>
+        <p class="eyebrow">Step 2 of 6</p>
         <h2>Open your file</h2>
       </div>
       <div class="cards">
         <div class="card">
           <p>
-            Click <strong>Browse</strong> and select the Excel (<code>.xlsx</code>) or CSV file.
-            Once loaded, the filename appears in the file box, the Columns section fills with
-            one checkbox per column, and the status bar shows the row count.
+            Drop an Excel (<code>.xlsx</code>) or CSV file into the file zone, click <strong>Browse</strong>,
+            or choose a recent file. Once loaded, the filename, row count, and column count appear in the file area.
           </p>
           <p>
             The app reads every column as text. Leading zeros, codes like <code>001.001</code>,
@@ -839,40 +878,102 @@
     <!-- ── Step 3: Columns ────────────────────────────────────────── -->
     <section class="section" id="columns">
       <div class="section-header">
-        <p class="eyebrow">Step 3 of 4</p>
+        <p class="eyebrow">Step 3 of 6</p>
         <h2>Pick your date columns</h2>
       </div>
       <div class="cards">
         <div class="card">
           <p>
-            Tick every column you want converted. You can pick more than one in a single run —
+            Tick every column you want converted. The app preselects columns that look date-heavy
+            and marks them with a <code>dates</code> badge. You can pick more than one in a single run -
             for example both <strong>Full Date</strong> and <strong>Date Checked</strong>.
             Each column is processed independently in the order ticked.
             Columns you do not tick are left exactly as they were.
+          </p>
+          <p style="margin-top:10px">
+            Use the filter box when a spreadsheet has many columns. <strong>Select all</strong> applies only
+            to the currently visible filtered list.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- ── Step 4: Run ────────────────────────────────────────────── -->
+    <!-- ── Step 4: Date interpretation ────────────────────────────── -->
+    <section class="section" id="date-interpretation">
+      <div class="section-header">
+        <p class="eyebrow">Step 4 of 6</p>
+        <h2>Set YY interpretation</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p>
+            Two-digit years are ambiguous in archival data. By default, recognized two-digit years
+            are normalized but preserved as <code>YY</code> and flagged for review.
+          </p>
+          <table style="margin-top:10px">
+            <thead><tr><th>Input</th><th>Output</th><th>Check</th></tr></thead>
+            <tbody>
+              <tr><td><code>5/29/26</code></td><td><code>05/29/26</code></td><td><span class="flag">Yes</span></td></tr>
+              <tr><td><code>Jun-62</code></td><td><code>06/01/62 - 06/30/62</code></td><td><span class="flag">Yes</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Use YY prefix</h3>
+          <p>
+            If the collection's century is known, enable <strong>Use YY prefix</strong> and enter exactly
+            two digits, such as <code>15</code>, <code>18</code>, <code>19</code>, or <code>20</code>.
+            The app expands <code>YY</code> to <code>{prefix}YY</code> and clears the YY ambiguity flag.
+          </p>
+          <table style="margin-top:10px">
+            <thead><tr><th>Input</th><th>Prefix</th><th>Output</th><th>Check</th></tr></thead>
+            <tbody>
+              <tr><td><code>5/29/26</code></td><td><code>18</code></td><td><code>05/29/1826</code></td><td>blank</td></tr>
+              <tr><td><code>Jun-62</code></td><td><code>18</code></td><td><code>06/01/1862 - 06/30/1862</code></td><td>blank</td></tr>
+              <tr><td><code>5/29/26</code></td><td><code>20</code></td><td><code>05/29/2026</code></td><td>blank</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Step 5: Output ─────────────────────────────────────────── -->
+    <section class="section" id="output-options">
+      <div class="section-header">
+        <p class="eyebrow">Step 5 of 6</p>
+        <h2>Choose output behavior</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <table>
+            <thead><tr><th>Option</th><th>Behavior</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Overwrite</strong></td><td>Writes the cleaned data back to the original file.</td></tr>
+              <tr><td><strong>Save copy</strong></td><td>Writes a sibling file named with <code>-formatted</code>, such as <code>records-formatted.xlsx</code>.</td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-top:12px">
+            Use Save copy when you want a built-in backup. If you use Overwrite, close the spreadsheet in Excel first.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Step 6: Run ────────────────────────────────────────────── -->
     <section class="section" id="run">
       <div class="section-header">
-        <p class="eyebrow">Step 4 of 4</p>
+        <p class="eyebrow">Step 6 of 6</p>
         <h2>Run it</h2>
       </div>
       <div class="cards">
         <div class="card">
           <p>
-            Click <strong>Run</strong>. The progress bar advances as the app works through
-            each column. The status line shows the current row and column.
+            Click <strong>Run</strong>. The progress bar advances as the app works through each selected column.
+            The run panel shows current column, row count, flagged count, percent complete, and log messages.
           </p>
-          <div class="note">
-            <strong>Important:</strong> when the run finishes, your original file is overwritten
-            with the cleaned version. Make a backup copy before running if you want to keep the raw input.
-          </div>
           <p style="margin-top:10px">
-            If the file is open in Excel when the app tries to save, you will see a "File in use"
-            prompt. Close Excel and click Retry.
+            Click <strong>Cancel</strong> to stop a long run. When the run finishes, use <strong>Open file</strong>
+            or <strong>Open folder</strong> from the result panel.
           </p>
         </div>
       </div>
@@ -905,6 +1006,7 @@
           <ul class="guide-list" style="margin-top:6px">
             <li>The original value was vague (<code>circa 1962</code>, <code>before 1991</code>).</li>
             <li>The app could not recognize the format.</li>
+            <li>The original value used an unresolved two-digit year such as <code>5/29/26</code> or <code>Jun-62</code>.</li>
             <li>The original cell contained multiple values separated by semicolons.</li>
             <li>The result did not match a strict <code>MM/DD/YYYY</code> or <code>MM/DD/YYYY - MM/DD/YYYY</code> shape.</li>
           </ul>
@@ -921,7 +1023,7 @@
       </div>
       <div class="cards">
         <div class="card">
-          <p>Every formatted output respects three rules:</p>
+          <p>Every formatted output respects these rules:</p>
           <div class="timeline" style="margin-top:12px">
             <div class="timeline-item">
               <h3>Correct day counts per month</h3>
@@ -934,6 +1036,10 @@
             <div class="timeline-item">
               <h3>Chronological order</h3>
               <p>In any output range <code>start - end</code>, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.</p>
+            </div>
+            <div class="timeline-item">
+              <h3>Excel serial dates</h3>
+              <p>Five-digit Excel serials match Excel's displayed date, including the 1900 leap-year quirk. For example, <code>44197</code> becomes <code>01/01/2021</code>.</p>
             </div>
           </div>
           <div class="note" style="margin-top:12px">
@@ -984,8 +1090,8 @@
           <table>
             <thead><tr><th>Column header (any variant)</th><th>Format</th></tr></thead>
             <tbody>
-              <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits. <code>200</code> → <code>0200</code>. <code>9200</code> stays <code>9200</code>.</td></tr>
-              <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters. <code>22</code> → <code>022</code>. <code>W22</code> stays <code>W22</code>.</td></tr>
+              <tr><td><code>RG</code>, <code>Record Group Number</code></td><td>Exactly 4 digits. <code>200</code> becomes <code>0200</code>. <code>9200</code> stays <code>9200</code>.</td></tr>
+              <tr><td><code>SG</code>, <code>SubGr</code>, <code>SubGroup</code>, <code>Subgroup Number</code></td><td>Exactly 3 characters. <code>22</code> becomes <code>022</code>. <code>W22</code> stays <code>W22</code>.</td></tr>
               <tr><td><code>Series</code>, <code>Series Number</code></td><td>Same as SG.</td></tr>
               <tr><td><code>SubSeries Number</code></td><td>Same as SG.</td></tr>
             </tbody>
@@ -1136,19 +1242,34 @@
       </div>
       <div class="timeline">
         <div class="timeline-item">
-          <h3>Error dialog</h3>
+          <h3>Browser says the download may be dangerous</h3>
           <p>
-            Click OK. The app writes a log file to <code>%TEMP%\date-formatter.log</code>.
-            Open it in Notepad to see details. Share the log with your IT Admin if you need help.
+            Confirm the file came from the official GitHub release or your IT department. If not, stop.
+            If yes, use the browser keep option.
           </p>
         </div>
         <div class="timeline-item">
-          <h3>"File in use" prompt</h3>
-          <p>Close the spreadsheet in Excel or whatever has it open, then click Retry.</p>
+          <h3>Windows SmartScreen blocks launch</h3>
+          <p>Use <strong>More info</strong> and <strong>Run anyway</strong> only for the official or IT-provided EXE.</p>
         </div>
         <div class="timeline-item">
-          <h3>The app does not open</h3>
-          <p>Python may not be installed, or the script path may have changed. Contact your IT Admin.</p>
+          <h3>macOS blocks launch</h3>
+          <p>
+            Control-click the app and choose <strong>Open</strong>. If allowed by policy, run
+            <code>xattr -dr com.apple.quarantine /Applications/date-formatter.app</code>.
+          </p>
+        </div>
+        <div class="timeline-item">
+          <h3>File cannot be overwritten</h3>
+          <p>Close Excel or whatever has the spreadsheet open, then run again. Or choose <strong>Save copy</strong>.</p>
+        </div>
+        <div class="timeline-item">
+          <h3>YY prefix error</h3>
+          <p>Enter exactly two digits, such as <code>15</code>, <code>18</code>, <code>19</code>, or <code>20</code>, or turn off the YY prefix option.</p>
+        </div>
+        <div class="timeline-item">
+          <h3>Date columns look wrong</h3>
+          <p>Clear or add column selections manually. Auto-detection is a helper, not a rule.</p>
         </div>
         <div class="timeline-item">
           <h3>A row was flagged that should not have been</h3>
@@ -1170,11 +1291,12 @@
       <div class="cards">
         <div class="card">
           <ul class="guide-list">
-            <li>Make a backup copy of your spreadsheet before running. The app overwrites your file in place.</li>
+            <li>Use <strong>Save copy</strong> when you want a built-in backup. <strong>Overwrite</strong> edits the original file.</li>
             <li>Run on one column at a time until you are comfortable with the output, then batch larger jobs.</li>
             <li>After a run, sort by the <code>Check</code> column to bring flagged rows to the top.</li>
+            <li>Leave YY prefix off when the collection's century is unknown. Those rows stay flagged for review.</li>
             <li>The app handles <code>.xlsx</code> and <code>.csv</code>. Save older <code>.xls</code> files as <code>.xlsx</code> first.</li>
-            <li>Light mode and dark mode are both supported. Your preference is saved.</li>
+            <li>Light, dark, system theme, and color palettes are supported. Your preference is saved.</li>
           </ul>
         </div>
       </div>
@@ -1189,8 +1311,8 @@
       <div class="cards">
         <div class="card">
           <p>
-            Contact your IT Admin or whoever provided this app. Include the log file
-            from <code>%TEMP%\date-formatter.log</code> if you encountered a specific error.
+            Contact your IT Admin or whoever provided this app. Include the app version, operating system,
+            release source, file type, conversion mode, and one or two sample source values.
           </p>
         </div>
       </div>
@@ -1208,15 +1330,17 @@
           <table>
             <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
             <tbody>
-              <tr><td>App version</td><td>Shown at the bottom-left of the app window.</td></tr>
-              <tr><td>Log file</td><td><code>%TEMP%\date-formatter.log</code> — records run history and any errors.</td></tr>
-              <tr><td>Settings file</td><td><code>dates-formatter-settings.json</code> in the same folder as the script. Stores theme, window position, recent files, and output preference.</td></tr>
-              <tr><td>User manual</td><td><code>user-manual.html</code> in the same folder as the script. This document.</td></tr>
+              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.7</code>.</td></tr>
+              <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>.</td></tr>
+              <tr><td>Wails manual</td><td>Built into the app and also shipped as <code>user-manual.html</code>.</td></tr>
+              <tr><td>Legacy Python version</td><td>Shown in the bottom-left footer, such as <code>v2026.06.01</code>.</td></tr>
+              <tr><td>Legacy Python log</td><td><code>%TEMP%\date-formatter.log</code> records run history and errors.</td></tr>
+              <tr><td>Legacy Python settings</td><td><code>dates-formatter-settings.json</code> in the same folder as the script.</td></tr>
               <tr><td>Python dependencies</td><td><code>customtkinter 5.2.2</code>, <code>pandas 2.2.2</code>, <code>openpyxl 3.1.5</code>.</td></tr>
             </tbody>
           </table>
           <div class="note" style="margin-top:12px">
-            Reset to defaults: close the app, delete <code>dates-formatter-settings.json</code>, and relaunch.
+            Reset to defaults by closing the app and deleting the relevant settings file.
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
 # Action Plan
 
+Historical note: this plan records earlier Python GUI cleanup. Current release work is the Wails desktop app in `wails-app/`, tracked by `TODOS.md`, `DONE.md`, `README.md`, and the dashboard.
+
 ## Phase 1: Script Standardization (Complete)
 
 ### Goals

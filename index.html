@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization — three conversion modes, full Windows deployment, web UI migration in progress.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.7 ships Wails desktop builds for Windows EXE and macOS arm64 app.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -300,7 +300,7 @@
     <article class="panel">
       <div class="ph">
         <h2>Active TODOs</h2>
-        <span class="pbadge">8 items</span>
+        <span class="pbadge">7 items</span>
       </div>
       <div class="pb">
         <div class="todo-list">
@@ -308,26 +308,35 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Deploy to client machine</div>
-              <div class="t-note">Validate GUI refresh on real Windows. Smoke-test <code>9200-W22.xlsx</code>. Requires <code>openpyxl==3.1.5</code> upgrade before launch.</div>
+              <div class="t-title">Validate v0.2.7 release</div>
+              <div class="t-note">Smoke-test public EXE and macOS arm64 zip with <code>9200-W22.xlsx</code>. Confirm browser warnings, SmartScreen, Gatekeeper, YY prefix, overwrite/copy, and open file/folder actions.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
           </div>
 
           <div class="todo">
-            <span class="tid">T-013</span>
+            <span class="tid">T-019</span>
             <div>
-              <div class="t-title">Auto-detect date columns on file load</div>
-              <div class="t-note">Scan columns after load. Pre-check boxes and show "looks like dates" badge where values mostly match date patterns.</div>
+              <div class="t-title">Public signing and notarization</div>
+              <div class="t-note">Windows needs publisher signing. macOS needs Developer ID signing and notarization. Enterprise signing remains separate if IT manages distribution.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+          </div>
+
+          <div class="todo">
+            <span class="tid">T-020</span>
+            <div>
+              <div class="t-title">Automate macOS release artifact</div>
+              <div class="t-note">Windows EXE is built in GitHub Actions. macOS arm64 zip for <code>v0.2.7</code> was built locally; add macOS workflow after signing path is decided.</div>
+            </div>
+            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
           </div>
 
           <div class="todo">
             <span class="tid">T-017</span>
             <div>
               <div class="t-title">Custom output format options</div>
-              <div class="t-note">User-selectable shape: range vs single, year-first, day-first (EU), separator choice, 2- vs 4-digit year. Format engine refactor — land with T-016.</div>
+              <div class="t-note">User-selectable shape: range vs single, year-first, day-first, separator choice, 2- vs 4-digit year. Requires Go and Python legacy formatter refactor.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
           </div>
@@ -336,16 +345,7 @@
             <span class="tid">T-016</span>
             <div>
               <div class="t-title">Settings dialog</div>
-              <div class="t-note">Modal via <code>Ctrl+,</code> or gear icon. Centralizes: default mode, output behavior, output folder, theme, log level. New <code>CTkToplevel</code> subclass.</div>
-            </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
-          </div>
-
-          <div class="todo">
-            <span class="tid">T-010</span>
-            <div>
-              <div class="t-title">Windows installer (PyInstaller)</div>
-              <div class="t-note">Bundle so end users don't need Python. Settings must move to <code>%APPDATA%\date-formatter\</code> when frozen. Out of scope for web UI plan.</div>
+              <div class="t-note">Wails already persists theme, palette, recent files, output mode, and YY settings. Add visible dialog only for defaults, output folder, log level, or advanced options.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
           </div>
@@ -354,25 +354,16 @@
             <span class="tid">T-014</span>
             <div>
               <div class="t-title">Keyboard shortcuts</div>
-              <div class="t-note"><code>Ctrl+O</code> browse, <code>Ctrl+R</code> run, <code>Ctrl+,</code> settings, <code>Ctrl+/</code> manual. Mac <code>Cmd+</code> equivalents.</div>
+              <div class="t-note"><code>Ctrl/Cmd+O</code> browse, <code>Ctrl/Cmd+R</code> run, <code>Ctrl/Cmd+,</code> settings, <code>Ctrl/Cmd+/</code> manual.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
           </div>
 
           <div class="todo">
-            <span class="tid">T-015</span>
+            <span class="tid">T-021</span>
             <div>
-              <div class="t-title">Drag-and-drop file zone</div>
-              <div class="t-note">Requires <code>tkinterdnd2</code>. Graceful fallback if missing. Highlight on <code>&lt;&lt;DropEnter&gt;&gt;</code>, call <code>_load_file()</code> on <code>&lt;&lt;Drop&gt;&gt;</code>.</div>
-            </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
-          </div>
-
-          <div class="todo">
-            <span class="tid">T-018</span>
-            <div>
-              <div class="t-title">Unify dashboard + user manual look and feel</div>
-              <div class="t-note">Dashboard uses IBM Plex / navy-orange. User manual uses Georgia / warm parchment. Converge to a shared design system. Timeline: soon.</div>
+              <div class="t-title">Triage stale GitHub issues</div>
+              <div class="t-note">Open issues #1 through #5 predate Wails release. Review against current app and close, update, or replace with release-specific issues.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
           </div>
@@ -417,8 +408,8 @@
   <!-- ── Roadmap ────────────────────────────────────────────────── -->
   <article class="panel">
     <div class="ph">
-      <h2>Roadmap: Road to Web App</h2>
-      <span class="pbadge">5 phases + stretch</span>
+      <h2>Roadmap: Release Hardening</h2>
+      <span class="pbadge">5 tracks + hygiene</span>
     </div>
     <div class="pb">
       <div class="phases">
@@ -427,17 +418,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">1</div>
             <div>
-              <div class="p-title">Logic Extraction</div>
-              <div class="p-sub">Isolate all date parsing into <code>date_engine.py</code>. No UI imports. Tests pass before and after.</div>
+              <div class="p-title">Release Validation</div>
+              <div class="p-sub">Smoke-test public Windows and macOS release assets in real user environments.</div>
             </div>
-            <span class="pbadge2 badge-neutral">Pending</span>
+            <span class="pbadge2 badge-warn">Next</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-101</span>Audit <code>date-formatter-gui.py</code> — map logic boundary vs UI</div>
-              <div class="ptask"><span class="wid">W-102</span>Create <code>prod/date_engine.py</code> — pure logic, no side effects, importable standalone</div>
-              <div class="ptask"><span class="wid">W-103</span>Repoint existing GUI to <code>from date_engine import …</code> — CTk GUI still runs identically</div>
-              <div class="ptask"><span class="wid">W-104</span>Run <code>./run-tests.sh</code> — all 13 tests pass, zero regressions before proceeding</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter.exe</code> on Windows with browser and SmartScreen warnings documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.7-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Smoke-test YY prefix, overwrite/save-copy, date-column auto-detection, cancel, open file, and open folder</div>
             </div>
           </div>
         </div>
@@ -446,20 +436,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">2</div>
             <div>
-              <div class="p-title">Flask Backend</div>
-              <div class="p-sub">HTTP API wrapping <code>date_engine</code>. Routes validate inputs, call engine, return results — no processing in routes.</div>
+              <div class="p-title">Signing and Notarization</div>
+              <div class="p-sub">Reduce trust prompts for public downloads while keeping enterprise signing separate.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-201</span>Scaffold <code>web/app.py</code> — Flask, <code>127.0.0.1</code> only, no LAN exposure</div>
-              <div class="ptask"><span class="wid">W-202</span><code>POST /api/load</code> — accept xlsx/csv, return columns + row count + file token (UUID)</div>
-              <div class="ptask"><span class="wid">W-203</span><code>POST /api/process</code> — token + column + mode → processed file download, clean temp on response</div>
-              <div class="ptask"><span class="wid">W-204</span><code>GET /api/settings</code> — return current settings JSON</div>
-              <div class="ptask"><span class="wid">W-205</span><code>POST /api/settings</code> — write updated settings (same keys as <code>dates-formatter-settings.json</code>)</div>
-              <div class="ptask"><span class="wid">W-206</span><code>GET /manual</code> — serve <code>user-manual.html</code></div>
-              <div class="ptask"><span class="wid">W-207</span>Error handling — all routes return JSON errors, no Flask HTML error pages</div>
+              <div class="ptask"><span class="wid">T-019</span>Choose Windows code-signing certificate path and release process</div>
+              <div class="ptask"><span class="wid">T-019</span>Choose macOS Developer ID signing and notarization process</div>
+              <div class="ptask"><span class="wid">T-019</span>Keep manual warnings accurate until public signed builds exist</div>
             </div>
           </div>
         </div>
@@ -468,21 +454,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">3</div>
             <div>
-              <div class="p-title">Frontend</div>
-              <div class="p-sub">Single-page app in <code>web/templates/index.html</code>. Vanilla JS, no bundler. Clean, native-feeling — not a data tool aesthetic.</div>
+              <div class="p-title">Release Automation</div>
+              <div class="p-sub">Windows EXE is automated. macOS release zip still needs a workflow after signing decisions.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-301</span>Design system + base template — CSS tokens, dark/light via <code>data-theme</code>, matches existing palette</div>
-              <div class="ptask"><span class="wid">W-302</span>File upload zone — drag-and-drop + click-to-browse, shows name/row count/column count after load</div>
-              <div class="ptask"><span class="wid">W-303</span>Column picker — dropdown populated from <code>/api/load</code> response</div>
-              <div class="ptask"><span class="wid">W-304</span>Mode selector — three modes, per-mode description, output mode toggle (overwrite / copy)</div>
-              <div class="ptask"><span class="wid">W-305</span>Run + progress + download — spinner → <code>/api/process</code> → browser file download</div>
-              <div class="ptask"><span class="wid">W-306</span>Settings panel — gear icon, theme + output mode defaults, persist via <code>/api/settings</code></div>
-              <div class="ptask"><span class="wid">W-307</span>Error states — inline display, no alert dialogs</div>
-              <div class="ptask"><span class="wid">W-308</span>User manual link — opens <code>/manual</code> in new tab</div>
+              <div class="ptask"><span class="wid">T-020</span>Add macOS arm64 build workflow when signing/notarization process is known</div>
+              <div class="ptask"><span class="wid">T-020</span>Attach macOS zip to tagged GitHub releases automatically</div>
+              <div class="ptask"><span class="wid">T-020</span>Keep release body and manual aligned with generated asset names</div>
             </div>
           </div>
         </div>
@@ -491,17 +472,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">4</div>
             <div>
-              <div class="p-title">Launcher</div>
-              <div class="p-sub">Single entry point: start Flask, find free port, open browser, handle shutdown on Windows and Mac.</div>
+              <div class="p-title">Usability Follow-up</div>
+              <div class="p-sub">Small app-level improvements now that the Wails release path is live.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-401</span><code>launch.py</code> — auto-pick port, start Flask daemon, poll for ready, open browser</div>
-              <div class="ptask"><span class="wid">W-402</span><code>prod/date-formatter-web.bat</code> — Windows launcher</div>
-              <div class="ptask"><span class="wid">W-403</span><code>prod/date-formatter-web.command</code> — Mac launcher (<code>chmod +x</code> required)</div>
-              <div class="ptask"><span class="wid">W-404</span>Shutdown — clean temp dir on <code>KeyboardInterrupt</code> or browser close signal</div>
+              <div class="ptask"><span class="wid">T-014</span>Add keyboard shortcuts for browse, run, settings, and manual</div>
+              <div class="ptask"><span class="wid">T-016</span>Add settings dialog only if users need visible control for advanced defaults</div>
+              <div class="ptask"><span class="wid">T-017</span>Refactor formatter to support custom output shapes</div>
             </div>
           </div>
         </div>
@@ -510,19 +490,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">5</div>
             <div>
-              <div class="p-title">Parity + Polish</div>
-              <div class="p-sub">Feature parity with CTk GUI, plus improvements only the web stack enables.</div>
+              <div class="p-title">GitHub Hygiene</div>
+              <div class="p-sub">Open issues predate current release and need triage against Wails behavior.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-501</span>Theme persistence — load from <code>/api/settings</code>, save on toggle</div>
-              <div class="ptask"><span class="wid">W-502</span>Recent files — last 5 filenames in settings, shown under upload zone</div>
-              <div class="ptask"><span class="wid">W-503</span>Column auto-detection (T-013) — <code>date_columns</code> key in <code>/api/load</code> response</div>
-              <div class="ptask"><span class="wid">W-504</span>Keyboard shortcuts — <code>Ctrl/Cmd+O/R/,/?</code> in <code>app.js</code></div>
-              <div class="ptask"><span class="wid">W-505</span>End-to-end smoke test on Windows + Mac with <code>9200-W22.xlsx</code></div>
-              <div class="ptask"><span class="wid">W-506</span>Retire CTk GUI — optional, keep until W-505 passes on client machine</div>
+              <div class="ptask"><span class="wid">T-021</span>Review issues #1 through #5 against current Wails release</div>
+              <div class="ptask"><span class="wid">T-021</span>Close stale items or replace them with current release-specific issues</div>
+              <div class="ptask"><span class="wid">T-021</span>Keep GitHub repo description aligned with current Wails desktop app</div>
             </div>
           </div>
         </div>
@@ -531,18 +508,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum stretch">S</div>
             <div>
-              <div class="p-title">Stretch: PyWebView</div>
-              <div class="p-sub">Wrap Flask in a native window — no browser chrome. Edge WebView2 on Windows, WebKit on Mac.</div>
+              <div class="p-title">Docs Discipline</div>
+              <div class="p-sub">Manual and dashboard must update with commits and pushes that affect behavior or release state.</div>
             </div>
-            <span class="pbadge2 badge-warn">Optional</span>
+            <span class="pbadge2 badge-warn">Repo rule</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">W-SB1</span>Add <code>pywebview&gt;=4.4</code> to <code>requirements.txt</code>, verify on both platforms</div>
-              <div class="ptask"><span class="wid">W-SB2</span><code>launch_native.py</code> — Flask in background thread, <code>webview.start()</code> blocks until close</div>
-              <div class="ptask"><span class="wid">W-SB3</span>Native launchers: <code>date-formatter-native.bat</code> + <code>date-formatter-native.command</code></div>
-              <div class="ptask"><span class="wid">W-SB4</span>Platform test — Edge WebView2 (Win) + WebKit (Mac), flag any rendering deltas</div>
-              <div class="ptask"><span class="wid">W-SB5</span>Fallback doc — if WebView2 missing on Windows, fall back to browser launcher</div>
+              <div class="ptask"><span class="wid">D-031</span><code>AGENTS.md</code> now requires manual and dashboard freshness before commits or pushes</div>
+              <div class="ptask"><span class="wid">D-031</span>Include related manual/dashboard changes in the same commit</div>
+              <div class="ptask"><span class="wid">D-031</span>Keep release warnings current while public builds are unsigned/not notarized</div>
             </div>
           </div>
         </div>
@@ -558,18 +533,18 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">27 total</span>
+        <span class="pbadge">31 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-031</span><span class="dtext">Repo rule added: manual and dashboard must be current before commits or pushes</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-030</span><span class="dtext">Wails desktop release path ships Windows EXE and macOS arm64 app assets for <code>v0.2.7</code></span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-029</span><span class="dtext">YY prefix override preserves unresolved <code>YY</code> by default and expands with user-provided prefix</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-028</span><span class="dtext">Numeric two-digit year dates now normalize and remain flagged unless YY prefix resolves them</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-027</span><span class="dtext">Retired legacy Dublin Core script — GUI Dublin Core mode is the sole supported entry point</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-026</span><span class="dtext">Fixed parser crash on raw pandas Timestamp cells — <code>str(date_str)</code> added at top of both converter functions</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-025</span><span class="dtext">Legacy DC crash on alphanumeric SG/RG (e.g. <code>W22</code>) — ported <code>_pad_alnum</code> helper from GUI</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-024</span><span class="dtext">AE mode now correctly handles literal <code>undated</code> input (was falling through to flagged)</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-023</span><span class="dtext">MonthName-YY 2-digit-year pivot was inverted — <code>Jun-62</code> now correctly yields 1962, not 2062</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-022</span><span class="dtext">Excel serial off-by-one fixed — dual base handles Excel's 1900 leap-year bug for serials ≥60</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-021</span><span class="dtext"><code>TO</code> literal recursion fixed — now lands on ISO-range handler via <code>/</code> substitution</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-019</span><span class="dtext">Major GUI refresh — card layout, mode picker, stepper, segmented theme, recent files, completion dialog</span></div>
         </div>
       </div>
     </article>
@@ -578,29 +553,25 @@
     <article class="panel">
       <div class="ph">
         <h2>Open Decisions</h2>
-        <span class="pbadge">5 items</span>
+        <span class="pbadge">4 items</span>
       </div>
       <div class="pb">
         <div class="decisions">
           <div class="decision">
-            <div class="dq">Web framework: Flask or FastAPI?</div>
-            <div class="dd">Default: <strong>Flask</strong> (vanilla, no extensions). Raise before Phase 2 if FastAPI preferred.</div>
+            <div class="dq">Public signing owner?</div>
+            <div class="dd">Decide whether public Windows/macOS signing is handled by project release workflow or by enterprise IT distribution.</div>
           </div>
           <div class="decision">
-            <div class="dq">Frontend JS: vanilla or lightweight framework?</div>
-            <div class="dd">Default: <strong>vanilla JS, no bundler, single app.js</strong>. Raise before Phase 3 if a framework is preferred.</div>
+            <div class="dq">macOS release workflow timing?</div>
+            <div class="dd">Default: wait until signing/notarization path is known, then add automated macOS build and zip attachment.</div>
           </div>
           <div class="decision">
-            <div class="dq">PyWebView window size?</div>
-            <div class="dd">Default: <strong>resizable, min 900×650</strong>. Confirm or specify a fixed size.</div>
+            <div class="dq">Legacy Python support window?</div>
+            <div class="dd">Python GUI remains in <code>src/</code> and <code>prod/</code>. Decide when Wails fully replaces it for field deployments.</div>
           </div>
           <div class="decision">
-            <div class="dq">CTk GUI retirement timeline?</div>
-            <div class="dd">Default: <strong>keep until W-505 smoke test passes</strong> on client machine. Confirm.</div>
-          </div>
-          <div class="decision">
-            <div class="dq">PyInstaller bundling scope?</div>
-            <div class="dd">Default: <strong>out of scope for web UI plan</strong> — tracked as T-010. Confirm or promote.</div>
+            <div class="dq">Stale GitHub issues?</div>
+            <div class="dd">Issues #1 through #5 predate Wails. Decide whether to close as superseded or rewrite around current release behavior.</div>
           </div>
         </div>
       </div>
@@ -626,7 +597,7 @@
         <a href="WEB-UI-PLAN.md" class="res-card">
           <div class="rc-label">Architecture</div>
           <div class="rc-title">WEB-UI-PLAN.md</div>
-          <div class="rc-desc">Flask + browser migration plan — Phases 1–5 and PyWebView stretch</div>
+          <div class="rc-desc">Older migration notes. Wails desktop app is now current release path</div>
         </a>
         <a href="TODOS.md" class="res-card">
           <div class="rc-label">Project</div>
@@ -636,7 +607,7 @@
         <a href="DONE.md" class="res-card">
           <div class="rc-label">Project</div>
           <div class="rc-title">DONE.md</div>
-          <div class="rc-desc">Completed work archive — 27 resolved items with resolutions</div>
+          <div class="rc-desc">Completed work archive with current Wails release and YY prefix entries</div>
         </a>
         <a href="README.md" class="res-card">
           <div class="rc-label">Overview</div>
@@ -648,10 +619,20 @@
           <div class="rc-title">GitHub Repository</div>
           <div class="rc-desc">dpa-snyder/dates-formatter — source code, issues, commit history</div>
         </a>
-        <a href="prod/date-formatter-gui.bat" class="res-card">
-          <div class="rc-label">Deploy</div>
-          <div class="rc-title">Windows Launcher</div>
-          <div class="rc-desc"><code>prod/date-formatter-gui.bat</code> — current production entry point</div>
+        <a href="https://github.com/dpa-snyder/dates-formatter/releases/latest" class="res-card" target="_blank" rel="noopener">
+          <div class="rc-label">Release</div>
+          <div class="rc-title">Latest Downloads</div>
+          <div class="rc-desc">Windows EXE and macOS arm64 app assets for the current public release</div>
+        </a>
+        <a href="wails-app/README.md" class="res-card">
+          <div class="rc-label">Desktop App</div>
+          <div class="rc-title">Wails README</div>
+          <div class="rc-desc">Build, test, signing status, and release notes for the Wails app</div>
+        </a>
+        <a href="AGENTS.md" class="res-card">
+          <div class="rc-label">Repo Rule</div>
+          <div class="rc-title">AGENTS.md</div>
+          <div class="rc-desc">Manual and dashboard must stay current before commits or pushes</div>
         </a>
       </div>
     </div>
@@ -705,7 +686,8 @@
   var BASE = 'https://api.github.com/repos/' + REPO;
 
   var LANG_COLORS = {
-    Python: '#3572a5', HTML: '#e44b23', Batchfile: '#aaaaaa', Shell: '#89e051'
+    Go: '#00add8', TypeScript: '#3178c6', CSS: '#563d7c', Python: '#3572a5',
+    HTML: '#e44b23', JavaScript: '#f1e05a', Batchfile: '#aaaaaa', Shell: '#89e051'
   };
 
   function fmtSize(kb) {
@@ -867,6 +849,7 @@
     /* Live pills — all static strings, no API data injected */
     setLive([
       (repo.visibility || 'public').toUpperCase(),
+      'Release: v0.2.7',
       'Issues: ' + openIssues.length,
       'PRs: ' + openPRs,
       'Pushed ' + fmtDate(repo.pushed_at),
@@ -893,13 +876,13 @@
     span.appendChild(document.createTextNode('GitHub API unavailable — stats may be stale'));
     row.appendChild(span);
 
-    /* Fallback values from last known state (2026-05-18) */
+    /* Fallback values from last known state (2026-06-01) */
     setText('s-issues', '5');
     setText('s-prs', '0');
     setText('s-stars', '0');
     setText('s-forks', '0');
-    setText('s-size', '76.3 MB');
-    setText('s-push', 'May 18, 2026');
+    setText('s-size', '76.7 MB');
+    setText('s-push', 'Jun 1, 2026');
 
     var issueEl = document.getElementById('issue-list');
     issueEl.textContent = '';

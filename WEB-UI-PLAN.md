@@ -1,5 +1,7 @@
 # Web UI Migration Plan
 
+Historical note: this plan is superseded by the Wails desktop app in `wails-app/`. Keep it as an architecture record, not the current release roadmap. Current active release work is tracked in `TODOS.md` and the dashboard.
+
 Replace CustomTkinter GUI with Flask + browser-based UI. Business logic stays in Python; browser is the render surface only. PyInstaller bundling (T-010) is out of scope — tracked separately.
 
 **Target platforms:** Windows + Mac  

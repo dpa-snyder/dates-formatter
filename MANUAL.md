@@ -1,303 +1,262 @@
 # Date Formatter: User Manual
 
-A guide to using the Date Formatter app to standardize date columns in Excel and CSV spreadsheets.
+Guide for using Date Formatter to standardize date columns in Excel and CSV spreadsheets.
 
 ## What this app does
 
-Archival spreadsheets often contain dates entered in many different ways: `5/8/2026`, `May 8, 2026`, `2026-05-08`, `circa 2026`, `1960s`, `n.d.`, and so on. The Date Formatter reads each value in a column you choose and rewrites it in a single consistent format. Values it cannot confidently parse are left alone and flagged for review.
+Date Formatter reads date-like values from spreadsheet columns and rewrites them in a consistent output format. It is built for archival data where dates may appear as `5/8/2026`, `May 8, 2026`, `2026-05-08`, `circa 2026`, `1960s`, `n.d.`, and similar mixed formats.
 
-You select the file, you select the columns, and the app shows you which rows it was uncertain about.
+Values the app cannot confidently parse are left visible and flagged for review.
 
-## Launching the app
+## Download and launch
 
-### If your IT Admin set this up
+### Enterprise or IT-managed install
 
-You have a desktop shortcut, typically called `date-formatter-gui.bat`. Double-click it to launch the app.
+If your IT department provided the app, use the shortcut or application they installed. Enterprise builds may be signed and managed, so Windows or macOS may open them without extra warning prompts.
 
-If the shortcut is not on your desktop, ask your IT Admin where they placed it.
+### Public GitHub release
 
-### Manual launch
+Download only from the official GitHub Releases page:
 
-Open Command Prompt and run:
+`https://github.com/dpa-snyder/dates-formatter/releases/latest`
 
+The current public release includes:
+
+| Platform | File | Notes |
+|----------|------|-------|
+| Windows | `date-formatter.exe` | Standalone Wails desktop app. |
+| macOS | `date-formatter-v0.2.7-macos-arm64.zip` | Apple silicon macOS app bundle. Unzip before launching. |
+
+Current public builds are not enterprise-signed or Apple-notarized. Browsers and operating systems may warn that the file is unknown, untrusted, unsafe, or potentially dangerous. Only continue if the file came from the official release page or from your IT department. Do not bypass warnings for copies from email, chat, or an unknown website.
+
+### Windows EXE warnings
+
+After downloading `date-formatter.exe`, Chrome or Edge may show a message such as "This file may be dangerous" or "Date Formatter is not commonly downloaded." Choose the browser's keep option only when the file came from the official release page.
+
+On first launch, Windows SmartScreen may show "Windows protected your PC" or "Unknown publisher." Choose **More info**, then **Run anyway**, only for the official release or an IT-provided build.
+
+### macOS app warnings
+
+Download the macOS zip, unzip it, and move `date-formatter.app` to Applications or another normal app folder.
+
+Because the public macOS build is not Apple-notarized, macOS may show a message that the app cannot be opened, is from an unidentified developer, or is damaged. First try Control-clicking the app, choosing **Open**, then choosing **Open** again.
+
+If macOS still blocks the app and your IT policy allows it, remove the quarantine flag in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/date-formatter.app
 ```
+
+Adjust the path if you placed the app somewhere else.
+
+### Legacy Python launch
+
+Some older deployments use the Python script instead of the Wails desktop app. In that setup, launch the shortcut named `date-formatter-gui.bat`, or run:
+
+```bat
 py %USERPROFILE%\scripts\date-formatter-gui.py
 ```
 
-Your IT Admin may have configured a different path.
+The Python script and `user-manual.html` must live in the same folder.
 
-## The window at a glance
+## Window tour
 
-The app window contains five sections from top to bottom.
+The Wails desktop app has these main areas:
 
-1. **Conversion Type.** Three radio buttons. Select the output style you need.
-2. **File.** A Browse button to select an Excel or CSV file.
-3. **Columns to Format.** Checkboxes for every column in the loaded file. Tick the columns containing dates.
-4. **Run.** Starts the conversion.
-5. **Progress bar and status text.** Shows progress and the number of flagged rows.
+| Area | Purpose |
+|------|---------|
+| Sidebar | Switch between Converter and User Manual. Change light, dark, or system theme. Pick the color palette. View app version. |
+| Conversion Mode | Choose Single Date, ArchivEra, or Dublin Core. |
+| File | Drop an `.xlsx` or `.csv` file, browse for one, or reopen a recent file. |
+| Date Columns | Pick columns to convert. Date-looking columns are preselected and marked with a `dates` badge. |
+| Date Interpretation | Optional YY prefix for ambiguous two-digit years. |
+| Output | Choose overwrite or save-copy behavior, then run or cancel. |
+| Result | Shows rows processed, flagged rows, output path, and buttons to open the file or folder. |
 
-A sun and moon switch in the top right corner toggles light and dark mode. Your preference is saved between launches.
+The legacy Python app has the same conversion modes and YY behavior, but its layout and launcher are older.
 
-## Step 1: Pick a conversion mode
+## Conversion modes
 
-The three modes produce different output styles. Pick the one that matches the system you are feeding the cleaned data into.
+### Single Date
 
-### Single Date Conversion: `MM/DD/YYYY`
+Output: `MM/DD/YYYY`, or `MM/DD/YY` when a two-digit year is preserved for review.
 
-Use this when each row should resolve to a single date.
+Use this when each row should resolve to one date.
 
-* `5/8/2026` becomes `05/08/2026`.
-* `May 8, 2026` becomes `05/08/2026`.
-* If the original value is a range like `01/01/1962 - 12/31/1962`, the output is the start date `01/01/1962`.
-* Vague values such as `circa 1962`, `1960s`, `before 1991`, or `undated` produce an empty result and are flagged for review.
-
-### ArchivERA / Date Range Conversion: `MM/DD/YYYY - MM/DD/YYYY`
-
-Use this when each row represents a span of time. This mode is designed for ArchivERA imports.
-
-* `1962` becomes `01/01/1962 - 12/31/1962`.
-* `Jun 1962` becomes `06/01/1962 - 06/30/1962`.
-* `1960s` becomes `01/01/1960 - 12/31/1969`.
-* `5/8/2026` stays as `05/08/2026`.
-* Fuzzy values are preserved and flagged: `circa 1962`, `before 10/15/1991`, `after 1991`, `undated`.
-
-### Dublin Core Conversion
-
-Use this when you need Dublin Core-friendly date output. Like ArchivERA, this mode emits dates as ranges. It accepts a wider variety of inputs than ArchivERA, including ISO and Dublin Core partial formats (`2026-05-08`, `1962-1965`, `1962-06/1965-08`, `YYYY-MM-DD/YYYY-MM-DD`).
-
-If you are unsure which mode to pick, use **Date Range**. Dublin Core handles the same range outputs plus more exotic input formats.
-
-## Step 2: Open your file
-
-Click **Browse** and select the Excel (`.xlsx`) or CSV file. Once loaded:
-
-* The filename appears in the file box.
-* The Columns section fills with one checkbox per column.
-* The status bar shows the row count.
-
-The app reads every column as text. Leading zeros, codes like `001.001`, and folder numbers like `04` are preserved exactly as they appear in the source.
-
-## Step 3: Pick your date columns
-
-Tick every column you want converted. You can pick more than one in a single run, for example both `Full Date` and `Date Checked`. Each column is processed independently in the order ticked.
-
-Columns you do not tick are left exactly as they were.
-
-## Step 4: Run it
-
-Click **Run**. The progress bar advances as the app works through each column. The status line shows the current row and column.
-
-**Important:** when the run finishes, your original file is overwritten with the cleaned version. Make a backup copy before running if you want to keep the raw input.
-
-If the file is open in Excel when the app tries to save, you will see a "File in use" prompt. Close Excel and click Retry.
-
-## Understanding the output
-
-For every column you ticked, the app adds two new columns next to it.
-
-| Column | Contents |
-|--------|----------|
-| `{your column}` | The cleaned, formatted date. Replaces the original value in place. |
-| `Original_{your column}` | The raw original value. |
-| `Check {your column}` | `Yes` if the app was uncertain about the row. Blank otherwise. |
-
-For example, if you ticked **Full Date**, the result looks like:
-
-```
-... | Full Date | Original_Full Date | Check Full Date | ...
-```
-
-When the run finishes, the status bar reports the number of flagged rows. A row is flagged when:
-
-* The original value was vague (`circa 1962`, `before 1991`).
-* The app could not recognize the format.
-* The original cell contained multiple values separated by semicolons.
-* The result did not match a strict `MM/DD/YYYY` or `MM/DD/YYYY - MM/DD/YYYY` shape.
-
-Flagged rows are not errors. They are rows that benefit from a human glance.
-
-## Built-in safeguards
-
-Every formatted output respects three rules:
-
-* **Correct day counts per month.** February has 28 days (29 in leap years). April, June, September, and November have 30. The rest have 31. The app never emits an invalid date like `02/30/1990` or `04/31/1990`.
-* **Leap-year awareness.** February 29 only appears in years where it is valid. A year is a leap year if it is divisible by 4, except century years which must also be divisible by 400. So `02/29/2000` is valid and `02/29/1900` is not.
-* **Chronological order.** In any output range `start - end`, the start date is on or before the end date. If the input had them reversed, the app swaps them before saving.
-
-If the input itself is an invalid date (for example `02/30/1990`), the app leaves it alone and flags the row for review rather than guessing what was meant.
-
-## Special outputs
-
-These values appear when the input expresses something more nuanced than a plain date or range. They are always flagged.
-
-| Output | Meaning |
-|--------|---------|
-| `undated` | The original said `n.d.`, `no date`, `not dated`, `undated`, etc. |
-| `circa 1962` | The original said `circa 1962`, `ca. 1962`, `approx. 1962`, etc. |
-| `before 01/01/1991` | The original said `before 1991`, `pre-1991`, or `ante 1991`. |
-| `before 10/15/1991` | The original gave a specific cutoff date with "before". |
-| `after 12/31/1991` | The original said `after 1991` or `post-1991`. |
-| `after 10/15/1991` | The original gave a specific cutoff date with "after". |
-
-For year-only inputs, "before" lands on January 1 of that year and "after" lands on December 31. This is a tight bound: the named year is excluded from the range.
-
-## What gets cleaned vs. what stays the same
-
-### Always cleaned, regardless of mode
-
-The following archival ID columns have their leading zeros restored on every save.
-
-| Column header (any variant) | Format |
-|-----------------------------|--------|
-| `RG`, `Record Group Number` | Exactly 4 digits. `200` becomes `0200`. `9200` stays `9200`. |
-| `SG`, `SubGr`, `SubGroup`, `Subgroup Number` | Exactly 3 characters. `22` becomes `022`. `W22` stays `W22`. Single-letter prefix is preserved. |
-| `Series`, `Series Number` | Same as SG. |
-| `SubSeries Number` | Same as SG. |
-
-### Left alone
-
-Every other column in your spreadsheet, including Folder Number, Sequential Box Number, Title, Description, and Container Barcode, is preserved exactly as it appeared in the source. Leading zeros are kept and codes like `001.001` are not converted to numbers.
-
-## Patterns the app recognizes
-
-The conversion engine tries many input formats. Below are the most common patterns grouped by type. For the full parser-order reference, see `CONVERSIONS.md`.
-
-### Already-formatted dates
+Examples:
 
 | Input | Output |
 |-------|--------|
-| `05/31/1964` | `05/31/1964` |
-| `01/01/1962 - 12/31/1962` | `01/01/1962 - 12/31/1962` |
 | `5/8/2026` | `05/08/2026` |
+| `May 8, 2026` | `05/08/2026` |
+| `01/01/1962 - 12/31/1962` | `01/01/1962` |
 
-### Years and decades
+Vague values such as `circa 1962`, `1960s`, `before 1991`, or `undated` produce an empty value and are flagged.
+
+### ArchivEra
+
+Output: `MM/DD/YYYY - MM/DD/YYYY` for ranges, or `MM/DD/YYYY` for exact single dates.
+
+Use this when each row represents a span of time.
+
+Examples:
 
 | Input | Output |
 |-------|--------|
 | `1962` | `01/01/1962 - 12/31/1962` |
-| `1962-1965` | `01/01/1962 - 12/31/1965` |
-| `1962-65` | `01/01/1962 - 12/31/1965` |
-| `1960s` | `01/01/1960 - 12/31/1969` |
-
-### Month and year
-
-| Input | Output |
-|-------|--------|
-| `June 1962` | `06/01/1962 - 06/30/1962` |
 | `Jun 1962` | `06/01/1962 - 06/30/1962` |
-| `Jun-62` | `06/01/62 - 06/30/62` |
-| `Jun-62` with YY prefix `18` | `06/01/1862 - 06/30/1862` |
-| `June 5, 1964` | `06/05/1964` |
-| `June 5th, 1964` | `06/05/1964` |
+| `1960s` | `01/01/1960 - 12/31/1969` |
+| `5/8/2026` | `05/08/2026` |
 
-For 2-digit year inputs, the app preserves `YY` and flags the row unless you enable the YY prefix override. Enter the first two digits of the intended year, such as `15`, `18`, `19`, or `20`.
+Fuzzy values are preserved and flagged: `circa 1962`, `before 10/15/1991`, `after 1991`, `undated`.
 
-### Month and year ranges
+### Dublin Core
 
-| Input | Output |
-|-------|--------|
-| `June 1, 1962 - August 5, 1964` | `06/01/1962 - 08/05/1964` |
-| `June 1 - 5 1962` | `06/01/1962 - 06/05/1962` |
-| `1962/06 - 1962/08` | `06/01/1962 - 08/31/1962` |
+Use this for ISO and Dublin Core input patterns. It accepts all ArchivEra-style inputs plus formats such as `2026-05-08`, `1962-1965`, `1962-06/1965-08`, and `YYYY-MM-DD/YYYY-MM-DD`.
 
-### ISO and Dublin Core formats
+Output still uses the app's normal `MM/DD/YYYY` or range shape.
 
-Best handled in Dublin Core mode.
+If unsure, choose **ArchivEra** unless your source data uses ISO or Dublin Core date strings.
 
-| Input | Output |
-|-------|--------|
-| `2026-05-08` | `05/08/2026` |
-| `2026-05-08 14:30:00` | `05/08/2026` |
-| `1962-06/1965-08` | `06/01/1962 - 08/31/1965` |
-| `1962-06-05/1965-08-12` | `06/05/1962 - 08/12/1965` |
+## YY prefix feature
 
-### Fuzzy and approximate dates
+Two-digit years are ambiguous in archival data. `5/29/26` might mean 1826, 1926, or 2026 depending on the collection.
 
-Always flagged.
-
-| Input | Output |
-|-------|--------|
-| `circa 1962` | `circa 1962` |
-| `ca. 1962` | `circa 1962` |
-| `approx 1962` | `circa 1962` |
-| `before 1991` | `before 01/01/1991` |
-| `pre-1991` | `before 01/01/1991` |
-| `ante 1991` | `before 01/01/1991` |
-| `before 10/15/1991` | `before 10/15/1991` |
-| `after 1991` | `after 12/31/1991` |
-| `post-1991` | `after 12/31/1991` |
-| `n.d.`, `N.D.`, `no date`, `not dated`, `undated` | `undated` |
-
-### Wildcards and incomplete inputs
-
-| Input | Output |
-|-------|--------|
-| `06/??/1962` | `06/01/1962 - 06/30/1962` |
-| `06/00/1962` | `06/01/1962 - 06/30/1962` |
-| `?? - 10/15/1991` | `before 10/15/1991` |
-| `10/15/1991 - ??` | `after 10/15/1991` |
-
-### Excel serial numbers
-
-Sometimes pasted from older workbooks. Output matches what Excel itself displays for the same serial. The converter accounts for Excel's 1900 leap-year quirk, so `44197` becomes `01/01/2021` exactly as Excel would show it.
-
-| Input | Output |
-|-------|--------|
-| `44197` | `01/01/2021` |
-| `40178` | `12/31/2009` |
-
-### Unrecognized inputs
-
-If the app does not have a pattern for the input, the value is left as-is and the `Check` column is set to `Yes`.
+Default behavior:
 
 | Input | Output | Check |
 |-------|--------|-------|
-| `Spring 1962` | `Spring 1962` | `Yes` |
-| `Easter 1964` | `Easter 1964` | `Yes` |
-| Any free-text comment | passed through | `Yes` |
+| `5/29/26` | `05/29/26` | `Yes` |
+| `Jun-62` | `06/01/62 - 06/30/62` | `Yes` |
 
-The app flags rather than guesses.
+To resolve the century during a run, enable **Use YY prefix** and enter exactly two digits.
 
-## If something goes wrong
+| Input | Prefix | Output | Check |
+|-------|--------|--------|-------|
+| `5/29/26` | `18` | `05/29/1826` | blank |
+| `Jun-62` | `18` | `06/01/1862 - 06/30/1862` | blank |
+| `5/29/26` | `20` | `05/29/2026` | blank |
 
-### Error dialog
+The prefix applies only to recognized two-digit year dates. Leave it off when you want those rows preserved and flagged for human review.
 
-Click OK. The app writes a log file to `%TEMP%\date-formatter.log`. Open it in Notepad to see details. Share the log with your IT Admin if you need help.
+## Run workflow
 
-### "File in use" prompt
+1. Open or drop an `.xlsx` or `.csv` file.
+2. Confirm the date columns. The app preselects likely date columns, but you can change the selection.
+3. Choose conversion mode.
+4. Set YY prefix only if the collection's two-digit year century is known.
+5. Choose **Overwrite** or **Save copy**.
+6. Click **Run**.
 
-Close the spreadsheet in Excel or whatever has it open, then click Retry.
+**Overwrite** writes the cleaned data back to the original file.
 
-### The app does not open
+**Save copy** writes a sibling file named with `-formatted`, such as `records-formatted.xlsx`.
 
-Python may not be installed, or the script path may have changed. Contact your IT Admin.
+If the source file is open in Excel, close it before overwriting. If a run is taking too long, click **Cancel**.
 
-### A row was flagged that should not have been
+## Output columns
 
-Check the `Original_` column for the raw value the app saw. If the format is one the app does not recognize, you can either clean up the source value and re-run, or edit the formatted column directly.
+For every selected column, the app keeps the chosen column name and inserts two review columns next to it.
 
-## Tips
+| Column | Contents |
+|--------|----------|
+| `{your column}` | Cleaned date output. Replaces the original value in place. |
+| `Original_{your column}` | Raw original value. |
+| `Check {your column}` | `Yes` if the row needs review. Blank otherwise. |
 
-* Make a backup copy of your spreadsheet before running. The app overwrites your file in place.
-* Run on one column at a time until you are comfortable with the output, then batch larger jobs.
-* After a run, sort by the `Check` column to bring flagged rows to the top.
-* The app handles `.xlsx` and `.csv`. Save older `.xls` files as `.xlsx` first.
-* Light mode and dark mode are both supported. Your preference is saved.
+Example:
 
-## Need help
+```text
+... | Full Date | Original_Full Date | Check Full Date | ...
+```
 
-Contact your IT Admin or whoever provided this app. Include the log file from `%TEMP%\date-formatter.log` if you encountered a specific error.
+Rows are flagged when the source value is vague, unrecognized, ambiguous, contains multiple values separated by semicolons, or produces a non-standard output.
 
-## About this app
+Flagged rows are not failures. They are rows that need a human glance.
 
-Diagnostic info you may be asked to share with your IT Admin.
+## Built-in safeguards
 
-| Item | Where to find it |
-|------|------------------|
-| App version | Shown at the bottom-left of the app window. |
-| Log file | `%TEMP%\date-formatter.log` on Windows. Records run history and any errors. |
-| Settings file | `dates-formatter-settings.json` in the same folder as the script. Stores theme, window position, recent files, and output preference. |
-| User manual file | `user-manual.html` in the same folder as the script. |
-| Python dependencies | `customtkinter 5.2.2`, `pandas 2.2.2`, `openpyxl 3.1.5`. |
+Every formatted output follows these rules:
 
-To reset the app to defaults, close the app, delete `dates-formatter-settings.json`, and relaunch.
+| Safeguard | Behavior |
+|-----------|----------|
+| Calendar day counts | The app does not emit invalid generated dates such as `02/30/1990` or `04/31/1990`. |
+| Leap years | February 29 appears only in valid leap years. `02/29/2000` is valid. `02/29/1900` is not. |
+| Chronological ranges | In any `start - end` range, the start date is on or before the end date. Reversed ranges are swapped. |
+| Excel serials | Five-digit Excel serials match Excel's displayed date, including the 1900 leap-year quirk. |
+
+Invalid input dates are not guessed. They pass through and get flagged.
+
+## Special outputs
+
+These outputs are intentionally flagged.
+
+| Output | Meaning |
+|--------|---------|
+| `undated` | The source said `n.d.`, `no date`, `not dated`, `undated`, etc. |
+| `circa 1962` | The source said `circa 1962`, `ca. 1962`, `approx. 1962`, etc. |
+| `before 01/01/1991` | The source said `before 1991`, `pre-1991`, or `ante 1991`. |
+| `before 10/15/1991` | The source gave a specific cutoff date with "before". |
+| `after 12/31/1991` | The source said `after 1991` or `post-1991`. |
+| `after 10/15/1991` | The source gave a specific cutoff date with "after". |
+
+For year-only before/after inputs, the app uses a tight bound: `before YYYY` becomes `before 01/01/YYYY`, and `after YYYY` becomes `after 12/31/YYYY`.
+
+## Columns preserved
+
+The app reads and writes spreadsheet values as text to protect leading zeros and archival identifiers.
+
+These columns are always normalized when present:
+
+| Header | Format |
+|--------|--------|
+| `RG`, `Record Group Number` | Exactly 4 digits. `200` becomes `0200`. |
+| `SG`, `SubGr`, `SubGroup`, `Subgroup Number` | Exactly 3 characters. `22` becomes `022`. `W22` stays `W22`. |
+| `Series`, `Series Number` | Same as SG. |
+| `SubSeries Number` | Same as SG. |
+
+Other columns, including Folder Number, Sequential Box Number, Title, Description, and Container Barcode, are preserved as text.
+
+## Patterns recognized
+
+For the full parser-order reference, see `CONVERSIONS.md`.
+
+Common examples:
+
+| Type | Input | Output |
+|------|-------|--------|
+| Already formatted | `05/31/1964` | `05/31/1964` |
+| Year | `1962` | `01/01/1962 - 12/31/1962` |
+| Year range | `1962-1965` | `01/01/1962 - 12/31/1965` |
+| Decade | `1960s` | `01/01/1960 - 12/31/1969` |
+| Month/year | `June 1962` | `06/01/1962 - 06/30/1962` |
+| Full date | `June 5th, 1964` | `06/05/1964` |
+| ISO date | `2026-05-08` | `05/08/2026` |
+| Dublin Core range | `1962-06/1965-08` | `06/01/1962 - 08/31/1965` |
+| Wildcard day | `06/??/1962` | `06/01/1962 - 06/30/1962` |
+| Excel serial | `44197` | `01/01/2021` |
+
+Unrecognized values such as `Spring 1962`, `Easter 1964`, or free-text comments pass through and get `Check = Yes`.
+
+## Troubleshooting
+
+| Problem | What to do |
+|---------|------------|
+| Browser says download may be dangerous | Confirm the file came from the official GitHub release or IT. If not, stop. If yes, use the browser keep option. |
+| Windows SmartScreen blocks launch | Use **More info** and **Run anyway** only for the official or IT-provided EXE. |
+| macOS blocks launch | Control-click the app and choose **Open**. If allowed by policy, remove quarantine with `xattr -dr com.apple.quarantine /Applications/date-formatter.app`. |
+| File cannot be overwritten | Close Excel or any app using the spreadsheet, then run again. |
+| YY prefix error | Enter exactly two digits, such as `15`, `18`, `19`, or `20`, or turn off the YY prefix option. |
+| Date columns look wrong | Clear or add column selections manually. Auto-detection is a helper, not a rule. |
+| A row was flagged unexpectedly | Check the `Original_` column, then edit the source or output value as needed. |
+
+## Diagnostics
+
+| Item | Wails desktop app | Legacy Python app |
+|------|-------------------|-------------------|
+| Version | Sidebar footer. Release builds show tags such as `v0.2.7`. | Bottom-left footer, such as `v2026.06.01`. |
+| Settings | Windows: `%APPDATA%\date-formatter\settings.json`. macOS: `~/Library/Application Support/date-formatter/settings.json`. | `dates-formatter-settings.json` next to the Python script. |
+| Manual | Built into the app and also shipped as `user-manual.html`. | `user-manual.html` next to the Python script. |
+| Logs | Progress and messages appear in the app run panel. | `%TEMP%\date-formatter.log`. |
+
+When reporting a problem, include the app version, operating system, release source, file type, conversion mode, and one or two sample source values.

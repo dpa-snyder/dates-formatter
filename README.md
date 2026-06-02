@@ -1,24 +1,55 @@
 # Dates Formatter
 
-A GUI-based Python app for normalizing inconsistent date formats in Excel and CSV spreadsheets. Designed for archival and records management workflows where date fields contain a wide variety of input formats that need to be standardized before import or export.
+Desktop app for normalizing inconsistent date formats in Excel and CSV spreadsheets. Built for archival and records-management workflows where source date fields may be exact, fuzzy, partial, ISO/Dublin Core-shaped, or ambiguous.
+
+## Current release
+
+Latest public release: `v0.2.7`, YY prefix override.
+
+Release page:
+
+```text
+https://github.com/dpa-snyder/dates-formatter/releases/latest
+```
+
+| Platform | Asset | Notes |
+|----------|-------|-------|
+| Windows | `date-formatter.exe` | Standalone Wails desktop app. Public build is currently unsigned, so browsers and SmartScreen may warn. |
+| macOS | `date-formatter-v0.2.7-macos-arm64.zip` | Apple silicon app bundle. Public build is code-signed locally but not Developer ID signed or notarized, so Gatekeeper may warn. |
+
+Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
 
 ## App modes
 
-The app provides three conversion options in a single interface.
+The app provides three conversion options in one interface.
 
 | Mode | Output | Use case |
 |------|--------|----------|
-| Single Date Conversion | `MM/DD/YYYY` | Records that should resolve to a single normalized date |
-| ArchivERA Conversion | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range |
-| Dublin Core Conversion | Dublin Core-friendly date output (ranges and single dates) | Convert mixed inputs into Dublin Core format |
+| Single Date | `MM/DD/YYYY` | Records that should resolve to a single normalized date. |
+| ArchivEra | `MM/DD/YYYY - MM/DD/YYYY` | Records that should resolve to a normalized date range. |
+| Dublin Core | Normal single-date or range output from ISO/DC inputs | Mixed inputs with Dublin Core or ISO 8601-style dates. |
+
+## YY prefix override
+
+Two-digit years stay ambiguous unless the user resolves them.
+
+| Input | Setting | Output | Check |
+|-------|---------|--------|-------|
+| `5/29/26` | YY prefix off | `05/29/26` | `Yes` |
+| `Jun-62` | YY prefix off | `06/01/62 - 06/30/62` | `Yes` |
+| `5/29/26` | YY prefix `18` | `05/29/1826` | blank |
+| `Jun-62` | YY prefix `18` | `06/01/1862 - 06/30/1862` | blank |
+
+No automatic century pivot is used for historical data.
 
 ## Output guarantees
 
-Every formatted output respects three invariants regardless of mode.
+Every formatted output respects these invariants.
 
-* Days per month follow the calendar. The app never emits `02/30/1990` or `04/31/1990`.
-* February 29 only appears in valid leap years (divisible by 4, except century years not divisible by 400).
-* In any output range `start - end`, the start date is on or before the end date. Reversed inputs are swapped before saving.
+* Days per month follow the calendar. The app does not emit generated values like `02/30/1990` or `04/31/1990`.
+* February 29 only appears in valid leap years.
+* In any output range `start - end`, the start date is on or before the end date.
+* Excel serial values match Excel's displayed date, including the 1900 leap-year quirk.
 
 Invalid input dates are not corrected. They are passed through unchanged and flagged for review.
 
@@ -29,86 +60,83 @@ After running any mode, three columns appear together in the spreadsheet.
 | Column | Description |
 |--------|-------------|
 | `{chosen column}` | Formatted date output. Replaces the original value in place. |
-| `Original_{chosen column}` | Original raw value preserved for review |
-| `Check {chosen column}` | `Yes` if the output needs manual review |
+| `Original_{chosen column}` | Original raw value preserved for review. |
+| `Check {chosen column}` | `Yes` if the output needs manual review. |
+
+The Wails app can overwrite the original file or write a sibling `-formatted` copy.
 
 ## Documentation
 
 | Document | Purpose |
 |----------|---------|
-| `MANUAL.md` and `user-manual.html` | End-user guide. The HTML version is opened from the app's "View User Manual" button. |
+| `MANUAL.md` and `user-manual.html` | End-user guide. Must stay current with app behavior and release assets. |
 | `CONVERSIONS.md` | Technical reference. Per-mode input/output tables in parser order. |
 | `TODOS.md` | Active task list. |
 | `DONE.md` | Completed work archive. |
-| `recommendations.md` | Review notes and findings (IDs `R-001`+). |
+| `index.html` | GitHub Pages dashboard. Must stay current before commits and pushes. |
+| `AGENTS.md` | Repo-local working rules for future agents. |
 
 ## Structure
 
 ```text
-prod/                          # Stable, deployment-ready scripts
+wails-app/                     # Current desktop app, Wails + React + Go
+  dateengine/                  # Pure Go date conversion engine
+  frontend/public/user-manual.html
+  build/bin/date-formatter.app # Local macOS build output, ignored when untracked
+
+prod/                          # Legacy Python deploy-staging scripts
   date-formatter-gui.py
   date-formatter-gui.bat
-  user-manual.html             # Opened by the in-app "View User Manual" button
-  date-formatter-single.py     # Legacy single-mode script
-  date-formatter-range.py      # Legacy range-mode script
+  user-manual.html
 
-src/                           # Active development
+src/                           # Legacy Python development copy
   date-formatter-gui.py
   user-manual.html
 
+tests/                         # Python unittest fixtures
 test-files/                    # Sample spreadsheets
-tests/                         # unittest suite
 
-ASSOCIATIONS.md                # Launcher and deployment reference
-requirements.txt
+.github/workflows/             # GitHub Actions release builds
+index.html                     # Project dashboard
+requirements.txt               # Legacy Python dependencies
 ```
 
-## Requirements
+## Build and test
 
-```text
-customtkinter==5.2.2
-pandas==2.2.2
-openpyxl==3.1.5
-```
+Use Nix packages first when possible.
 
-Install with:
-
-```bash
-pip install -r requirements.txt
-```
-
-## Deploying to Windows
-
-Copy `date-formatter-gui.py` and `user-manual.html` from `prod/` to:
-
-```text
-%USERPROFILE%\scripts\
-```
-
-Both files must live in the same folder so the "View User Manual" button can find the HTML.
-
-The batch launcher can live anywhere convenient, including the Desktop. It points back to:
-
-```text
-%USERPROFILE%\scripts\date-formatter-gui.py
-```
-
-To install the desktop launcher, copy `date-formatter-gui.bat` from `prod/` to the Desktop and launch it.
-
-## Automated tests
-
-The repo includes a small `unittest` suite that reads cases directly from the Excel fixtures in `test-files/`.
-
-Run everything with:
+Python tests:
 
 ```bash
 ./run-tests.sh
 ```
 
-Or run the underlying command directly:
+Go tests:
 
 ```bash
-python3 -m unittest discover -s tests -q
+cd wails-app
+GOCACHE=/tmp/dates-formatter-go-build go test ./...
 ```
 
-The suite is split into smoke tests for fixture rows that should already work, and expected-failure regression tests for known TODO bugs. When a TODO is fixed, remove that test's `expectedFailure` marker and keep the fixture row as a permanent regression check.
+Frontend build:
+
+```bash
+cd wails-app/frontend
+npm run build
+```
+
+Wails build examples:
+
+```bash
+cd wails-app
+nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.7'"
+```
+
+## Release notes
+
+Before committing or pushing app changes:
+
+* Update `MANUAL.md` and all `user-manual.html` copies if behavior, launch steps, warnings, or release assets changed.
+* Update `index.html` dashboard so public project state is current.
+* Keep `README.md`, `TODOS.md`, and `DONE.md` aligned with the same change.
+* Protect secrets. Do not include local tokens, credentials, or private spreadsheet data.

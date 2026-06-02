@@ -1,5 +1,7 @@
 # Recommendations and Review Report
 
+Historical note: this report covers earlier Python GUI review work. Current release state is documented in `README.md`, `MANUAL.md`, `TODOS.md`, `DONE.md`, `ASSOCIATIONS.md`, and the dashboard.
+
 Review of `src/date-formatter-gui.py` against two client-reported issues, plus the unified `before` and `after` patch, GUI polish, user manual, and supporting cleanup. `prod/date-formatter-gui.py` and `prod/user-manual.html` are byte-identical to their `src/` counterparts. `prod/` is the deploy-staging copy, not a parallel codebase.
 
 ## Status summary
