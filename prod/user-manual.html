@@ -727,7 +727,7 @@
           <h3>Enterprise or IT-managed install</h3>
           <p>
             If your IT department provided the app, use the shortcut or application they installed.
-            Enterprise builds may be signed and managed, so Windows or macOS may open them without
+            Enterprise builds may be signed and managed, so Windows, macOS, or Linux may open them without
             extra warning prompts.
           </p>
         </div>
@@ -738,13 +738,16 @@
           <table style="margin-top:10px">
             <thead><tr><th>Platform</th><th>File</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td>Windows</td><td><code>date-formatter.exe</code></td><td>Standalone desktop app.</td></tr>
-              <tr><td>macOS</td><td><code>date-formatter-v0.2.7-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
+              <tr><td>Windows</td><td><code>date-formatter-v0.2.8-windows-amd64.exe</code></td><td>Standalone desktop app.</td></tr>
+              <tr><td>macOS</td><td><code>date-formatter-v0.2.8-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-amd64.deb</code></td><td>Debian/Ubuntu-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-x86_64.rpm</code></td><td>Fedora/RHEL-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-amd64.tar.gz</code></td><td>Portable fallback archive.</td></tr>
             </tbody>
           </table>
           <div class="note" style="margin-top:12px">
             Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows,
-            macOS, or your browser. Enterprise or IT-distributed builds may be signed and managed, and
+            macOS, Linux desktop environments, or your browser. Enterprise or IT-distributed builds may be signed and managed, and
             may launch without these warnings. For public downloads, continue only if the file came from
             the official release page.
           </div>
@@ -767,6 +770,22 @@
           </p>
           <p style="margin-top:8px">If your IT policy allows it and macOS still blocks launch, remove quarantine:</p>
           <pre><code>xattr -dr com.apple.quarantine /Applications/date-formatter.app</code></pre>
+        </div>
+        <div class="card">
+          <h3>Linux package warnings</h3>
+          <p>For Debian or Ubuntu-family systems, install the package with your normal package tool:</p>
+          <pre><code>sudo apt install ./date-formatter-v0.2.8-linux-amd64.deb</code></pre>
+          <p style="margin-top:8px">For Fedora, RHEL, or compatible systems:</p>
+          <pre><code>sudo dnf install ./date-formatter-v0.2.8-linux-x86_64.rpm</code></pre>
+          <p style="margin-top:8px">
+            The packages install the app, desktop launcher metadata, icon, and this manual. They declare
+            GTK3 and WebKitGTK 4.1 runtime dependencies. If your distro uses different package names,
+            use the fallback archive:
+          </p>
+          <pre><code>tar -xzf date-formatter-v0.2.8-linux-amd64.tar.gz
+cd date-formatter-v0.2.8-linux-amd64
+chmod +x date-formatter
+./date-formatter</code></pre>
         </div>
         <div class="card">
           <h3>Legacy Python launch</h3>
@@ -1266,6 +1285,14 @@
           </p>
         </div>
         <div class="timeline-item">
+          <h3>Linux package will not install</h3>
+          <p>
+            Use the <code>.deb</code> on Debian/Ubuntu-family systems or <code>.rpm</code> on
+            Fedora/RHEL-family systems. If dependency names do not match your distro, use the
+            <code>.tar.gz</code> fallback and install GTK3 plus WebKitGTK manually.
+          </p>
+        </div>
+        <div class="timeline-item">
           <h3>File cannot be overwritten</h3>
           <p>Close Excel or whatever has the spreadsheet open, then run again. Or choose <strong>Save copy</strong>.</p>
         </div>
@@ -1336,8 +1363,8 @@
           <table>
             <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
             <tbody>
-              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.7</code>.</td></tr>
-              <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>.</td></tr>
+              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.8</code>.</td></tr>
+              <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>. Linux: <code>~/.config/date-formatter/settings.json</code>.</td></tr>
               <tr><td>Wails manual</td><td>Built into the app and also shipped as <code>user-manual.html</code>.</td></tr>
               <tr><td>Legacy Python version</td><td>Shown in the bottom-left footer, such as <code>v2026.06.01</code>.</td></tr>
               <tr><td>Legacy Python log</td><td><code>%TEMP%\date-formatter.log</code> records run history and errors.</td></tr>

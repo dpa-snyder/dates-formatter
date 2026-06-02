@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Date Formatter
+Comment=Normalize archival spreadsheet date columns
+Exec=/usr/bin/date-formatter
+Icon=date-formatter
+Terminal=false
+Categories=Office;Utility;
+StartupWMClass=date-formatter

@@ -6,7 +6,7 @@
   <title>Date Formatter — Project Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Serif:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet">
   <style>
     /* ── Tokens ────────────────────────────────────────────────── */
     :root {
@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.7 ships Wails desktop builds for Windows EXE and macOS arm64 app.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.8 ships Wails desktop builds for Windows, macOS, and Linux.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -308,8 +308,8 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Validate v0.2.7 release</div>
-              <div class="t-note">Smoke-test public EXE and macOS arm64 zip with <code>9200-W22.xlsx</code>. Confirm browser warnings, SmartScreen, Gatekeeper, YY prefix, overwrite/copy, and open file/folder actions.</div>
+              <div class="t-title">Validate v0.2.8 release</div>
+              <div class="t-note">Smoke-test public Windows EXE, macOS zip, Linux deb/rpm/tarball with <code>9200-W22.xlsx</code>. Confirm warnings, runtime dependencies, YY prefix, overwrite/copy, and open file/folder actions.</div>
             </div>
             <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
           </div>
@@ -324,12 +324,12 @@
           </div>
 
           <div class="todo">
-            <span class="tid">T-020</span>
+            <span class="tid">T-022</span>
             <div>
-              <div class="t-title">Automate macOS release artifact</div>
-              <div class="t-note">Windows EXE is built in GitHub Actions. macOS arm64 zip for <code>v0.2.7</code> was built locally; add macOS workflow after signing path is decided.</div>
+              <div class="t-title">Linux repository publishing</div>
+              <div class="t-note">Current release ships <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code>. Decide whether to add signed apt/yum repos, AppImage, Flatpak, Snap, AUR, or distro-native submissions.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
           </div>
 
           <div class="todo">
@@ -419,15 +419,15 @@
             <div class="pnum">1</div>
             <div>
               <div class="p-title">Release Validation</div>
-              <div class="p-sub">Smoke-test public Windows and macOS release assets in real user environments.</div>
+              <div class="p-sub">Smoke-test public Windows, macOS, and Linux release assets in real user environments.</div>
             </div>
             <span class="pbadge2 badge-warn">Next</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter.exe</code> on Windows with browser and SmartScreen warnings documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.7-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Smoke-test YY prefix, overwrite/save-copy, date-column auto-detection, cancel, open file, and open folder</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.8-windows-amd64.exe</code> on Windows with browser and SmartScreen warnings documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.8-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test Linux <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code> assets with runtime dependencies documented</div>
             </div>
           </div>
         </div>
@@ -454,16 +454,16 @@
           <div class="phase-head" onclick="togglePhase(this)">
             <div class="pnum">3</div>
             <div>
-              <div class="p-title">Release Automation</div>
-              <div class="p-sub">Windows EXE is automated. macOS release zip still needs a workflow after signing decisions.</div>
+              <div class="p-title">Linux Distribution</div>
+              <div class="p-sub">Package files are automated. Repository-style publishing still needs signing, hosting, and distro decisions.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-020</span>Add macOS arm64 build workflow when signing/notarization process is known</div>
-              <div class="ptask"><span class="wid">T-020</span>Attach macOS zip to tagged GitHub releases automatically</div>
-              <div class="ptask"><span class="wid">T-020</span>Keep release body and manual aligned with generated asset names</div>
+              <div class="ptask"><span class="wid">T-022</span>Decide whether to publish signed apt/yum repositories for enterprise-friendly installs</div>
+              <div class="ptask"><span class="wid">T-022</span>Evaluate AppImage, Flatpak, Snap, AUR, or distro-native maintainer paths</div>
+              <div class="ptask"><span class="wid">T-022</span>Keep Linux dependency notes current as distro WebKitGTK package names change</div>
             </div>
           </div>
         </div>
@@ -533,12 +533,13 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">31 total</span>
+        <span class="pbadge">32 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-032</span><span class="dtext">Multi-platform release workflow builds Windows EXE, macOS zip, Linux tarball, deb, and rpm assets</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-031</span><span class="dtext">Repo rule added: manual and dashboard must be current before commits or pushes</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-030</span><span class="dtext">Wails desktop release path ships Windows EXE and macOS arm64 app assets for <code>v0.2.7</code></span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-030</span><span class="dtext">Initial Wails desktop release path shipped Windows EXE and macOS arm64 app assets</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-029</span><span class="dtext">YY prefix override preserves unresolved <code>YY</code> by default and expands with user-provided prefix</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-028</span><span class="dtext">Numeric two-digit year dates now normalize and remain flagged unless YY prefix resolves them</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-027</span><span class="dtext">Retired legacy Dublin Core script — GUI Dublin Core mode is the sole supported entry point</span></div>
@@ -562,8 +563,8 @@
             <div class="dd">Decide whether public Windows/macOS signing is handled by project release workflow or by enterprise IT distribution.</div>
           </div>
           <div class="decision">
-            <div class="dq">macOS release workflow timing?</div>
-            <div class="dd">Default: wait until signing/notarization path is known, then add automated macOS build and zip attachment.</div>
+            <div class="dq">Linux repository publishing?</div>
+            <div class="dd">Current release ships package files. Decide whether to publish signed apt/yum repos, AppImage, Flatpak, Snap, AUR, or native distro packages.</div>
           </div>
           <div class="decision">
             <div class="dq">Legacy Python support window?</div>
@@ -622,7 +623,7 @@
         <a href="https://github.com/dpa-snyder/dates-formatter/releases/latest" class="res-card" target="_blank" rel="noopener">
           <div class="rc-label">Release</div>
           <div class="rc-title">Latest Downloads</div>
-          <div class="rc-desc">Windows EXE and macOS arm64 app assets for the current public release</div>
+          <div class="rc-desc">Windows, macOS, and Linux app assets for the current public release</div>
         </a>
         <a href="wails-app/README.md" class="res-card">
           <div class="rc-label">Desktop App</div>
@@ -849,7 +850,7 @@
     /* Live pills — all static strings, no API data injected */
     setLive([
       (repo.visibility || 'public').toUpperCase(),
-      'Release: v0.2.7',
+      'Release: v0.2.8',
       'Issues: ' + openIssues.length,
       'PRs: ' + openPRs,
       'Pushed ' + fmtDate(repo.pushed_at),

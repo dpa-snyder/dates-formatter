@@ -36,7 +36,7 @@ npm run build
 Release builds inject the app version into `main.version`.
 
 ```bash
-wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.7'"
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
 ```
 
 Windows release build in GitHub Actions uses:
@@ -45,18 +45,27 @@ Windows release build in GitHub Actions uses:
 wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
 ```
 
-macOS arm64 local build uses:
+macOS arm64 release build uses:
 
 ```bash
-wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.7'"
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
+```
+
+Linux amd64 release build uses WebKitGTK 4.1 and nFPM packages:
+
+```bash
+wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
+nfpm package --config ../packaging/linux/nfpm.yaml --packager deb
+nfpm package --config ../packaging/linux/nfpm.yaml --packager rpm
 ```
 
 ## Signing status
 
-Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, or your browser.
+Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, Linux desktop environments, or your browser.
 
 * Windows users may see browser warnings and SmartScreen "Unknown publisher" prompts.
 * macOS users may need Control-click, Open, or an allowed quarantine removal command.
+* Linux users may need distro-specific GTK3 and WebKitGTK runtime packages when using the fallback tarball.
 * Enterprise builds may be signed or managed by IT and may not show these prompts.
 
 Keep `../MANUAL.md`, `../user-manual.html`, and `frontend/public/user-manual.html` current whenever launch behavior, release assets, or app behavior changes.

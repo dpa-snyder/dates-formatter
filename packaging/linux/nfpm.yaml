@@ -1,0 +1,45 @@
+name: date-formatter
+arch: amd64
+platform: linux
+version: ${VERSION}
+version_schema: semver
+release: 1
+section: utils
+priority: optional
+maintainer: Bryan Snyder <noreply@github.com>
+description: Archival spreadsheet date normalization desktop app.
+vendor: dpa-snyder
+homepage: https://github.com/dpa-snyder/dates-formatter
+license: NOASSERTION
+contents:
+  - src: build/bin/date-formatter
+    dst: /usr/bin/date-formatter
+    file_info:
+      mode: 0755
+  - src: ../packaging/linux/date-formatter.desktop
+    dst: /usr/share/applications/date-formatter.desktop
+    file_info:
+      mode: 0644
+  - src: frontend/src/assets/images/logo-universal.png
+    dst: /usr/share/pixmaps/date-formatter.png
+    file_info:
+      mode: 0644
+  - src: ../user-manual.html
+    dst: /usr/share/doc/date-formatter/user-manual.html
+    file_info:
+      mode: 0644
+  - src: ../README.md
+    dst: /usr/share/doc/date-formatter/README.md
+    file_info:
+      mode: 0644
+overrides:
+  deb:
+    depends:
+      - libgtk-3-0
+      - libwebkit2gtk-4.1-0
+  rpm:
+    depends:
+      - gtk3
+      - webkit2gtk4.1
+rpm:
+  summary: Date Formatter
