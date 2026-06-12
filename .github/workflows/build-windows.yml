@@ -10,6 +10,7 @@ permissions:
   contents: write
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   WAILS_VERSION: v2.12.0
   NFPM_VERSION: v2.46.3
   ACTIONLINT_VERSION: v1.7.7
