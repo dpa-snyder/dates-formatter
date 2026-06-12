@@ -12,6 +12,7 @@ permissions:
 env:
   WAILS_VERSION: v2.12.0
   NFPM_VERSION: v2.46.3
+  ACTIONLINT_VERSION: v1.7.7
   NODE_VERSION: '20'
   GO_VERSION: '1.24'
 
@@ -74,7 +75,11 @@ jobs:
         run: python -m unittest discover -s tests -q
 
       - name: Lint workflow
-        uses: rhysd/actionlint@v1
+        env:
+          ACTIONLINT_VER: ${{ env.ACTIONLINT_VERSION }}
+        run: |
+          go install "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VER}"
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/build-windows.yml
 
       - name: Validate static HTML
         run: |
