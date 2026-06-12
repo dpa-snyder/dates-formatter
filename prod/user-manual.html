@@ -651,6 +651,7 @@
       <a class="nav-link" href="#run">6. Run it</a>
 
       <div class="nav-group-label">Reference</div>
+      <a class="nav-link" href="#shortcuts">Keyboard shortcuts</a>
       <a class="nav-link" href="#output">Understanding output</a>
       <a class="nav-link" href="#safeguards">Safeguards</a>
       <a class="nav-link" href="#special">Special outputs</a>
@@ -738,11 +739,11 @@
           <table style="margin-top:10px">
             <thead><tr><th>Platform</th><th>File</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td>Windows</td><td><code>date-formatter-v0.2.8-windows-amd64.exe</code></td><td>Standalone desktop app.</td></tr>
-              <tr><td>macOS</td><td><code>date-formatter-v0.2.8-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-amd64.deb</code></td><td>Debian/Ubuntu-family package.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-x86_64.rpm</code></td><td>Fedora/RHEL-family package.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.8-linux-amd64.tar.gz</code></td><td>Portable fallback archive.</td></tr>
+              <tr><td>Windows</td><td><code>date-formatter-v0.2.9-windows-amd64.exe</code></td><td>Standalone desktop app.</td></tr>
+              <tr><td>macOS</td><td><code>date-formatter-v0.2.9-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.9-linux-amd64.deb</code></td><td>Debian/Ubuntu-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.9-linux-x86_64.rpm</code></td><td>Fedora/RHEL-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.9-linux-amd64.tar.gz</code></td><td>Portable fallback archive.</td></tr>
             </tbody>
           </table>
           <div class="note" style="margin-top:12px">
@@ -774,16 +775,16 @@
         <div class="card">
           <h3>Linux package warnings</h3>
           <p>For Debian or Ubuntu-family systems, install the package with your normal package tool:</p>
-          <pre><code>sudo apt install ./date-formatter-v0.2.8-linux-amd64.deb</code></pre>
+          <pre><code>sudo apt install ./date-formatter-v0.2.9-linux-amd64.deb</code></pre>
           <p style="margin-top:8px">For Fedora, RHEL, or compatible systems:</p>
-          <pre><code>sudo dnf install ./date-formatter-v0.2.8-linux-x86_64.rpm</code></pre>
+          <pre><code>sudo dnf install ./date-formatter-v0.2.9-linux-x86_64.rpm</code></pre>
           <p style="margin-top:8px">
             The packages install the app, desktop launcher metadata, icon, and this manual. They declare
             GTK3 and WebKitGTK 4.1 runtime dependencies. If your distro uses different package names,
             use the fallback archive:
           </p>
-          <pre><code>tar -xzf date-formatter-v0.2.8-linux-amd64.tar.gz
-cd date-formatter-v0.2.8-linux-amd64
+          <pre><code>tar -xzf date-formatter-v0.2.9-linux-amd64.tar.gz
+cd date-formatter-v0.2.9-linux-amd64
 chmod +x date-formatter
 ./date-formatter</code></pre>
         </div>
@@ -806,7 +807,7 @@ chmod +x date-formatter
         <div class="card">
           <p>The Wails desktop app has these main areas.</p>
           <ol class="steps-list" style="margin-top:12px">
-            <li><strong>Sidebar.</strong> Switch between Converter and User Manual. Change theme and palette. View app version.</li>
+            <li><strong>Sidebar.</strong> Switch between Converter and User Manual. Change theme and palette. Open Settings. View app version.</li>
             <li><strong>Conversion Mode.</strong> Choose Single Date, ArchivEra, or Dublin Core.</li>
             <li><strong>File.</strong> Drop an <code>.xlsx</code> or <code>.csv</code> file, browse for one, or reopen a recent file.</li>
             <li><strong>Date Columns.</strong> Pick columns to convert. Date-looking columns are preselected and marked with a <code>dates</code> badge.</li>
@@ -998,6 +999,27 @@ chmod +x date-formatter
             Click <strong>Cancel</strong> to stop a long run. When the run finishes, use <strong>Open file</strong>
             or <strong>Open folder</strong> from the result panel.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Shortcuts ──────────────────────────────────────────────── -->
+    <section class="section" id="shortcuts">
+      <div class="section-header">
+        <p class="eyebrow">Reference</p>
+        <h2>Keyboard shortcuts</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <table>
+            <thead><tr><th>Action</th><th>Windows/Linux</th><th>macOS</th></tr></thead>
+            <tbody>
+              <tr><td>Open file picker</td><td><code>Ctrl+O</code></td><td><code>Cmd+O</code></td></tr>
+              <tr><td>Run conversion</td><td><code>Ctrl+R</code></td><td><code>Cmd+R</code></td></tr>
+              <tr><td>Open Settings</td><td><code>Ctrl+,</code></td><td><code>Cmd+,</code></td></tr>
+              <tr><td>Open User Manual</td><td><code>Ctrl+/</code></td><td><code>Cmd+/</code></td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -1363,7 +1385,7 @@ chmod +x date-formatter
           <table>
             <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
             <tbody>
-              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.8</code>.</td></tr>
+              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.9</code>.</td></tr>
               <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>. Linux: <code>~/.config/date-formatter/settings.json</code>.</td></tr>
               <tr><td>Wails manual</td><td>Built into the app and also shipped as <code>user-manual.html</code>.</td></tr>
               <tr><td>Legacy Python version</td><td>Shown in the bottom-left footer, such as <code>v2026.06.01</code>.</td></tr>

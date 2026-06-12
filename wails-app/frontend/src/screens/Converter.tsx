@@ -99,10 +99,10 @@ export default function Converter() {
     }
   }, [])
 
-  const handleBrowse = async () => {
+  const handleBrowse = useCallback(async () => {
     const path = await PickFile()
     if (path) loadFile(path)
-  }
+  }, [loadFile])
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
@@ -140,7 +140,7 @@ export default function Converter() {
 
   // ── Run ──────────────────────────────────────────────────────────────────────
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!filePath || selectedCols.length === 0) return
     const cleanPrefix = yyPrefix.trim()
     if (yyOverrideEnabled && !/^\d{2}$/.test(cleanPrefix)) {
@@ -162,14 +162,29 @@ export default function Converter() {
       yyPrefix: cleanPrefix,
     })
     StartProcess(opts)
-  }
+  }, [filePath, selectedCols, yyPrefix, yyOverrideEnabled, mode, outputMode])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     CancelProcess()
     setStage('file_loaded')
     setProgress(null)
     setLog(prev => [...prev, 'Cancelled by user.'])
-  }
+  }, [])
+
+  useEffect(() => {
+    function onBrowse() {
+      if (stage !== 'running') handleBrowse()
+    }
+    function onRun() {
+      if (stage !== 'running') handleRun()
+    }
+    window.addEventListener('df:shortcut:browse', onBrowse)
+    window.addEventListener('df:shortcut:run', onRun)
+    return () => {
+      window.removeEventListener('df:shortcut:browse', onBrowse)
+      window.removeEventListener('df:shortcut:run', onRun)
+    }
+  }, [handleBrowse, handleRun, stage])
 
   const handleReset = () => {
     setStage('idle')

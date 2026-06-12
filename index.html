@@ -96,7 +96,7 @@
       border-radius: 999px; padding: 4px 11px;
       font-size: 0.72rem; font-weight: 600; white-space: nowrap;
     }
-    .ldot { width: 6px; height: 6px; border-radius: 50%; background: #6ee7b7; flex-shrink: 0; }
+    .ldot { width: 6px; height: 6px; border-radius: 50%; background: #6ee7b7; flex-shrink: 0; font-size: 0; line-height: 0; overflow: hidden; }
 
     /* ── Page ──────────────────────────────────────────────────── */
     .page { max-width: 1160px; margin: 0 auto; padding: 18px 20px 64px; display: grid; gap: 14px; }
@@ -143,7 +143,7 @@
     .t-title { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
     .t-note { font-size: 0.76rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
     .imp { display: flex; gap: 2px; margin-top: 4px; }
-    .imp span { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); opacity: 0.2; }
+    .imp span { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); opacity: 0.2; font-size: 0; line-height: 0; overflow: hidden; }
     .imp span.on { opacity: 1; }
 
     /* ── Language ──────────────────────────────────────────────── */
@@ -151,7 +151,7 @@
     .lang-rows { display: grid; gap: 8px; }
     .lang-row { display: grid; grid-template-columns: 100px 1fr 42px; gap: 8px; align-items: center; font-size: 0.77rem; }
     .lang-name { display: flex; align-items: center; gap: 6px; font-weight: 500; color: var(--ink); }
-    .ldot2 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ldot2 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; font-size: 0; line-height: 0; overflow: hidden; }
     .ltrack { height: 7px; border-radius: 999px; overflow: hidden; background: var(--bg2); border: 1px solid var(--line); }
     .lfill { height: 100%; border-radius: 999px; }
     .lpct { font-size: 0.71rem; font-weight: 600; color: var(--muted); text-align: right; }
@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.8 ships Wails desktop builds for Windows, macOS, and Linux.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.9 ships Wails desktop builds for Windows, macOS, and Linux.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -276,7 +276,7 @@
       </div>
     </div>
     <div class="live-row" id="live-row">
-      <span class="lpill"><span class="ldot"></span>Loading live stats…</span>
+      <span class="lpill"><span class="ldot" aria-hidden="true">.</span>Loading live stats…</span>
     </div>
   </div>
 </header>
@@ -300,7 +300,7 @@
     <article class="panel">
       <div class="ph">
         <h2>Active TODOs</h2>
-        <span class="pbadge">7 items</span>
+        <span class="pbadge">5 items</span>
       </div>
       <div class="pb">
         <div class="todo-list">
@@ -308,10 +308,10 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Validate v0.2.8 release</div>
+              <div class="t-title">Validate v0.2.9 release</div>
               <div class="t-note">Smoke-test public Windows EXE, macOS zip, Linux deb/rpm/tarball with <code>9200-W22.xlsx</code>. Confirm warnings, runtime dependencies, YY prefix, overwrite/copy, and open file/folder actions.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+            <div class="imp" aria-label="Importance 4 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
           </div>
 
           <div class="todo">
@@ -320,7 +320,7 @@
               <div class="t-title">Public signing and notarization</div>
               <div class="t-note">Windows needs publisher signing. macOS needs Developer ID signing and notarization. Enterprise signing remains separate if IT manages distribution.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+            <div class="imp" aria-label="Importance 5 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span></div>
           </div>
 
           <div class="todo">
@@ -329,7 +329,7 @@
               <div class="t-title">Linux repository publishing</div>
               <div class="t-note">Current release ships <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code>. Decide whether to add signed apt/yum repos, AppImage, Flatpak, Snap, AUR, or distro-native submissions.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+            <div class="imp" aria-label="Importance 3 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
           </div>
 
           <div class="todo">
@@ -338,34 +338,16 @@
               <div class="t-title">Custom output format options</div>
               <div class="t-note">User-selectable shape: range vs single, year-first, day-first, separator choice, 2- vs 4-digit year. Requires Go and Python legacy formatter refactor.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+            <div class="imp" aria-label="Importance 3 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
           </div>
 
           <div class="todo">
-            <span class="tid">T-016</span>
+            <span class="tid">T-023</span>
             <div>
-              <div class="t-title">Settings dialog</div>
-              <div class="t-note">Wails already persists theme, palette, recent files, output mode, and YY settings. Add visible dialog only for defaults, output folder, log level, or advanced options.</div>
+              <div class="t-title">Update repo description</div>
+              <div class="t-note">Current GitHub description still names the old Python script. Updating it needs repo admin/settings permission.</div>
             </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
-          </div>
-
-          <div class="todo">
-            <span class="tid">T-014</span>
-            <div>
-              <div class="t-title">Keyboard shortcuts</div>
-              <div class="t-note"><code>Ctrl/Cmd+O</code> browse, <code>Ctrl/Cmd+R</code> run, <code>Ctrl/Cmd+,</code> settings, <code>Ctrl/Cmd+/</code> manual.</div>
-            </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
-          </div>
-
-          <div class="todo">
-            <span class="tid">T-021</span>
-            <div>
-              <div class="t-title">Triage stale GitHub issues</div>
-              <div class="t-note">Open issues #1 through #5 predate Wails release. Review against current app and close, update, or replace with release-specific issues.</div>
-            </div>
-            <div class="imp"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+            <div class="imp" aria-label="Importance 2 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span><span aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
           </div>
 
         </div>
@@ -425,8 +407,8 @@
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.8-windows-amd64.exe</code> on Windows with browser and SmartScreen warnings documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.8-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.9-windows-amd64.exe</code> on Windows with browser and SmartScreen warnings documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.9-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
               <div class="ptask"><span class="wid">T-001</span>Test Linux <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code> assets with runtime dependencies documented</div>
             </div>
           </div>
@@ -479,8 +461,6 @@
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-014</span>Add keyboard shortcuts for browse, run, settings, and manual</div>
-              <div class="ptask"><span class="wid">T-016</span>Add settings dialog only if users need visible control for advanced defaults</div>
               <div class="ptask"><span class="wid">T-017</span>Refactor formatter to support custom output shapes</div>
             </div>
           </div>
@@ -491,15 +471,13 @@
             <div class="pnum">5</div>
             <div>
               <div class="p-title">GitHub Hygiene</div>
-              <div class="p-sub">Open issues predate current release and need triage against Wails behavior.</div>
+              <div class="p-sub">Repo metadata still needs admin permission to update.</div>
             </div>
             <span class="pbadge2 badge-neutral">Pending</span>
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-021</span>Review issues #1 through #5 against current Wails release</div>
-              <div class="ptask"><span class="wid">T-021</span>Close stale items or replace them with current release-specific issues</div>
-              <div class="ptask"><span class="wid">T-021</span>Keep GitHub repo description aligned with current Wails desktop app</div>
+              <div class="ptask"><span class="wid">T-023</span>Update stale GitHub repo description once repo settings permission is available</div>
             </div>
           </div>
         </div>
@@ -533,10 +511,12 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">32 total</span>
+        <span class="pbadge">34 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-034</span><span class="dtext">Closed stale GitHub issues #1 through #5 as fixed or superseded by current Wails releases</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-033</span><span class="dtext">Keyboard shortcuts and Settings dialog added for the Wails desktop app</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-032</span><span class="dtext">Multi-platform release workflow builds Windows EXE, macOS zip, Linux tarball, deb, and rpm assets</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-031</span><span class="dtext">Repo rule added: manual and dashboard must be current before commits or pushes</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-030</span><span class="dtext">Initial Wails desktop release path shipped Windows EXE and macOS arm64 app assets</span></div>
@@ -554,7 +534,7 @@
     <article class="panel">
       <div class="ph">
         <h2>Open Decisions</h2>
-        <span class="pbadge">4 items</span>
+        <span class="pbadge">3 items</span>
       </div>
       <div class="pb">
         <div class="decisions">
@@ -569,10 +549,6 @@
           <div class="decision">
             <div class="dq">Legacy Python support window?</div>
             <div class="dd">Python GUI remains in <code>src/</code> and <code>prod/</code>. Decide when Wails fully replaces it for field deployments.</div>
-          </div>
-          <div class="decision">
-            <div class="dq">Stale GitHub issues?</div>
-            <div class="dd">Issues #1 through #5 predate Wails. Decide whether to close as superseded or rewrite around current release behavior.</div>
           </div>
         </div>
       </div>
@@ -713,6 +689,8 @@
       span.className = 'lpill';
       var dot = document.createElement('span');
       dot.className = 'ldot';
+      dot.setAttribute('aria-hidden', 'true');
+      dot.textContent = '.';
       span.appendChild(dot);
       span.appendChild(document.createTextNode(p));
       row.appendChild(span);
@@ -755,6 +733,8 @@
       var dot = document.createElement('div');
       dot.className = 'ldot2';
       dot.style.background = col;
+      dot.setAttribute('aria-hidden', 'true');
+      dot.textContent = '.';
 
       nameDiv.appendChild(dot);
       nameDiv.appendChild(document.createTextNode(esc(name)));
@@ -850,7 +830,7 @@
     /* Live pills — all static strings, no API data injected */
     setLive([
       (repo.visibility || 'public').toUpperCase(),
-      'Release: v0.2.8',
+      'Release: v0.2.9',
       'Issues: ' + openIssues.length,
       'PRs: ' + openPRs,
       'Pushed ' + fmtDate(repo.pushed_at),
@@ -873,17 +853,19 @@
     span.className = 'lpill';
     var dot = document.createElement('span');
     dot.className = 'ldot';
+    dot.setAttribute('aria-hidden', 'true');
+    dot.textContent = '.';
     span.appendChild(dot);
     span.appendChild(document.createTextNode('GitHub API unavailable — stats may be stale'));
     row.appendChild(span);
 
-    /* Fallback values from last known state (2026-06-01) */
-    setText('s-issues', '5');
+    /* Fallback values from last known state (2026-06-12) */
+    setText('s-issues', '0');
     setText('s-prs', '0');
     setText('s-stars', '0');
     setText('s-forks', '0');
     setText('s-size', '76.7 MB');
-    setText('s-push', 'Jun 1, 2026');
+    setText('s-push', 'Jun 12, 2026');
 
     var issueEl = document.getElementById('issue-list');
     issueEl.textContent = '';

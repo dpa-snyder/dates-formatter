@@ -10,6 +10,7 @@ interface Props {
   onSetTheme: (t: ThemeMode) => void
   palette: ThemePalette
   onSetPalette: (p: ThemePalette) => void
+  onOpenSettings: () => void
 }
 
 const NAV: { id: Screen; label: string; icon: string }[] = [
@@ -17,7 +18,7 @@ const NAV: { id: Screen; label: string; icon: string }[] = [
   { id: 'manual',    label: 'User Manual',  icon: '📖' },
 ]
 
-export default function Sidebar({ active, onNav, theme, onSetTheme, palette, onSetPalette }: Props) {
+export default function Sidebar({ active, onNav, theme, onSetTheme, palette, onSetPalette, onOpenSettings }: Props) {
   const [version, setVersion] = useState('…')
   useEffect(() => {
     Promise.resolve()
@@ -69,6 +70,10 @@ export default function Sidebar({ active, onNav, theme, onSetTheme, palette, onS
             <option key={p} value={p}>{THEMES[p].label}</option>
           ))}
         </select>
+        <button type="button" className="settings-sidebar-btn" onClick={onOpenSettings}>
+          <span>⚙</span>
+          <span>Settings</span>
+        </button>
         <div className="sidebar-version">{version}</div>
       </div>
     </aside>

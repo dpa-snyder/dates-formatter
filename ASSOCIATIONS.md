@@ -6,21 +6,21 @@ Maps Date Formatter launchers, release assets, companion files, and output behav
 
 ### Windows public release
 
-* **Asset:** `date-formatter-v0.2.8-windows-amd64.exe`
+* **Asset:** `date-formatter-v0.2.9-windows-amd64.exe`
 * **Release page:** `https://github.com/dpa-snyder/dates-formatter/releases/latest`
 * **Purpose:** Standalone desktop app with all conversion modes.
 * **Signing status:** Public build is currently unsigned. Browsers and Windows SmartScreen may warn that it is unknown or potentially dangerous. Continue only for the official release or an IT-provided build.
 
 ### macOS public release
 
-* **Asset:** `date-formatter-v0.2.8-macos-arm64.zip`
+* **Asset:** `date-formatter-v0.2.9-macos-arm64.zip`
 * **Contents:** `date-formatter.app`
 * **Purpose:** Apple silicon macOS desktop app with all conversion modes.
 * **Trust prompts:** Public GitHub downloads may not yet be recognized as trusted publisher builds by macOS. Gatekeeper may require Control-click, Open, or an IT-approved quarantine removal step.
 
 ### Linux public release
 
-* **Assets:** `date-formatter-v0.2.8-linux-amd64.deb`, `date-formatter-v0.2.8-linux-x86_64.rpm`, and `date-formatter-v0.2.8-linux-amd64.tar.gz`
+* **Assets:** `date-formatter-v0.2.9-linux-amd64.deb`, `date-formatter-v0.2.9-linux-x86_64.rpm`, and `date-formatter-v0.2.9-linux-amd64.tar.gz`
 * **Contents:** Wails desktop binary, desktop launcher metadata, icon, and manual.
 * **Purpose:** Linux desktop app with all conversion modes.
 * **Runtime dependencies:** GTK3 and WebKitGTK 4.1. The `.deb` and `.rpm` packages declare common distro dependency names. The `.tar.gz` fallback requires users or IT to install matching runtime packages manually.

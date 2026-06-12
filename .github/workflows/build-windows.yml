@@ -240,8 +240,10 @@ jobs:
           name: ${{ github.ref_name }} — all-platform desktop release
           body: |
             ## Changes
-            - Adds automated Windows, macOS, and Linux release builds.
-            - Adds Linux package-manager artifacts: `.deb` for Debian/Ubuntu-family systems and `.rpm` for Fedora/RHEL-family systems.
+            - Adds Wails keyboard shortcuts for file picker, run, Settings, and User Manual.
+            - Adds a compact Settings dialog for appearance and theme controls.
+            - Ships automated Windows, macOS, and Linux release builds.
+            - Includes Linux package-manager artifacts: `.deb` for Debian/Ubuntu-family systems and `.rpm` for Fedora/RHEL-family systems.
             - Keeps a plain Linux `.tar.gz` fallback for systems where package dependencies need manual handling.
 
             ## Assets

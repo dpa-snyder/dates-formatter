@@ -24,17 +24,17 @@ The current public release includes:
 
 | Platform | File | Notes |
 |----------|------|-------|
-| Windows | `date-formatter-v0.2.8-windows-amd64.exe` | Standalone Wails desktop app. |
-| macOS | `date-formatter-v0.2.8-macos-arm64.zip` | Apple silicon macOS app bundle. Unzip before launching. |
-| Linux | `date-formatter-v0.2.8-linux-amd64.deb` | Debian/Ubuntu-family package. |
-| Linux | `date-formatter-v0.2.8-linux-x86_64.rpm` | Fedora/RHEL-family package. |
-| Linux | `date-formatter-v0.2.8-linux-amd64.tar.gz` | Portable fallback archive. |
+| Windows | `date-formatter-v0.2.9-windows-amd64.exe` | Standalone Wails desktop app. |
+| macOS | `date-formatter-v0.2.9-macos-arm64.zip` | Apple silicon macOS app bundle. Unzip before launching. |
+| Linux | `date-formatter-v0.2.9-linux-amd64.deb` | Debian/Ubuntu-family package. |
+| Linux | `date-formatter-v0.2.9-linux-x86_64.rpm` | Fedora/RHEL-family package. |
+| Linux | `date-formatter-v0.2.9-linux-amd64.tar.gz` | Portable fallback archive. |
 
 Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, Linux desktop environments, or your browser. Enterprise or IT-distributed builds may be signed and managed, and may launch without these warnings. For public downloads, continue only if the file came from the official release page. Do not bypass warnings for copies from email, chat, or an unknown website.
 
 ### Windows EXE warnings
 
-After downloading `date-formatter-v0.2.8-windows-amd64.exe`, Chrome or Edge may show a message such as "This file may be dangerous" or "Date Formatter is not commonly downloaded." Choose the browser's keep option only when the file came from the official release page.
+After downloading `date-formatter-v0.2.9-windows-amd64.exe`, Chrome or Edge may show a message such as "This file may be dangerous" or "Date Formatter is not commonly downloaded." Choose the browser's keep option only when the file came from the official release page.
 
 On first launch, Windows SmartScreen may show "Windows protected your PC" or "Unknown publisher." Choose **More info**, then **Run anyway**, only for the official release or an IT-provided build.
 
@@ -57,13 +57,13 @@ Adjust the path if you placed the app somewhere else.
 For Debian or Ubuntu-family systems, download the `.deb` package and install it with your normal package tool, for example:
 
 ```bash
-sudo apt install ./date-formatter-v0.2.8-linux-amd64.deb
+sudo apt install ./date-formatter-v0.2.9-linux-amd64.deb
 ```
 
 For Fedora, RHEL, or compatible systems, download the `.rpm` package and install it with:
 
 ```bash
-sudo dnf install ./date-formatter-v0.2.8-linux-x86_64.rpm
+sudo dnf install ./date-formatter-v0.2.9-linux-x86_64.rpm
 ```
 
 The Linux packages install `date-formatter`, desktop launcher metadata, the app icon, and a copy of this manual. They declare GTK3 and WebKitGTK 4.1 runtime dependencies. If your distro uses different package names, use the `.tar.gz` fallback and install the distro's GTK3 and WebKitGTK runtime packages manually.
@@ -71,8 +71,8 @@ The Linux packages install `date-formatter`, desktop launcher metadata, the app 
 For the fallback archive:
 
 ```bash
-tar -xzf date-formatter-v0.2.8-linux-amd64.tar.gz
-cd date-formatter-v0.2.8-linux-amd64
+tar -xzf date-formatter-v0.2.9-linux-amd64.tar.gz
+cd date-formatter-v0.2.9-linux-amd64
 chmod +x date-formatter
 ./date-formatter
 ```
@@ -93,7 +93,7 @@ The Wails desktop app has these main areas:
 
 | Area | Purpose |
 |------|---------|
-| Sidebar | Switch between Converter and User Manual. Change light, dark, or system theme. Pick the color palette. View app version. |
+| Sidebar | Switch between Converter and User Manual. Change light, dark, or system theme. Pick the color palette. Open Settings. View app version. |
 | Conversion Mode | Choose Single Date, ArchivEra, or Dublin Core. |
 | File | Drop an `.xlsx` or `.csv` file, browse for one, or reopen a recent file. |
 | Date Columns | Pick columns to convert. Date-looking columns are preselected and marked with a `dates` badge. |
@@ -181,6 +181,15 @@ The prefix applies only to recognized two-digit year dates. Leave it off when yo
 **Save copy** writes a sibling file named with `-formatted`, such as `records-formatted.xlsx`.
 
 If the source file is open in Excel, close it before overwriting. If a run is taking too long, click **Cancel**.
+
+## Keyboard shortcuts
+
+| Action | Windows/Linux | macOS |
+|--------|---------------|-------|
+| Open file picker | `Ctrl+O` | `Cmd+O` |
+| Run conversion | `Ctrl+R` | `Cmd+R` |
+| Open Settings | `Ctrl+,` | `Cmd+,` |
+| Open User Manual | `Ctrl+/` | `Cmd+/` |
 
 ## Output columns
 
@@ -289,7 +298,7 @@ Unrecognized values such as `Spring 1962`, `Easter 1964`, or free-text comments 
 
 | Item | Wails desktop app | Legacy Python app |
 |------|-------------------|-------------------|
-| Version | Sidebar footer. Release builds show tags such as `v0.2.8`. | Bottom-left footer, such as `v2026.06.01`. |
+| Version | Sidebar footer. Release builds show tags such as `v0.2.9`. | Bottom-left footer, such as `v2026.06.01`. |
 | Settings | Windows: `%APPDATA%\date-formatter\settings.json`. macOS: `~/Library/Application Support/date-formatter/settings.json`. Linux: `~/.config/date-formatter/settings.json`. | `dates-formatter-settings.json` next to the Python script. |
 | Manual | Built into the app and also shipped as `user-manual.html`. | `user-manual.html` next to the Python script. |
 | Logs | Progress and messages appear in the app run panel. | `%TEMP%\date-formatter.log`. |

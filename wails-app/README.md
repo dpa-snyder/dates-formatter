@@ -10,6 +10,8 @@ Current desktop app for Dates Formatter. Frontend is React/TypeScript. Backend i
 * YY prefix override for ambiguous two-digit years.
 * Overwrite or save `-formatted` copy.
 * Recent files, run progress, cancel, open file, open folder.
+* Keyboard shortcuts for browse, run, Settings, and User Manual.
+* Settings dialog for appearance and theme controls.
 * Embedded user manual at `frontend/public/user-manual.html`.
 
 ## Development
@@ -36,7 +38,7 @@ npm run build
 Release builds inject the app version into `main.version`.
 
 ```bash
-wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
 ```
 
 Windows release build in GitHub Actions uses:
@@ -48,13 +50,13 @@ wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.
 macOS arm64 release build uses:
 
 ```bash
-wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
 ```
 
 Linux amd64 release build uses WebKitGTK 4.1 and nFPM packages:
 
 ```bash
-wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.8'"
+wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
 nfpm package --config ../packaging/linux/nfpm.yaml --packager deb
 nfpm package --config ../packaging/linux/nfpm.yaml --packager rpm
 ```

@@ -216,6 +216,106 @@ button { font-family: inherit; cursor: pointer; }
   text-align: center;
 }
 
+.settings-sidebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: border-color 0.14s, color 0.14s, background 0.14s;
+}
+
+.settings-sidebar-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--chip-bg);
+}
+
+/* ── Settings dialog ─────────────────────────────────────── */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 10, 20, 0.42);
+}
+
+.settings-dialog {
+  width: min(380px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.settings-head h2 {
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.settings-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.settings-close:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--chip-bg);
+}
+
+.settings-section {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.settings-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-theme-toggle .theme-btn {
+  padding: 7px 0;
+}
+
+.settings-select {
+  width: 100%;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ── Screen scaffold ───────────────────────────────────────── */
 .screen {
   padding: 32px 36px 48px;
