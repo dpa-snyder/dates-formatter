@@ -12,6 +12,9 @@ Current desktop app for Dates Formatter. Frontend is React/TypeScript. Backend i
 * Recent files, run progress, cancel, open file, open folder.
 * Keyboard shortcuts for browse, run, Settings, and User Manual.
 * Settings dialog for appearance and theme controls.
+* Persisted conversion mode, output mode, recent files, and YY-prefix settings.
+* Safer overwrite writes through a temporary output file before replacing the target.
+* Duplicate or blank headers are disambiguated before conversion.
 * Embedded user manual at `frontend/public/user-manual.html`.
 
 ## Development
@@ -29,8 +32,10 @@ Wails also starts a browser-accessible dev server at `http://localhost:34115` wh
 
 ```bash
 GOCACHE=/tmp/dates-formatter-go-build go test ./...
+GOCACHE=/tmp/dates-formatter-go-build go vet ./...
 cd frontend
 npm run build
+npm audit --audit-level=moderate
 ```
 
 ## Build
@@ -38,7 +43,7 @@ npm run build
 Release builds inject the app version into `main.version`.
 
 ```bash
-wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
 ```
 
 Windows release build in GitHub Actions uses:
@@ -50,13 +55,13 @@ wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.
 macOS arm64 release build uses:
 
 ```bash
-wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
 ```
 
 Linux amd64 release build uses WebKitGTK 4.1 and nFPM packages:
 
 ```bash
-wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
+wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
 nfpm package --config ../packaging/linux/nfpm.yaml --packager deb
 nfpm package --config ../packaging/linux/nfpm.yaml --packager rpm
 ```

@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"date-formatter/dateengine"
 
@@ -53,22 +55,24 @@ type ProgressFunc func(row, total int, column string, flagged int)
 func GetColumns(path string) (ColumnsResult, error) {
 	var headers []string
 	var rowCount int
+	var datey []string
 
 	if isCSV(path) {
-		h, rc, err := csvHeadersAndCount(path)
+		h, rc, dc, err := csvColumnsInfo(path)
 		if err != nil {
 			return ColumnsResult{}, err
 		}
 		headers, rowCount = h, rc
+		datey = dc
 	} else {
 		h, rc, err := xlsxHeadersAndCount(path)
 		if err != nil {
 			return ColumnsResult{}, err
 		}
 		headers, rowCount = h, rc
+		datey = detectDateColumns(path, headers)
 	}
 
-	datey := detectDateColumns(path, headers)
 	return ColumnsResult{
 		Columns:      headers,
 		RowCount:     rowCount,
@@ -76,21 +80,62 @@ func GetColumns(path string) (ColumnsResult, error) {
 	}, nil
 }
 
-func csvHeadersAndCount(path string) ([]string, int, error) {
+func csvColumnsInfo(path string) ([]string, int, []string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 	defer f.Close()
+
 	r := csv.NewReader(f)
-	records, err := r.ReadAll()
+	headers, err := r.Read()
 	if err != nil {
-		return nil, 0, err
+		if err == io.EOF {
+			return nil, 0, nil, fmt.Errorf("empty CSV file")
+		}
+		return nil, 0, nil, err
 	}
-	if len(records) == 0 {
-		return nil, 0, fmt.Errorf("empty CSV file")
+	headers = uniqueHeaders(headers)
+
+	stats := make([]struct {
+		matched int
+		sampled int
+	}, len(headers))
+	rowCount := 0
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, 0, nil, err
+		}
+		rowCount++
+		for colIdx := range headers {
+			if stats[colIdx].sampled >= 20 {
+				continue
+			}
+			val := ""
+			if colIdx < len(record) {
+				val = strings.TrimSpace(record[colIdx])
+			}
+			if val == "" {
+				continue
+			}
+			stats[colIdx].sampled++
+			if reDateLike.MatchString(val) {
+				stats[colIdx].matched++
+			}
+		}
 	}
-	return records[0], len(records) - 1, nil
+
+	var datey []string
+	for i, header := range headers {
+		if stats[i].sampled >= 3 && stats[i].matched*2 >= stats[i].sampled {
+			datey = append(datey, header)
+		}
+	}
+	return headers, rowCount, datey, nil
 }
 
 func xlsxHeadersAndCount(path string) ([]string, int, error) {
@@ -107,7 +152,7 @@ func xlsxHeadersAndCount(path string) ([]string, int, error) {
 	if len(rows) == 0 {
 		return nil, 0, fmt.Errorf("empty xlsx file")
 	}
-	return rows[0], len(rows) - 1, nil
+	return uniqueHeaders(rows[0]), len(rows) - 1, nil
 }
 
 // detectDateColumns samples up to 20 non-empty cells per column and returns
@@ -209,7 +254,7 @@ func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc
 
 		colIdx := findColIdx(headers, colName)
 		if colIdx < 0 {
-			continue
+			return ProcessResult{}, fmt.Errorf("selected column %q was not found", colName)
 		}
 
 		cr := &colResult{
@@ -269,14 +314,12 @@ func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc
 
 	// Determine output path
 	outPath := outputPath(opts.FilePath, opts.OutputMode)
+	if outPath == "" {
+		return ProcessResult{}, fmt.Errorf("unsupported output mode %q", opts.OutputMode)
+	}
 
 	// Write
-	if isCSV(outPath) {
-		err = writeCSV(outPath, newHeaders, newRows)
-	} else {
-		err = writeXLSX(outPath, newHeaders, newRows)
-	}
-	if err != nil {
+	if err := writeOutput(ctx, outPath, newHeaders, newRows); err != nil {
 		return ProcessResult{}, fmt.Errorf("write output: %w", err)
 	}
 
@@ -365,7 +408,7 @@ func readCSV(path string) ([]string, [][]string, error) {
 	if len(records) == 0 {
 		return nil, nil, fmt.Errorf("empty CSV")
 	}
-	return records[0], records[1:], nil
+	return uniqueHeaders(records[0]), records[1:], nil
 }
 
 func readXLSX(path string) ([]string, [][]string, error) {
@@ -382,15 +425,84 @@ func readXLSX(path string) ([]string, [][]string, error) {
 	if len(rowData) == 0 {
 		return nil, nil, fmt.Errorf("empty xlsx")
 	}
+	headers := uniqueHeaders(rowData[0])
+
 	// Normalize row widths to match header length
-	hlen := len(rowData[0])
+	hlen := len(headers)
 	data := make([][]string, len(rowData)-1)
 	for i, row := range rowData[1:] {
 		padded := make([]string, hlen)
 		copy(padded, row)
 		data[i] = padded
 	}
-	return rowData[0], data, nil
+	return headers, data, nil
+}
+
+func writeOutput(ctx context.Context, path string, headers []string, rows [][]string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	tmpPath, err := tempOutputPath(path)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmpPath)
+
+	if isCSV(path) {
+		err = writeCSV(tmpPath, headers, rows)
+	} else {
+		err = writeXLSX(tmpPath, headers, rows)
+	}
+	if err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	return commitTempFile(tmpPath, path)
+}
+
+func tempOutputPath(target string) (string, error) {
+	dir := filepath.Dir(target)
+	base := filepath.Base(target)
+	ext := filepath.Ext(base)
+	stem := strings.TrimSuffix(base, ext)
+	tmp, err := os.CreateTemp(dir, "."+stem+".*.tmp"+ext)
+	if err != nil {
+		return "", err
+	}
+	path := tmp.Name()
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(path)
+		return "", err
+	}
+	if err := os.Remove(path); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+func commitTempFile(tmpPath, target string) error {
+	firstErr := os.Rename(tmpPath, target)
+	if firstErr == nil {
+		return nil
+	}
+
+	if _, err := os.Stat(target); err != nil {
+		return firstErr
+	}
+
+	backup := fmt.Sprintf("%s.date-formatter-backup-%s", target, time.Now().UTC().Format("20060102T150405.000000000"))
+	if err := os.Rename(target, backup); err != nil {
+		return err
+	}
+	if err := os.Rename(tmpPath, target); err != nil {
+		_ = os.Rename(backup, target)
+		return err
+	}
+	_ = os.Remove(backup)
+	return nil
 }
 
 func writeCSV(path string, headers []string, rows [][]string) error {
@@ -499,9 +611,36 @@ func outputPath(input, mode string) string {
 	if mode == "overwrite" {
 		return input
 	}
+	if mode != "copy" {
+		return ""
+	}
 	ext := filepath.Ext(input)
 	stem := strings.TrimSuffix(input, ext)
 	return stem + "-formatted" + ext
+}
+
+func uniqueHeaders(headers []string) []string {
+	seen := make(map[string]int, len(headers))
+	used := make(map[string]bool, len(headers))
+	out := make([]string, len(headers))
+	for i, header := range headers {
+		base := strings.TrimSpace(header)
+		if base == "" {
+			base = fmt.Sprintf("Column %d", i+1)
+		}
+		seen[base]++
+		candidate := base
+		if seen[base] > 1 {
+			candidate = fmt.Sprintf("%s (%d)", base, seen[base])
+		}
+		for used[candidate] {
+			seen[base]++
+			candidate = fmt.Sprintf("%s (%d)", base, seen[base])
+		}
+		used[candidate] = true
+		out[i] = candidate
+	}
+	return out
 }
 
 type colResult struct {

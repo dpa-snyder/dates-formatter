@@ -4,7 +4,7 @@ Desktop app for normalizing inconsistent date formats in Excel and CSV spreadshe
 
 ## Current release
 
-Latest public release: `v0.2.9`, keyboard shortcuts, Settings dialog, and all-platform desktop packages.
+Latest public release: `v0.2.10`, safer overwrite handling, persisted Wails conversion settings, duplicate-header handling, and all-platform desktop packages.
 
 Release page:
 
@@ -14,11 +14,11 @@ https://github.com/dpa-snyder/dates-formatter/releases/latest
 
 | Platform | Asset | Notes |
 |----------|-------|-------|
-| Windows | `date-formatter-v0.2.9-windows-amd64.exe` | Standalone Wails desktop app. Public downloads may trigger browser or SmartScreen trust prompts. |
-| macOS | `date-formatter-v0.2.9-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
-| Linux | `date-formatter-v0.2.9-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.9-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.9-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
+| Windows | `date-formatter-v0.2.10-windows-amd64.exe` | Standalone Wails desktop app. Public downloads may trigger browser or SmartScreen trust prompts. |
+| macOS | `date-formatter-v0.2.10-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
+| Linux | `date-formatter-v0.2.10-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.10-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.10-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
 
 Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, Linux desktop environments, or your browser. Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
 
@@ -66,7 +66,9 @@ After running any mode, three columns appear together in the spreadsheet.
 | `Original_{chosen column}` | Original raw value preserved for review. |
 | `Check {chosen column}` | `Yes` if the output needs manual review. |
 
-The Wails app can overwrite the original file or write a sibling `-formatted` copy.
+The Wails app can overwrite the original file or write a sibling `-formatted` copy. Overwrite runs write a temporary file first, then replace the target only after the output is complete. If a platform cannot replace in place, the app uses a short-lived backup during the swap.
+
+If a spreadsheet has duplicate or blank headers, the Wails app makes them unique before display and output. For example, duplicate `Date` headers appear as `Date` and `Date (2)`.
 
 ## Documentation
 
@@ -119,6 +121,7 @@ Go tests:
 ```bash
 cd wails-app
 GOCACHE=/tmp/dates-formatter-go-build go test ./...
+GOCACHE=/tmp/dates-formatter-go-build go vet ./...
 ```
 
 Frontend build:
@@ -126,13 +129,14 @@ Frontend build:
 ```bash
 cd wails-app/frontend
 npm run build
+npm audit --audit-level=moderate
 ```
 
 Wails build examples:
 
 ```bash
 cd wails-app
-nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.9'"
+nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
 ```
 
 Linux package builds are automated in GitHub Actions with nFPM. Tagged releases publish `.deb`, `.rpm`, and `.tar.gz` assets.

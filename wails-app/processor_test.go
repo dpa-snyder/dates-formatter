@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -140,5 +141,75 @@ func TestProcessFile_cancel(t *testing.T) {
 		t.Log("cancelled context: process returned nil error (short file, completed before check)")
 	} else {
 		t.Logf("cancelled: %v", err)
+	}
+}
+
+func TestProcessFileCancelBeforeWriteLeavesOriginalCSV(t *testing.T) {
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "dates.csv")
+	original := "Date\n1962\n"
+	if err := os.WriteFile(path, []byte(original), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	opts := ProcessOptions{
+		FilePath:   path,
+		Columns:    []string{"Date"},
+		Mode:       ModeAE,
+		OutputMode: "overwrite",
+	}
+	_, err := ProcessFile(ctx, opts, func(row, total int, col string, flagged int) {
+		if row == total {
+			cancel()
+		}
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("ProcessFile err = %v, want context.Canceled", err)
+	}
+
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != original {
+		t.Fatalf("source file changed after cancel:\n%s", string(got))
+	}
+}
+
+func TestDuplicateHeadersAreMadeUnique(t *testing.T) {
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "dupes.csv")
+	if err := os.WriteFile(path, []byte("Date,Date\n1962,1970\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cols, err := GetColumns(path)
+	if err != nil {
+		t.Fatalf("GetColumns: %v", err)
+	}
+	wantCols := []string{"Date", "Date (2)"}
+	if strings.Join(cols.Columns, "|") != strings.Join(wantCols, "|") {
+		t.Fatalf("columns = %v, want %v", cols.Columns, wantCols)
+	}
+
+	result, err := ProcessFile(context.Background(), ProcessOptions{
+		FilePath:   path,
+		Columns:    []string{"Date (2)"},
+		Mode:       ModeAE,
+		OutputMode: "copy",
+	}, nil)
+	if err != nil {
+		t.Fatalf("ProcessFile: %v", err)
+	}
+	out, err := os.ReadFile(result.OutputPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(out), "Date,Date (2),Original_Date (2),Check Date (2)") {
+		t.Fatalf("duplicate header output was not disambiguated:\n%s", string(out))
+	}
+	if !strings.Contains(string(out), "1962,01/01/1970 - 12/31/1970,1970,") {
+		t.Fatalf("second Date column was not converted independently:\n%s", string(out))
 	}
 }

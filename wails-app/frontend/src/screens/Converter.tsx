@@ -6,6 +6,7 @@ import {
   GetSettings,
   OpenPath,
   PickFile,
+  SaveSettings,
   StartProcess,
 } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
@@ -36,19 +37,37 @@ export default function Converter() {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [recentFiles, setRecentFiles] = useState<string[]>([])
   const logRef = useRef<HTMLDivElement>(null)
+  const settingsRef = useRef<main.Settings | null>(null)
+  const [settingsReady, setSettingsReady] = useState(false)
 
   // Load settings on mount
   useEffect(() => {
     Promise.resolve().then(GetSettings).then(s => {
       if (s) {
+        settingsRef.current = new main.Settings(s)
         if (s.lastMode !== undefined) setMode(s.lastMode)
         if (s.lastOutputMode) setOutputMode(s.lastOutputMode as 'overwrite' | 'copy')
         if (s.recentFiles?.length) setRecentFiles(s.recentFiles)
         if ((s as any).yyOverrideEnabled !== undefined) setYyOverrideEnabled(Boolean((s as any).yyOverrideEnabled))
         if ((s as any).yyPrefix !== undefined) setYyPrefix(String((s as any).yyPrefix).slice(0, 2))
       }
-    }).catch(() => {})
+      setSettingsReady(true)
+    }).catch(() => setSettingsReady(true))
   }, [])
+
+  useEffect(() => {
+    if (!settingsReady || !(window as any).go?.main?.App?.SaveSettings) return
+    const next = new main.Settings({
+      ...(settingsRef.current ?? {}),
+      lastMode: mode,
+      lastOutputMode: outputMode,
+      recentFiles,
+      yyOverrideEnabled,
+      yyPrefix: yyPrefix.trim(),
+    })
+    settingsRef.current = next
+    SaveSettings(next).catch(() => {})
+  }, [settingsReady, mode, outputMode, recentFiles, yyOverrideEnabled, yyPrefix])
 
   // Wire up process events
   useEffect(() => {
@@ -60,6 +79,12 @@ export default function Converter() {
       setResult(data)
       setStage('done')
       setProgress(null)
+      Promise.resolve().then(GetSettings).then(s => {
+        if (s) {
+          settingsRef.current = new main.Settings(s)
+          setRecentFiles(s.recentFiles ?? [])
+        }
+      }).catch(() => {})
     })
     const offErr = EventsOn('process:error', (msg: string) => {
       setErrorMsg(msg)

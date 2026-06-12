@@ -11,13 +11,81 @@ permissions:
 
 env:
   WAILS_VERSION: v2.12.0
+  NFPM_VERSION: v2.46.3
   NODE_VERSION: '20'
   GO_VERSION: '1.24'
 
 jobs:
+  verify:
+    name: Verify tests, docs, and audit
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: wails-app/go.sum
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: wails-app/frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install frontend deps
+        working-directory: wails-app/frontend
+        run: npm ci
+
+      - name: Audit frontend deps
+        working-directory: wails-app/frontend
+        run: npm audit --audit-level=moderate
+
+      - name: Build frontend
+        working-directory: wails-app/frontend
+        run: npm run build
+
+      - name: Test Go backend
+        working-directory: wails-app
+        run: |
+          go test -tags webkit2_41 ./...
+          go vet -tags webkit2_41 ./...
+
+      - name: Install Python deps
+        run: python -m pip install -r requirements.txt
+
+      - name: Test legacy Python parser
+        run: python -m unittest discover -s tests -q
+
+      - name: Lint workflow
+        uses: rhysd/actionlint@v1
+
+      - name: Validate static HTML
+        run: |
+          sudo apt-get install -y tidy
+          tidy -qe index.html
+          tidy -qe user-manual.html
+
   windows:
     name: Windows Wails GUI (amd64)
     runs-on: windows-latest
+    needs: verify
 
     steps:
       - name: Checkout
@@ -81,6 +149,7 @@ jobs:
   macos:
     name: macOS Wails GUI (arm64)
     runs-on: macos-15
+    needs: verify
 
     steps:
       - name: Checkout
@@ -144,6 +213,7 @@ jobs:
   linux:
     name: Linux Wails GUI (amd64)
     runs-on: ubuntu-24.04
+    needs: verify
 
     steps:
       - name: Checkout
@@ -172,9 +242,10 @@ jobs:
       - name: Install Wails and nFPM
         env:
           WAILS_VER: ${{ env.WAILS_VERSION }}
+          NFPM_VER: ${{ env.NFPM_VERSION }}
         run: |
           go install "github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VER}"
-          go install "github.com/goreleaser/nfpm/v2/cmd/nfpm@latest"
+          go install "github.com/goreleaser/nfpm/v2/cmd/nfpm@${NFPM_VER}"
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Install frontend deps
@@ -240,8 +311,10 @@ jobs:
           name: ${{ github.ref_name }} — all-platform desktop release
           body: |
             ## Changes
-            - Adds Wails keyboard shortcuts for file picker, run, Settings, and User Manual.
-            - Adds a compact Settings dialog for appearance and theme controls.
+            - Adds safer overwrite commits through temporary output files and backup fallback.
+            - Persists Wails mode, output, recent files, and YY-prefix settings.
+            - Disambiguates duplicate or blank source headers before conversion.
+            - Adds release verification gates for Go, Python, frontend, audit, workflow lint, and HTML validation.
             - Ships automated Windows, macOS, and Linux release builds.
             - Includes Linux package-manager artifacts: `.deb` for Debian/Ubuntu-family systems and `.rpm` for Fedora/RHEL-family systems.
             - Keeps a plain Linux `.tar.gz` fallback for systems where package dependencies need manual handling.
