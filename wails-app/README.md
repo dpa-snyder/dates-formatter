@@ -43,7 +43,7 @@ npm audit --audit-level=moderate
 Release builds inject the app version into `main.version`.
 
 ```bash
-wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
 ```
 
 Windows release build in GitHub Actions uses:
@@ -55,13 +55,13 @@ wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.
 macOS arm64 release build uses:
 
 ```bash
-wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
 ```
 
 Linux amd64 release build uses WebKitGTK 4.1 and nFPM packages:
 
 ```bash
-wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
+wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
 nfpm package --config ../packaging/linux/nfpm.yaml --packager deb
 nfpm package --config ../packaging/linux/nfpm.yaml --packager rpm
 ```

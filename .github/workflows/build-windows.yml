@@ -316,14 +316,19 @@ jobs:
         with:
           name: ${{ github.ref_name }} — all-platform desktop release
           body: |
-            ## Changes
-            - Adds safer overwrite commits through temporary output files and backup fallback.
-            - Persists Wails mode, output, recent files, and YY-prefix settings.
+            ## Release
+            This tagged build publishes Date Formatter desktop packages for Windows, macOS, and Linux.
+
+            ## Included app behavior
+            - Supports Single Date, ArchivEra, and Dublin Core conversion modes.
+            - Preserves original source values in `Original_...` columns and flags review rows in `Check ...` columns.
+            - Supports optional YY prefix handling for known two-digit year centuries.
+            - Writes overwrites through a temporary output file with a backup fallback.
+            - Persists Wails conversion mode, output mode, recent files, YY-prefix settings, appearance, and palette.
             - Disambiguates duplicate or blank source headers before conversion.
-            - Adds release verification gates for Go, Python, frontend, audit, workflow lint, and HTML validation.
-            - Ships automated Windows, macOS, and Linux release builds.
-            - Includes Linux package-manager artifacts: `.deb` for Debian/Ubuntu-family systems and `.rpm` for Fedora/RHEL-family systems.
-            - Keeps a plain Linux `.tar.gz` fallback for systems where package dependencies need manual handling.
+
+            ## Verification
+            Release builds run Go tests and vet, legacy Python parser tests, frontend build, dependency audit, workflow lint, and static HTML validation before assets are published.
 
             ## Assets
             - `date-formatter-${{ github.ref_name }}-windows-amd64.exe`

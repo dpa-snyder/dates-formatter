@@ -4,7 +4,7 @@ Desktop app for normalizing inconsistent date formats in Excel and CSV spreadshe
 
 ## Current release
 
-Latest public release: `v0.2.10`, safer overwrite handling, persisted Wails conversion settings, duplicate-header handling, and all-platform desktop packages.
+Latest public release: `v0.2.12`, documentation and release metadata refresh with all-platform desktop packages.
 
 Release page:
 
@@ -14,11 +14,11 @@ https://github.com/dpa-snyder/dates-formatter/releases/latest
 
 | Platform | Asset | Notes |
 |----------|-------|-------|
-| Windows | `date-formatter-v0.2.10-windows-amd64.exe` | Standalone Wails desktop app. Public downloads may trigger browser or SmartScreen trust prompts. |
-| macOS | `date-formatter-v0.2.10-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
-| Linux | `date-formatter-v0.2.10-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.10-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.10-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
+| Windows | `date-formatter-v0.2.12-windows-amd64.exe` | Standalone Wails desktop app. Public downloads may trigger browser or SmartScreen trust prompts. |
+| macOS | `date-formatter-v0.2.12-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
+| Linux | `date-formatter-v0.2.12-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.12-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.12-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
 
 Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, Linux desktop environments, or your browser. Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
 
@@ -136,7 +136,7 @@ Wails build examples:
 
 ```bash
 cd wails-app
-nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.10'"
+nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
 ```
 
 Linux package builds are automated in GitHub Actions with nFPM. Tagged releases publish `.deb`, `.rpm`, and `.tar.gz` assets.
