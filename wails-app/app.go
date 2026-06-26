@@ -188,15 +188,7 @@ func settingsPath() string {
 }
 
 func (a *App) loadSettings() Settings {
-	defaults := Settings{
-		Theme:          "system",
-		LastMode:       ModeAE,
-		LastOutputMode: "overwrite",
-		RecentFiles:    []string{},
-		WindowWidth:    1020,
-		WindowHeight:   770,
-		YYPrefix:       "",
-	}
+	defaults := defaultSettings()
 	data, err := os.ReadFile(settingsPath())
 	if err != nil {
 		return defaults
@@ -205,8 +197,29 @@ func (a *App) loadSettings() Settings {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return defaults
 	}
+	s = withSettingsDefaults(s)
+	return s
+}
+
+func defaultSettings() Settings {
+	return Settings{
+		Theme:          "system",
+		LastMode:       ModeAE,
+		LastOutputMode: "overwrite",
+		RecentFiles:    []string{},
+		WindowWidth:    1020,
+		WindowHeight:   770,
+		YYPrefix:       "",
+		UpdateFolder:   defaultUpdatePath,
+	}
+}
+
+func withSettingsDefaults(s Settings) Settings {
 	if s.RecentFiles == nil {
 		s.RecentFiles = []string{}
+	}
+	if strings.TrimSpace(s.UpdateFolder) == "" {
+		s.UpdateFolder = defaultUpdatePath
 	}
 	return s
 }

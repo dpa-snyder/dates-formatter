@@ -740,10 +740,10 @@
             <thead><tr><th>Platform</th><th>File</th><th>Notes</th></tr></thead>
             <tbody>
               <tr><td>Windows</td><td><code>date-formatter.exe</code></td><td>Standalone desktop app with EXE version metadata.</td></tr>
-              <tr><td>macOS</td><td><code>date-formatter-v0.2.13-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.13-linux-amd64.deb</code></td><td>Debian/Ubuntu-family package.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.13-linux-x86_64.rpm</code></td><td>Fedora/RHEL-family package.</td></tr>
-              <tr><td>Linux</td><td><code>date-formatter-v0.2.13-linux-amd64.tar.gz</code></td><td>Portable fallback archive.</td></tr>
+              <tr><td>macOS</td><td><code>date-formatter-v0.2.14-macos-arm64.zip</code></td><td>Apple silicon app bundle. Unzip before launching.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.14-linux-amd64.deb</code></td><td>Debian/Ubuntu-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.14-linux-x86_64.rpm</code></td><td>Fedora/RHEL-family package.</td></tr>
+              <tr><td>Linux</td><td><code>date-formatter-v0.2.14-linux-amd64.tar.gz</code></td><td>Portable fallback archive.</td></tr>
             </tbody>
           </table>
           <div class="note" style="margin-top:12px">
@@ -765,12 +765,13 @@
         <div class="card">
           <h3>Windows managed updates</h3>
           <p>
-            In Settings, enter an Update Folder. It may be a mapped network drive such as
-            <code>Z:\Apps\Date Formatter</code> or a UNC share such as
-            <code>\\server\share\Date Formatter</code>.
+            In Settings, review Update Path. The default is <code>X:\Apps\date-formatter.exe</code>.
+            You may also enter a mapped drive or UNC folder path, such as
+            <code>Z:\Apps\Date Formatter</code> or <code>\\server\share\Date Formatter</code>,
+            as long as that folder contains <code>date-formatter.exe</code>.
           </p>
           <p style="margin-top:8px">
-            The folder should contain one managed Windows release file named <code>date-formatter.exe</code>.
+            The managed Windows release file must be named <code>date-formatter.exe</code>.
             The app reads the EXE's version metadata; no sidecar version files are needed.
           </p>
           <p style="margin-top:8px">
@@ -793,16 +794,16 @@
         <div class="card">
           <h3>Linux package warnings</h3>
           <p>For Debian or Ubuntu-family systems, install the package with your normal package tool:</p>
-          <pre><code>sudo apt install ./date-formatter-v0.2.13-linux-amd64.deb</code></pre>
+          <pre><code>sudo apt install ./date-formatter-v0.2.14-linux-amd64.deb</code></pre>
           <p style="margin-top:8px">For Fedora, RHEL, or compatible systems:</p>
-          <pre><code>sudo dnf install ./date-formatter-v0.2.13-linux-x86_64.rpm</code></pre>
+          <pre><code>sudo dnf install ./date-formatter-v0.2.14-linux-x86_64.rpm</code></pre>
           <p style="margin-top:8px">
             The packages install the app, desktop launcher metadata, icon, and this manual. They declare
             GTK3 and WebKitGTK 4.1 runtime dependencies. If your distro uses different package names,
             use the fallback archive:
           </p>
-          <pre><code>tar -xzf date-formatter-v0.2.13-linux-amd64.tar.gz
-cd date-formatter-v0.2.13-linux-amd64
+          <pre><code>tar -xzf date-formatter-v0.2.14-linux-amd64.tar.gz
+cd date-formatter-v0.2.14-linux-amd64
 chmod +x date-formatter
 ./date-formatter</code></pre>
         </div>
@@ -841,7 +842,7 @@ chmod +x date-formatter
           </div>
           <p style="margin-top:10px">
             The Wails desktop app remembers the last conversion mode, output behavior, recent files,
-            YY-prefix settings, appearance, palette, and Windows update folder.
+            YY-prefix settings, appearance, palette, and Windows update path.
           </p>
         </div>
       </div>
@@ -1417,8 +1418,8 @@ chmod +x date-formatter
           <table>
             <thead><tr><th>Item</th><th>Where to find it</th></tr></thead>
             <tbody>
-              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.13</code>.</td></tr>
-              <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>. Linux: <code>~/.config/date-formatter/settings.json</code>. Stores recent files, mode, output behavior, YY-prefix choices, and the Windows update folder.</td></tr>
+              <tr><td>Wails app version</td><td>Shown in the sidebar footer. Release builds show tags such as <code>v0.2.14</code>.</td></tr>
+              <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>. Linux: <code>~/.config/date-formatter/settings.json</code>. Stores recent files, mode, output behavior, YY-prefix choices, and the Windows update path.</td></tr>
               <tr><td>Wails manual</td><td>Built into the app and also shipped as <code>user-manual.html</code>.</td></tr>
               <tr><td>Legacy Python version</td><td>Shown in the bottom-left footer, such as <code>v2026.06.01</code>.</td></tr>
               <tr><td>Legacy Python log</td><td><code>%TEMP%\date-formatter.log</code> records run history and errors.</td></tr>

@@ -335,7 +335,7 @@ jobs:
             - Writes overwrites through a temporary output file with a backup fallback.
             - Persists Wails conversion mode, output mode, recent files, YY-prefix settings, appearance, and palette.
             - Disambiguates duplicate or blank source headers before conversion.
-            - On Windows, can check a configured shared update folder for `date-formatter.exe`, compare EXE version metadata, stage the update locally, and prompt to restart.
+            - On Windows, checks `X:\Apps\date-formatter.exe` by default, also accepts folder paths containing `date-formatter.exe`, compares EXE version metadata, stages the update locally, and prompts to restart.
 
             ## Verification
             Release builds run Go tests and vet, legacy Python parser tests, frontend build, dependency audit, workflow lint, and static HTML validation before assets are published.

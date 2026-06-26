@@ -12,7 +12,10 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const updateExecutableName = "date-formatter.exe"
+const (
+	updateExecutableName = "date-formatter.exe"
+	defaultUpdatePath    = `X:\Apps\` + updateExecutableName
+)
 
 type pendingUpdate struct {
 	sourcePath       string
@@ -23,17 +26,29 @@ type pendingUpdate struct {
 
 type exeVersionReader func(path string) (string, error)
 
-func updateExecutablePath(folder string) string {
-	rawFolder := strings.TrimSpace(folder)
-	if rawFolder == "" {
+func updateExecutablePath(path string) string {
+	rawPath := strings.TrimSpace(path)
+	if rawPath == "" {
 		return ""
 	}
-	usesWindowsSeparators := strings.Contains(rawFolder, `\`)
-	folder = strings.TrimRight(rawFolder, `/\`)
+	trimmedPath := strings.TrimRight(rawPath, `/\`)
+	if strings.EqualFold(pathBase(trimmedPath), updateExecutableName) {
+		return trimmedPath
+	}
+	usesWindowsSeparators := strings.Contains(rawPath, `\`)
+	folder := trimmedPath
 	if strings.HasSuffix(folder, ":") || usesWindowsSeparators {
 		return folder + `\` + updateExecutableName
 	}
 	return filepath.Join(folder, updateExecutableName)
+}
+
+func pathBase(path string) string {
+	i := strings.LastIndexAny(path, `/\`)
+	if i < 0 {
+		return path
+	}
+	return path[i+1:]
 }
 
 func checkUpdateCandidate(currentVersion, folder string, readVersion exeVersionReader) (UpdateCheckResult, error) {

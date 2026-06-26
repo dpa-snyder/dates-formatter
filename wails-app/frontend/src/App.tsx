@@ -289,15 +289,15 @@ function SettingsDialog({ theme, palette, onSetTheme, onSetPalette, onClose }: S
           </select>
         </div>
         <div className="settings-section">
-          <label className="settings-label" htmlFor="settings-update-folder">Update Folder</label>
+          <label className="settings-label" htmlFor="settings-update-folder">Update Path</label>
           <input
             id="settings-update-folder"
             className="settings-input"
             value={updateFolder}
             onChange={e => setUpdateFolder(e.target.value)}
-            placeholder="\\\\server\\share\\Date Formatter"
+            placeholder="X:\\Apps\\date-formatter.exe"
           />
-          <div className="settings-help">Folder containing date-formatter.exe.</div>
+          <div className="settings-help">Default: X:\Apps\date-formatter.exe. Folder paths are also supported.</div>
           <div className="settings-inline-actions">
             <button type="button" className="btn-ghost-sm" onClick={checkNow}>Check</button>
             {updateReady && (

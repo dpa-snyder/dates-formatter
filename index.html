@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.13 ships Wails desktop builds for Windows, macOS, and Linux.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.14 ships Wails desktop builds for Windows, macOS, and Linux.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -308,7 +308,7 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Validate v0.2.13 release</div>
+              <div class="t-title">Validate v0.2.14 release</div>
               <div class="t-note">Smoke-test public Windows <code>date-formatter.exe</code>, macOS zip, Linux deb/rpm/tarball with <code>9200-W22.xlsx</code>. Confirm warnings, runtime dependencies, YY prefix, overwrite/copy, open file/folder actions, and Windows shared-folder update/restart flow.</div>
             </div>
             <div class="imp" aria-label="Importance 4 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
@@ -408,7 +408,7 @@
           <div class="phase-body">
             <div class="ptasks">
               <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter.exe</code> on Windows with browser and SmartScreen warnings documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.13-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.14-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
               <div class="ptask"><span class="wid">T-001</span>Test Windows shared-folder update check, local staging, restart helper replacement, and app restart</div>
               <div class="ptask"><span class="wid">T-001</span>Test Linux <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code> assets with runtime dependencies documented</div>
             </div>
@@ -512,10 +512,11 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">37 total</span>
+        <span class="pbadge">38 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-038</span><span class="dtext">Windows update default path set to <code>X:\Apps\date-formatter.exe</code>, while folder paths remain supported</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-037</span><span class="dtext">Windows managed updater added shared-folder EXE metadata checks, local staging, restart replacement, and normal <code>date-formatter.exe</code> release naming</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-036</span><span class="dtext">v0.2.12 release paperwork refreshed README, manual files, dashboard, TODOs, and release workflow notes</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-035</span><span class="dtext">Senior-review hardening added safer overwrites, persisted Wails conversion settings, duplicate-header handling, stale launcher cleanup, and release verification gates</span></div>
@@ -834,7 +835,7 @@
     /* Live pills — all static strings, no API data injected */
     setLive([
       (repo.visibility || 'public').toUpperCase(),
-      'Release: v0.2.13',
+      'Release: v0.2.14',
       'Issues: ' + openIssues.length,
       'PRs: ' + openPRs,
       'Pushed ' + fmtDate(repo.pushed_at),

@@ -35,6 +35,7 @@ func TestUpdateExecutablePath(t *testing.T) {
 	}{
 		{`\\fileserver\apps\date-formatter`, `\\fileserver\apps\date-formatter\date-formatter.exe`},
 		{`Z:\Apps\Date Formatter\`, `Z:\Apps\Date Formatter\date-formatter.exe`},
+		{`X:\Apps\date-formatter.exe`, `X:\Apps\date-formatter.exe`},
 		{`Z:\`, `Z:\date-formatter.exe`},
 		{`/tmp/releases`, `/tmp/releases/date-formatter.exe`},
 	}

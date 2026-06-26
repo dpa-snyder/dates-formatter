@@ -90,5 +90,4 @@ export namespace main {
 	        this.message = source["message"];
 	    }
 	}
-
 }
