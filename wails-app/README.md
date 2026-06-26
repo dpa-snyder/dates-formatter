@@ -11,8 +11,9 @@ Current desktop app for Dates Formatter. Frontend is React/TypeScript. Backend i
 * Overwrite or save `-formatted` copy.
 * Recent files, run progress, cancel, open file, open folder.
 * Keyboard shortcuts for browse, run, Settings, and User Manual.
-* Settings dialog for appearance and theme controls.
+* Settings dialog for appearance, theme controls, and Windows update folder.
 * Persisted conversion mode, output mode, recent files, and YY-prefix settings.
+* Windows managed update check from a shared folder containing `date-formatter.exe`.
 * Safer overwrite writes through a temporary output file before replacing the target.
 * Duplicate or blank headers are disambiguated before conversion.
 * Embedded user manual at `frontend/public/user-manual.html`.
@@ -43,7 +44,7 @@ npm audit --audit-level=moderate
 Release builds inject the app version into `main.version`.
 
 ```bash
-wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
+wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.13'"
 ```
 
 Windows release build in GitHub Actions uses:
@@ -52,16 +53,18 @@ Windows release build in GitHub Actions uses:
 wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
 ```
 
+The tagged workflow patches `wails.json` so Windows EXE metadata contains the release version. The published Windows asset is always named `date-formatter.exe`.
+
 macOS arm64 release build uses:
 
 ```bash
-wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
+wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=v0.2.13'"
 ```
 
 Linux amd64 release build uses WebKitGTK 4.1 and nFPM packages:
 
 ```bash
-wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.12'"
+wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=v0.2.13'"
 nfpm package --config ../packaging/linux/nfpm.yaml --packager deb
 nfpm package --config ../packaging/linux/nfpm.yaml --packager rpm
 ```

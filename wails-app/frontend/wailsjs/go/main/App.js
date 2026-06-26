@@ -6,6 +6,10 @@ export function CancelProcess() {
   return window['go']['main']['App']['CancelProcess']();
 }
 
+export function CheckForUpdate() {
+  return window['go']['main']['App']['CheckForUpdate']();
+}
+
 export function GetAppVersion() {
   return window['go']['main']['App']['GetAppVersion']();
 }
@@ -24,6 +28,10 @@ export function OpenPath(arg1) {
 
 export function PickFile() {
   return window['go']['main']['App']['PickFile']();
+}
+
+export function RestartToApplyUpdate() {
+  return window['go']['main']['App']['RestartToApplyUpdate']();
 }
 
 export function SaveSettings(arg1) {

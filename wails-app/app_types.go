@@ -52,4 +52,16 @@ type Settings struct {
 	WindowHeight      int      `json:"windowHeight"`
 	YYOverrideEnabled bool     `json:"yyOverrideEnabled"`
 	YYPrefix          string   `json:"yyPrefix"`
+	UpdateFolder      string   `json:"updateFolder"`
+}
+
+// UpdateCheckResult describes a pending Windows update discovered in a shared folder.
+type UpdateCheckResult struct {
+	UpdateAvailable  bool   `json:"updateAvailable"`
+	RestartRequired  bool   `json:"restartRequired"`
+	CurrentVersion   string `json:"currentVersion"`
+	AvailableVersion string `json:"availableVersion"`
+	SourcePath       string `json:"sourcePath"`
+	StagedPath       string `json:"stagedPath"`
+	Message          string `json:"message"`
 }

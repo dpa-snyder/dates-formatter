@@ -47,6 +47,7 @@ export namespace main {
 	    windowHeight: number;
 	    yyOverrideEnabled: boolean;
 	    yyPrefix: string;
+	    updateFolder: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -62,8 +63,32 @@ export namespace main {
 	        this.windowHeight = source["windowHeight"];
 	        this.yyOverrideEnabled = source["yyOverrideEnabled"];
 	        this.yyPrefix = source["yyPrefix"];
+	        this.updateFolder = source["updateFolder"];
+	    }
+	}
+	export class UpdateCheckResult {
+	    updateAvailable: boolean;
+	    restartRequired: boolean;
+	    currentVersion: string;
+	    availableVersion: string;
+	    sourcePath: string;
+	    stagedPath: string;
+	    message: string;
+
+	    static createFrom(source: any = {}) {
+	        return new UpdateCheckResult(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.updateAvailable = source["updateAvailable"];
+	        this.restartRequired = source["restartRequired"];
+	        this.currentVersion = source["currentVersion"];
+	        this.availableVersion = source["availableVersion"];
+	        this.sourcePath = source["sourcePath"];
+	        this.stagedPath = source["stagedPath"];
+	        this.message = source["message"];
 	    }
 	}
 
 }
-

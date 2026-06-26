@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -18,9 +19,11 @@ var version = "dev"
 
 // App is the main application struct bound to the Wails runtime.
 type App struct {
-	ctx        context.Context
-	settings   Settings
-	cancelProc context.CancelFunc
+	ctx           context.Context
+	settings      Settings
+	cancelProc    context.CancelFunc
+	updateMu      sync.Mutex
+	pendingUpdate *pendingUpdate
 }
 
 // NewApp creates a new App.

@@ -9,5 +9,12 @@
   "author": {
     "name": "Bryan Snyder",
     "email": "snyderb.de@gmail.com"
+  },
+  "info": {
+    "companyName": "Bryan Snyder",
+    "productName": "Date Formatter",
+    "productVersion": "0.0.0",
+    "copyright": "Copyright Bryan Snyder",
+    "comments": "Desktop app for normalizing archival spreadsheet dates."
   }
 }

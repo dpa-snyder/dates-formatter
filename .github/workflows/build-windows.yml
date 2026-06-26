@@ -140,9 +140,12 @@ jobs:
           BUILD_VERSION: ${{ github.ref_name }}
         run: |
           $tag = if ($env:BUILD_VERSION -match '^v') { $env:BUILD_VERSION } else { "dev" }
+          $pkgVersion = if ($env:BUILD_VERSION -match '^v') { $env:BUILD_VERSION -replace '^v', '' } else { "0.0.0" }
+          $env:PKG_VERSION = $pkgVersion
+          node -e "const fs=require('fs'); const p='wails.json'; const j=JSON.parse(fs.readFileSync(p,'utf8')); j.info={...(j.info||{}), productVersion: process.env.PKG_VERSION}; fs.writeFileSync(p, JSON.stringify(j,null,2)+'\n');"
           wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
           New-Item -ItemType Directory -Force -Path build\release | Out-Null
-          Copy-Item build\bin\date-formatter.exe "build\release\date-formatter-$tag-windows-amd64.exe" -Force
+          Copy-Item build\bin\date-formatter.exe "build\release\date-formatter.exe" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -200,9 +203,12 @@ jobs:
         run: |
           if [[ "${BUILD_VERSION}" == v* ]]; then
             tag="${BUILD_VERSION}"
+            pkg_version="${BUILD_VERSION#v}"
           else
             tag="dev"
+            pkg_version="0.0.0"
           fi
+          PKG_VERSION="${pkg_version}" node -e 'const fs=require("fs"); const p="wails.json"; const j=JSON.parse(fs.readFileSync(p,"utf8")); j.info={...(j.info||{}), productVersion: process.env.PKG_VERSION}; fs.writeFileSync(p, JSON.stringify(j,null,2)+"\n");'
           wails build -platform darwin/arm64 -clean -o date-formatter -ldflags "-X 'main.version=${tag}'"
           codesign --verify --deep --strict --verbose=2 build/bin/date-formatter.app
           mkdir -p build/release
@@ -273,6 +279,7 @@ jobs:
             tag="dev"
             pkg_version="0.0.0"
           fi
+          PKG_VERSION="${pkg_version}" node -e 'const fs=require("fs"); const p="wails.json"; const j=JSON.parse(fs.readFileSync(p,"utf8")); j.info={...(j.info||{}), productVersion: process.env.PKG_VERSION}; fs.writeFileSync(p, JSON.stringify(j,null,2)+"\n");'
 
           wails build -platform linux/amd64 -clean -tags webkit2_41 -o date-formatter -ldflags "-X 'main.version=${tag}'"
 
@@ -314,8 +321,10 @@ jobs:
       - name: Attach assets to GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }} — all-platform desktop release
+          name: date-formatter.exe
           body: |
+            Version: `${{ github.ref_name }}`
+
             ## Release
             This tagged build publishes Date Formatter desktop packages for Windows, macOS, and Linux.
 
@@ -326,12 +335,13 @@ jobs:
             - Writes overwrites through a temporary output file with a backup fallback.
             - Persists Wails conversion mode, output mode, recent files, YY-prefix settings, appearance, and palette.
             - Disambiguates duplicate or blank source headers before conversion.
+            - On Windows, can check a configured shared update folder for `date-formatter.exe`, compare EXE version metadata, stage the update locally, and prompt to restart.
 
             ## Verification
             Release builds run Go tests and vet, legacy Python parser tests, frontend build, dependency audit, workflow lint, and static HTML validation before assets are published.
 
             ## Assets
-            - `date-formatter-${{ github.ref_name }}-windows-amd64.exe`
+            - `date-formatter.exe`
             - `date-formatter-${{ github.ref_name }}-macos-arm64.zip`
             - `date-formatter-${{ github.ref_name }}-linux-amd64.deb`
             - `date-formatter-${{ github.ref_name }}-linux-x86_64.rpm`

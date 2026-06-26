@@ -311,9 +311,36 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%;
 }
 
+.settings-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+}
+
+.settings-input:focus {
+  outline: 2px solid color-mix(in oklab, var(--blue) 32%, transparent);
+  border-color: var(--blue);
+}
+
+.settings-help,
+.settings-status {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.settings-inline-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .settings-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 /* ── Screen scaffold ───────────────────────────────────────── */

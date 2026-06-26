@@ -4,6 +4,8 @@ import Converter from './screens/Converter'
 import Manual from './screens/Manual'
 import { THEMES, ThemePalette, getAppVars } from './themes'
 import { WindowSetSize } from '../wailsjs/runtime/runtime'
+import { CheckForUpdate, GetSettings, RestartToApplyUpdate, SaveSettings } from '../wailsjs/go/main/App'
+import { main } from '../wailsjs/go/models'
 
 export type Screen = 'converter' | 'manual'
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -46,6 +48,7 @@ function loadPalette(): ThemePalette {
 export default function App() {
   const [screen, setScreen] = useState<Screen>('converter')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [updateReady, setUpdateReady] = useState<main.UpdateCheckResult | null>(null)
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const t = loadTheme()
     applyTheme(t)
@@ -137,6 +140,20 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [settingsOpen])
 
+  useEffect(() => {
+    if (!(window as any).go?.main?.App?.CheckForUpdate) return
+    Promise.resolve()
+      .then(CheckForUpdate)
+      .then(result => {
+        if (result?.updateAvailable) setUpdateReady(result)
+      })
+      .catch(() => {})
+  }, [])
+
+  async function restartForUpdate() {
+    await RestartToApplyUpdate()
+  }
+
   return (
     <div className="app-shell">
       <Sidebar
@@ -161,6 +178,13 @@ export default function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
+      {updateReady && (
+        <UpdateRestartDialog
+          update={updateReady}
+          onRestart={restartForUpdate}
+          onDismiss={() => setUpdateReady(null)}
+        />
+      )}
     </div>
   )
 }
@@ -174,6 +198,55 @@ interface SettingsDialogProps {
 }
 
 function SettingsDialog({ theme, palette, onSetTheme, onSetPalette, onClose }: SettingsDialogProps) {
+  const [settings, setSettings] = useState<main.Settings | null>(null)
+  const [updateFolder, setUpdateFolder] = useState('')
+  const [updateStatus, setUpdateStatus] = useState('')
+  const [updateReady, setUpdateReady] = useState<main.UpdateCheckResult | null>(null)
+
+  useEffect(() => {
+    Promise.resolve()
+      .then(GetSettings)
+      .then(s => {
+        const next = new main.Settings(s)
+        setSettings(next)
+        setUpdateFolder(next.updateFolder ?? '')
+      })
+      .catch(() => {})
+  }, [])
+
+  async function saveUpdateFolder() {
+    const base = settings ?? new main.Settings(await GetSettings())
+    const next = new main.Settings({
+      ...base,
+      updateFolder: updateFolder.trim(),
+    })
+    await SaveSettings(next)
+    setSettings(next)
+    return next
+  }
+
+  async function saveAndClose() {
+    await saveUpdateFolder()
+    onClose()
+  }
+
+  async function checkNow() {
+    setUpdateStatus('Checking...')
+    setUpdateReady(null)
+    try {
+      await saveUpdateFolder()
+      const result = await CheckForUpdate()
+      if (result.updateAvailable) {
+        setUpdateReady(result)
+        setUpdateStatus(`Version ${result.availableVersion} is ready. Restart to apply.`)
+      } else {
+        setUpdateStatus(result.message || 'No newer update found.')
+      }
+    } catch (err) {
+      setUpdateStatus(String(err))
+    }
+  }
+
   return (
     <div className="settings-backdrop" role="presentation" onClick={onClose}>
       <section
@@ -215,8 +288,62 @@ function SettingsDialog({ theme, palette, onSetTheme, onSetPalette, onClose }: S
             ))}
           </select>
         </div>
+        <div className="settings-section">
+          <label className="settings-label" htmlFor="settings-update-folder">Update Folder</label>
+          <input
+            id="settings-update-folder"
+            className="settings-input"
+            value={updateFolder}
+            onChange={e => setUpdateFolder(e.target.value)}
+            placeholder="\\\\server\\share\\Date Formatter"
+          />
+          <div className="settings-help">Folder containing date-formatter.exe.</div>
+          <div className="settings-inline-actions">
+            <button type="button" className="btn-ghost-sm" onClick={checkNow}>Check</button>
+            {updateReady && (
+              <button type="button" className="btn-primary-sm" onClick={() => RestartToApplyUpdate()}>
+                Restart
+              </button>
+            )}
+          </div>
+          {updateStatus && <div className="settings-status">{updateStatus}</div>}
+        </div>
         <div className="settings-actions">
-          <button type="button" className="btn-primary-sm" onClick={onClose}>Done</button>
+          <button type="button" className="btn-primary-sm" onClick={saveAndClose}>Done</button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+interface UpdateRestartDialogProps {
+  update: main.UpdateCheckResult
+  onRestart: () => void
+  onDismiss: () => void
+}
+
+function UpdateRestartDialog({ update, onRestart, onDismiss }: UpdateRestartDialogProps) {
+  return (
+    <div className="settings-backdrop" role="presentation" onClick={onDismiss}>
+      <section
+        className="settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-title"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="settings-head">
+          <h2 id="update-title">Update Ready</h2>
+          <button className="settings-close" type="button" onClick={onDismiss} aria-label="Dismiss update">×</button>
+        </div>
+        <div className="settings-section">
+          <div className="settings-status">
+            Version {update.availableVersion} is ready. Restart Date Formatter to finish updating.
+          </div>
+        </div>
+        <div className="settings-actions">
+          <button type="button" className="btn-ghost-sm" onClick={onDismiss}>Later</button>
+          <button type="button" className="btn-primary-sm" onClick={onRestart}>Restart</button>
         </div>
       </section>
     </div>

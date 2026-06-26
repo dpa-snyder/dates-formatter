@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function CancelProcess():Promise<void>;
 
+export function CheckForUpdate():Promise<main.UpdateCheckResult>;
+
 export function GetAppVersion():Promise<string>;
 
 export function GetColumns(arg1:string):Promise<main.ColumnsResult>;
@@ -13,6 +15,8 @@ export function GetSettings():Promise<main.Settings>;
 export function OpenPath(arg1:string):Promise<void>;
 
 export function PickFile():Promise<string>;
+
+export function RestartToApplyUpdate():Promise<void>;
 
 export function SaveSettings(arg1:main.Settings):Promise<void>;
 
