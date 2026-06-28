@@ -12,6 +12,6 @@ func executableMetadataVersion(path string) (string, error) {
 	return "", fmt.Errorf("EXE metadata updates are supported on Windows only")
 }
 
-func restartToApplyUpdate(stagedPath, targetPath string, pid int) error {
+func restartToApplyUpdate(stagedPath, targetPath string, pid int, expectedSHA256 string) error {
 	return fmt.Errorf("automatic updates are supported on Windows only")
 }

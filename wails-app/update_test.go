@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"os"
 	"testing"
@@ -116,7 +118,7 @@ func TestStageUpdateExecutableCopiesExeToLocalCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	stagedPath, err := stageUpdateExecutable(src.Name())
+	stagedPath, stagedSHA256, err := stageUpdateExecutable(src.Name())
 	if err != nil {
 		t.Fatalf("stageUpdateExecutable: %v", err)
 	}
@@ -131,5 +133,9 @@ func TestStageUpdateExecutableCopiesExeToLocalCache(t *testing.T) {
 	}
 	if string(got) != "new exe bytes" {
 		t.Fatalf("staged content = %q", string(got))
+	}
+	wantHash := sha256.Sum256([]byte("new exe bytes"))
+	if stagedSHA256 != hex.EncodeToString(wantHash[:]) {
+		t.Fatalf("staged SHA256 = %q, want %q", stagedSHA256, hex.EncodeToString(wantHash[:]))
 	}
 }

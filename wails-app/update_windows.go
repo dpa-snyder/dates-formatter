@@ -102,28 +102,37 @@ func queryFixedFileVersion(data []byte) (string, error) {
 	), nil
 }
 
-func restartToApplyUpdate(stagedPath, targetPath string, pid int) error {
+func restartToApplyUpdate(stagedPath, targetPath string, pid int, expectedSHA256 string) error {
 	helperDir := filepath.Dir(stagedPath)
-	helperPath := filepath.Join(helperDir, "apply-date-formatter-update.cmd")
-	script := fmt.Sprintf(`@echo off
-setlocal
-set "STAGED=%s"
-set "TARGET=%s"
-set "PID=%d"
-:wait
-tasklist /FI "PID eq %%PID%%" | find "%%PID%%" >nul
-if not errorlevel 1 (
-  timeout /t 1 /nobreak >nul
-  goto wait
-)
-copy /Y "%%STAGED%%" "%%TARGET%%" >nul
-if errorlevel 1 exit /b 1
-start "" "%%TARGET%%"
-del "%%STAGED%%" >nul 2>nul
-del "%%~f0" >nul 2>nul
-`, stagedPath, targetPath, pid)
+	helperPath := filepath.Join(helperDir, "apply-date-formatter-update.ps1")
+	script := fmt.Sprintf(`$ErrorActionPreference = 'Stop'
+$ProcessIdToWait = %d
+$Staged = %s
+$Target = %s
+$ExpectedHash = '%s'
+try {
+    Wait-Process -Id $ProcessIdToWait -Timeout 60 -ErrorAction SilentlyContinue
+} catch {}
+Start-Sleep -Milliseconds 500
+$ActualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Staged).Hash.ToLowerInvariant()
+if ($ActualHash -ne $ExpectedHash) { exit 2 }
+Copy-Item -LiteralPath $Staged -Destination $Target -Force
+Start-Process -FilePath $Target
+Remove-Item -LiteralPath $Staged -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
+`, pid, powershellString(stagedPath), powershellString(targetPath), strings.ToLower(expectedSHA256))
 	if err := os.WriteFile(helperPath, []byte(script), 0700); err != nil {
 		return err
 	}
-	return exec.Command("cmd", "/C", "start", "", "/min", helperPath).Start()
+	return exec.Command(
+		"powershell.exe",
+		"-NoProfile",
+		"-ExecutionPolicy", "Bypass",
+		"-WindowStyle", "Hidden",
+		"-File", helperPath,
+	).Start()
+}
+
+func powershellString(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }

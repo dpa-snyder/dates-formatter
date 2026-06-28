@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -21,6 +23,7 @@ type pendingUpdate struct {
 	sourcePath       string
 	stagedPath       string
 	targetPath       string
+	sha256           string
 	availableVersion string
 }
 
@@ -78,20 +81,33 @@ func checkUpdateCandidate(currentVersion, folder string, readVersion exeVersionR
 	return result, nil
 }
 
-func stageUpdateExecutable(sourcePath string) (string, error) {
+func stageUpdateExecutable(sourcePath string) (string, string, error) {
+	sourceSHA256, err := sha256File(sourcePath)
+	if err != nil {
+		return "", "", err
+	}
 	cacheDir, err := os.UserCacheDir()
 	if err != nil || strings.TrimSpace(cacheDir) == "" {
 		cacheDir = os.TempDir()
 	}
 	stageDir := filepath.Join(cacheDir, "date-formatter", "updates")
 	if err := os.MkdirAll(stageDir, 0700); err != nil {
-		return "", err
+		return "", "", err
 	}
 	stagedPath := filepath.Join(stageDir, updateExecutableName)
 	if err := copyFile(sourcePath, stagedPath); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return stagedPath, nil
+	stagedSHA256, err := sha256File(stagedPath)
+	if err != nil {
+		_ = os.Remove(stagedPath)
+		return "", "", err
+	}
+	if stagedSHA256 != sourceSHA256 {
+		_ = os.Remove(stagedPath)
+		return "", "", fmt.Errorf("staged update hash does not match source executable")
+	}
+	return stagedPath, stagedSHA256, nil
 }
 
 func copyFile(sourcePath, targetPath string) error {
@@ -131,6 +147,20 @@ func copyFile(sourcePath, targetPath string) error {
 	}
 	cleanup = false
 	return nil
+}
+
+func sha256File(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	sum := sha256.New()
+	if _, err := io.Copy(sum, file); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(sum.Sum(nil)), nil
 }
 
 func isNewerVersion(current, candidate string) bool {
@@ -202,17 +232,19 @@ func (a *App) CheckForUpdate() (UpdateCheckResult, error) {
 	if err != nil {
 		return result, err
 	}
-	stagedPath, err := stageUpdateExecutable(result.SourcePath)
+	stagedPath, stagedSHA256, err := stageUpdateExecutable(result.SourcePath)
 	if err != nil {
 		return result, err
 	}
 	result.StagedPath = stagedPath
+	result.SHA256 = stagedSHA256
 
 	a.updateMu.Lock()
 	a.pendingUpdate = &pendingUpdate{
 		sourcePath:       result.SourcePath,
 		stagedPath:       stagedPath,
 		targetPath:       targetPath,
+		sha256:           stagedSHA256,
 		availableVersion: result.AvailableVersion,
 	}
 	a.updateMu.Unlock()
@@ -231,7 +263,7 @@ func (a *App) RestartToApplyUpdate() error {
 	if pending.stagedPath == "" {
 		return fmt.Errorf("no staged update is ready")
 	}
-	if err := restartToApplyUpdate(pending.stagedPath, pending.targetPath, os.Getpid()); err != nil {
+	if err := restartToApplyUpdate(pending.stagedPath, pending.targetPath, os.Getpid(), pending.sha256); err != nil {
 		return err
 	}
 	wailsruntime.Quit(a.ctx)

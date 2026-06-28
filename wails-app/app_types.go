@@ -63,5 +63,6 @@ type UpdateCheckResult struct {
 	AvailableVersion string `json:"availableVersion"`
 	SourcePath       string `json:"sourcePath"`
 	StagedPath       string `json:"stagedPath"`
+	SHA256           string `json:"sha256"`
 	Message          string `json:"message"`
 }

@@ -73,6 +73,7 @@ export namespace main {
 	    availableVersion: string;
 	    sourcePath: string;
 	    stagedPath: string;
+	    sha256: string;
 	    message: string;
 
 	    static createFrom(source: any = {}) {
@@ -87,6 +88,7 @@ export namespace main {
 	        this.availableVersion = source["availableVersion"];
 	        this.sourcePath = source["sourcePath"];
 	        this.stagedPath = source["stagedPath"];
+	        this.sha256 = source["sha256"];
 	        this.message = source["message"];
 	    }
 	}
