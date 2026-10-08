@@ -34,7 +34,7 @@ def load_gui(path):
 def load_export_boundary(path):
     # Standalone scripts launch Tk at import. Execute their actual pure helpers
     # without launching a window or running a user-selected conversion.
-    tree = ast.parse(path.read_text())
+    tree = ast.parse(path.read_text(encoding="utf-8"))
     definitions = [
         node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.ClassDef))
         and node.name in {"save_dataframe", "load_dataframe", "strip_parenthetical_notes",
