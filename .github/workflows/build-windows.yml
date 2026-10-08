@@ -111,6 +111,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: wails-app/frontend/package-lock.json
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
       - name: Install Wails CLI
         shell: pwsh
         env:
@@ -146,6 +152,23 @@ jobs:
           wails build -platform windows/amd64 -clean -webview2 download -o date-formatter.exe -ldflags "-X 'main.version=$tag'"
           New-Item -ItemType Directory -Force -Path build\release | Out-Null
           Copy-Item build\bin\date-formatter.exe "build\release\date-formatter.exe" -Force
+
+      - name: Test Windows save boundaries
+        shell: pwsh
+        working-directory: wails-app
+        run: |
+          go test ./...
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go vet ./...
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test legacy Python on Windows
+        shell: pwsh
+        run: |
+          python -m pip install -r requirements.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s tests -q
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -332,13 +355,15 @@ jobs:
             - Supports Single Date, ArchivEra, and Dublin Core conversion modes.
             - Preserves original source values in `Original_...` columns and flags review rows in `Check ...` columns.
             - Supports optional YY prefix handling for known two-digit year centuries.
-            - Writes overwrites through a temporary output file with a backup fallback.
+            - Publishes completed output through retained file and directory handles; unsafe linked or non-file output targets are rejected.
+            - Preserves Unix ownership and permission bits when replacing existing spreadsheets.
+            - Keeps legacy Python XLSX strings literal, handles malformed date parentheses in linear time, and uses private per-user logs with nonfatal error handling.
             - Persists Wails conversion mode, output mode, recent files, YY-prefix settings, appearance, and palette.
             - Disambiguates duplicate or blank source headers before conversion.
             - On Windows, checks `X:\Apps\date-formatter.exe` by default, also accepts folder paths containing `date-formatter.exe`, compares EXE version metadata, stages the update locally, and prompts to restart.
 
             ## Verification
-            Release builds run Go tests and vet, legacy Python parser tests, frontend build, dependency audit, workflow lint, and static HTML validation before assets are published.
+            Release builds run Go tests and vet plus legacy Python security and parser tests on Linux and Windows. Frontend builds, dependency audits, workflow lint, and static HTML checks must pass before assets are published.
 
             ## Assets
             - `date-formatter.exe`
@@ -351,5 +376,5 @@ jobs:
             The Linux app uses GTK and WebKitGTK. The `.deb` and `.rpm` packages declare runtime dependencies for common Debian/Ubuntu and Fedora/RHEL-family systems. If those package names do not exist on a distro, use the `.tar.gz` fallback and install the distro's GTK3 and WebKitGTK 4.1 runtime packages manually.
 
             ## Signing status
-            Public builds are not yet code-signed or Apple-notarized. Browsers, Windows SmartScreen, and macOS Gatekeeper may show trust prompts. Enterprise or IT-managed builds may be signed separately and behave differently.
+            The maintainer signs Windows builds manually after release. Initial assets are unsigned; macOS builds are not Apple-notarized. Browsers, Windows SmartScreen, and macOS Gatekeeper may show trust prompts. Enterprise or IT-managed builds may be signed separately and behave differently.
           files: release-assets/**/*

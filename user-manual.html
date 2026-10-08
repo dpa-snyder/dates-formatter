@@ -1002,6 +1002,9 @@ chmod +x date-formatter
           <div class="note" style="margin-top:12px">
             Use Save copy when you want a built-in backup. If you use Overwrite, close the spreadsheet in Excel first.
           </div>
+          <p style="margin-top:12px">Output destinations must be regular files. Symbolic links and directories are refused; use a normal file or choose <strong>Save copy</strong>.</p>
+          <p style="margin-top:8px">On Unix systems, overwrites keep the existing owner, group, and permission bits and new files use owner-only permission bits. Extended access rules and Windows permissions depend on the operating system and folder; use a private folder for restricted data.</p>
+          <p style="margin-top:8px">Legacy Python saves also finish the temporary output before replacing the destination. If the selected folder changes after loading, reload the file before saving. If ownership cannot be retained, saving fails and keeps the original. Its copy suffix is <code>_formatted</code>. XLSX text stays literal, including headers and values beginning with <code>=</code>, while numeric and boolean cells keep their types.</p>
         </div>
       </div>
     </section>
@@ -1024,8 +1027,8 @@ chmod +x date-formatter
           </p>
           <div class="note" style="margin-top:12px">
             Overwrite runs write a temporary output file first, then replace the original only after the new
-            file is complete. If the operating system cannot replace in place, the app uses a short-lived
-            backup during the swap.
+            file is complete. If the operating system refuses replacement, saving fails and leaves the
+            original in place.
           </div>
         </div>
       </div>
@@ -1422,7 +1425,7 @@ chmod +x date-formatter
               <tr><td>Wails settings</td><td>Windows: <code>%APPDATA%\date-formatter\settings.json</code>. macOS: <code>~/Library/Application Support/date-formatter/settings.json</code>. Linux: <code>~/.config/date-formatter/settings.json</code>. Stores recent files, mode, output behavior, YY-prefix choices, and the Windows update path.</td></tr>
               <tr><td>Wails manual</td><td>Built into the app and also shipped as <code>user-manual.html</code>.</td></tr>
               <tr><td>Legacy Python version</td><td>Shown in the bottom-left footer, such as <code>v2026.06.01</code>.</td></tr>
-              <tr><td>Legacy Python log</td><td><code>%TEMP%\date-formatter.log</code> records run history and errors.</td></tr>
+              <tr><td>Legacy Python log</td><td>Windows: <code>%LOCALAPPDATA%\date-formatter\logs\date-formatter.log</code>. macOS: <code>~/Library/Logs/date-formatter/date-formatter.log</code>. Linux: <code>$XDG_STATE_HOME/date-formatter/date-formatter.log</code>, or <code>~/.local/state/date-formatter/date-formatter.log</code>. If file logging is unavailable, errors go to standard error and Open Log is hidden.</td></tr>
               <tr><td>Legacy Python settings</td><td><code>dates-formatter-settings.json</code> in the same folder as the script.</td></tr>
               <tr><td>Python dependencies</td><td><code>customtkinter 5.2.2</code>, <code>pandas 2.2.2</code>, <code>openpyxl 3.1.5</code>.</td></tr>
             </tbody>

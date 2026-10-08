@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
 	"date-formatter/dateengine"
 
@@ -214,8 +213,25 @@ func detectDateColumns(path string, headers []string) []string {
 
 // ProcessFile reads the file, converts selected columns, writes output.
 func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc) (ProcessResult, error) {
-	// Read table
-	headers, rows, err := readTable(opts.FilePath)
+	// Retain the selected parent directory through reading, conversion, and saving.
+	outPath := outputPath(opts.FilePath, opts.OutputMode)
+	if outPath == "" {
+		return ProcessResult{}, fmt.Errorf("unsupported output mode %q", opts.OutputMode)
+	}
+	directory, err := openOutputDirectory(opts.FilePath)
+	if err != nil {
+		return ProcessResult{}, fmt.Errorf("open selected directory: %w", err)
+	}
+	defer directory.close()
+	source, err := directory.root.Open(filepath.Base(opts.FilePath))
+	if err != nil {
+		return ProcessResult{}, fmt.Errorf("read file: %w", err)
+	}
+	headers, rows, err := readTableFrom(source, isCSV(opts.FilePath))
+	closeErr := source.Close()
+	if err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		return ProcessResult{}, fmt.Errorf("read file: %w", err)
 	}
@@ -312,14 +328,8 @@ func ProcessFile(ctx context.Context, opts ProcessOptions, progress ProgressFunc
 	// Apply leading-zero padding to ID columns
 	applyLeadingZeros(newHeaders, newRows)
 
-	// Determine output path
-	outPath := outputPath(opts.FilePath, opts.OutputMode)
-	if outPath == "" {
-		return ProcessResult{}, fmt.Errorf("unsupported output mode %q", opts.OutputMode)
-	}
-
-	// Write
-	if err := writeOutput(ctx, outPath, newHeaders, newRows); err != nil {
+	// Publish into the same opened directory used for reading.
+	if err := writeOutputInDirectory(ctx, outPath, newHeaders, newRows, directory); err != nil {
 		return ProcessResult{}, fmt.Errorf("write output: %w", err)
 	}
 
@@ -401,7 +411,11 @@ func readCSV(path string) ([]string, [][]string, error) {
 		return nil, nil, err
 	}
 	defer f.Close()
-	records, err := csv.NewReader(f).ReadAll()
+	return readCSVFrom(f)
+}
+
+func readCSVFrom(input io.Reader) ([]string, [][]string, error) {
+	records, err := csv.NewReader(input).ReadAll()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -417,6 +431,22 @@ func readXLSX(path string) ([]string, [][]string, error) {
 		return nil, nil, err
 	}
 	defer f.Close()
+	return readXLSXWorkbook(f)
+}
+
+func readTableFrom(input io.Reader, csvInput bool) ([]string, [][]string, error) {
+	if csvInput {
+		return readCSVFrom(input)
+	}
+	f, err := excelize.OpenReader(input)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer f.Close()
+	return readXLSXWorkbook(f)
+}
+
+func readXLSXWorkbook(f *excelize.File) ([]string, [][]string, error) {
 	sheet := f.GetSheetName(0)
 	rowData, err := f.GetRows(sheet)
 	if err != nil {
@@ -438,80 +468,8 @@ func readXLSX(path string) ([]string, [][]string, error) {
 	return headers, data, nil
 }
 
-func writeOutput(ctx context.Context, path string, headers []string, rows [][]string) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
-	tmpPath, err := tempOutputPath(path)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmpPath)
-
-	if isCSV(path) {
-		err = writeCSV(tmpPath, headers, rows)
-	} else {
-		err = writeXLSX(tmpPath, headers, rows)
-	}
-	if err != nil {
-		return err
-	}
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	return commitTempFile(tmpPath, path)
-}
-
-func tempOutputPath(target string) (string, error) {
-	dir := filepath.Dir(target)
-	base := filepath.Base(target)
-	ext := filepath.Ext(base)
-	stem := strings.TrimSuffix(base, ext)
-	tmp, err := os.CreateTemp(dir, "."+stem+".*.tmp"+ext)
-	if err != nil {
-		return "", err
-	}
-	path := tmp.Name()
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(path)
-		return "", err
-	}
-	if err := os.Remove(path); err != nil {
-		return "", err
-	}
-	return path, nil
-}
-
-func commitTempFile(tmpPath, target string) error {
-	firstErr := os.Rename(tmpPath, target)
-	if firstErr == nil {
-		return nil
-	}
-
-	if _, err := os.Stat(target); err != nil {
-		return firstErr
-	}
-
-	backup := fmt.Sprintf("%s.date-formatter-backup-%s", target, time.Now().UTC().Format("20060102T150405.000000000"))
-	if err := os.Rename(target, backup); err != nil {
-		return err
-	}
-	if err := os.Rename(tmpPath, target); err != nil {
-		_ = os.Rename(backup, target)
-		return err
-	}
-	_ = os.Remove(backup)
-	return nil
-}
-
-func writeCSV(path string, headers []string, rows [][]string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	w := csv.NewWriter(f)
+func writeCSV(output io.Writer, headers []string, rows [][]string) error {
+	w := csv.NewWriter(output)
 	if err := w.Write(headers); err != nil {
 		return err
 	}
@@ -524,8 +482,9 @@ func writeCSV(path string, headers []string, rows [][]string) error {
 	return w.Error()
 }
 
-func writeXLSX(path string, headers []string, rows [][]string) error {
+func writeXLSX(output io.Writer, headers []string, rows [][]string) error {
 	f := excelize.NewFile()
+	defer f.Close()
 	sheet := "Sheet1"
 	f.SetSheetName(f.GetSheetName(0), sheet)
 
@@ -556,7 +515,7 @@ func writeXLSX(path string, headers []string, rows [][]string) error {
 		}
 	}
 
-	return f.SaveAs(path)
+	return f.Write(output)
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────

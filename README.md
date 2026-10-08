@@ -4,7 +4,7 @@ Desktop app for normalizing inconsistent date formats in Excel and CSV spreadshe
 
 ## Current release
 
-Latest public release: `v0.2.15`, an update-smoke release for Windows managed updates, normal Windows asset naming, and EXE version metadata.
+Latest public release: `v0.2.15`. The next release, `v0.2.16`, is being prepared with security fixes and refreshed build dependencies. Native Windows checks must pass before publication.
 
 Release page:
 
@@ -72,7 +72,13 @@ After running any mode, three columns appear together in the spreadsheet.
 | `Original_{chosen column}` | Original raw value preserved for review. |
 | `Check {chosen column}` | `Yes` if the output needs manual review. |
 
-The Wails app can overwrite the original file or write a sibling `-formatted` copy. Overwrite runs write a temporary file first, then replace the target only after the output is complete. If a platform cannot replace in place, the app uses a short-lived backup during the swap.
+The Wails app can overwrite the original file or write a sibling `-formatted` copy. Overwrite runs write a temporary file first, then replace the target only after the output is complete. If the operating system refuses replacement, saving fails and leaves the original in place.
+
+The current source retains secure temporary-file descriptors through CSV/XLSX writing, preserves existing Unix owner, group, and permission bits, and refuses symbolic-link or nonregular output destinations. Directory handles keep writes anchored if parent paths are moved or replaced during processing. New files use owner-only Unix permission bits; extended ACLs and Windows access rules remain platform-specific.
+
+Legacy Python exports also replace the output only after a complete temporary write. All exported XLSX strings, including headers and preserved originals, remain literal text; numeric and boolean cells retain their types. Legacy Python logging uses private per-user state and cannot block parser imports or startup when logging is unavailable.
+
+These security changes are prepared for `v0.2.16` and are not part of the published `v0.2.15` release. macOS checks pass; native Windows tests must pass before publication. Windows update publisher verification is deferred; signing release files manually does not change the updater's current verification behavior.
 
 If a spreadsheet has duplicate or blank headers, the Wails app makes them unique before display and output. For example, duplicate `Date` headers appear as `Date` and `Date (2)`.
 

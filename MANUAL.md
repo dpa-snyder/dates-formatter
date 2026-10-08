@@ -190,7 +190,13 @@ The prefix applies only to recognized two-digit year dates. Leave it off when yo
 
 **Save copy** writes a sibling file named with `-formatted`, such as `records-formatted.xlsx`.
 
-Overwrite runs write a temporary output file first, then replace the original only after the new file is complete. If the operating system cannot replace in place, the app uses a short-lived backup during the swap.
+Overwrite runs write a temporary output file first, then replace the original only after the new file is complete. If the operating system refuses replacement, saving fails and leaves the original in place.
+
+Output destinations must be regular files. Symbolic links and directories are refused; use a normal file or choose **Save copy** instead.
+
+On Unix systems, overwrites keep the existing owner, group, and permission bits and new files use owner-only permission bits. Extended access rules and Windows permissions depend on the operating system and folder; use a private folder for restricted data.
+
+Legacy Python saves also finish the temporary output before replacing the destination. If the selected folder changes after loading, reload the file before saving. If ownership cannot be retained, saving fails and keeps the original. Its copy suffix is `_formatted`. XLSX text stays literal, including headers and values beginning with `=`, while numeric and boolean cells keep their types.
 
 If the source file is open in Excel, close it before overwriting. If a run is taking too long, click **Cancel**.
 
@@ -316,6 +322,12 @@ Unrecognized values such as `Spring 1962`, `Easter 1964`, or free-text comments 
 | Version | Sidebar footer. Release builds show tags such as `v0.2.15`. | Bottom-left footer, such as `v2026.06.01`. |
 | Settings | Windows: `%APPDATA%\date-formatter\settings.json`. macOS: `~/Library/Application Support/date-formatter/settings.json`. Linux: `~/.config/date-formatter/settings.json`. Stores recent files, mode, output behavior, YY-prefix choices, and the Windows update path. | `dates-formatter-settings.json` next to the Python script. |
 | Manual | Built into the app and also shipped as `user-manual.html`. | `user-manual.html` next to the Python script. |
-| Logs | Progress and messages appear in the app run panel. | `%TEMP%\date-formatter.log`. |
+| Logs | Progress and messages appear in the app run panel. | Private per-user `date-formatter.log`; see paths below. File logging failure falls back to standard error and hides Open Log. |
+
+Legacy Python log locations:
+
+* Windows: `%LOCALAPPDATA%\date-formatter\logs\date-formatter.log`.
+* macOS: `~/Library/Logs/date-formatter/date-formatter.log`.
+* Linux: `$XDG_STATE_HOME/date-formatter/date-formatter.log`, or `~/.local/state/date-formatter/date-formatter.log` when that variable is not set.
 
 When reporting a problem, include the app version, operating system, release source, file type, conversion mode, and one or two sample source values.

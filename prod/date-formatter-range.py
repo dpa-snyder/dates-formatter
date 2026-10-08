@@ -6,6 +6,287 @@ import time
 import re
 from datetime import datetime, timedelta
 import platform
+import os
+import stat
+import tempfile
+
+
+def strip_parenthetical_notes(text):
+    """Remove same-line parenthetical notes without rescanning failed suffixes."""
+    output = []
+    pending = None
+    whitespace_start = 0
+    for char in text:
+        if pending is not None:
+            if char == ')':
+                del output[whitespace_start:]
+                pending = None
+            elif char == '\n':
+                output.extend(pending)
+                output.append(char)
+                pending = None
+            else:
+                pending.append(char)
+        elif char == '(':
+            whitespace_start = len(output)
+            while whitespace_start and output[whitespace_start - 1].isspace():
+                whitespace_start -= 1
+            pending = ['(']
+        else:
+            output.append(char)
+    if pending is not None:
+        output.extend(pending)
+    return ''.join(output)
+
+
+class WindowsOutputDirectory:
+    """Use directory and file handles; never reopen a staged output by name."""
+    def __init__(self, path):
+        import ctypes
+        from ctypes import wintypes
+        import msvcrt
+        self.ctypes = ctypes
+        self.msvcrt = msvcrt
+        self.kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        self.native = ctypes.WinDLL('ntdll')
+        class UnicodeString(ctypes.Structure):
+            _fields_ = [('Length', wintypes.USHORT), ('MaximumLength', wintypes.USHORT),
+                        ('Buffer', wintypes.LPWSTR)]
+        class ObjectAttributes(ctypes.Structure):
+            _fields_ = [('Length', wintypes.ULONG), ('RootDirectory', wintypes.HANDLE),
+                        ('ObjectName', ctypes.POINTER(UnicodeString)),
+                        ('Attributes', wintypes.ULONG), ('SecurityDescriptor', wintypes.LPVOID),
+                        ('SecurityQualityOfService', wintypes.LPVOID)]
+        class IOStatus(ctypes.Structure):
+            _fields_ = [('Status', ctypes.c_void_p), ('Information', ctypes.c_size_t)]
+        class FileInfo(ctypes.Structure):
+            _fields_ = [('Attributes', wintypes.DWORD), ('Creation', wintypes.FILETIME),
+                        ('Access', wintypes.FILETIME), ('Write', wintypes.FILETIME),
+                        ('Volume', wintypes.DWORD), ('SizeHigh', wintypes.DWORD),
+                        ('SizeLow', wintypes.DWORD), ('Links', wintypes.DWORD),
+                        ('IndexHigh', wintypes.DWORD), ('IndexLow', wintypes.DWORD)]
+        self.UnicodeString, self.ObjectAttributes = UnicodeString, ObjectAttributes
+        self.IOStatus, self.FileInfo = IOStatus, FileInfo
+        self.kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                                            wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD,
+                                            wintypes.HANDLE]
+        self.kernel.CreateFileW.restype = wintypes.HANDLE
+        self.kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        self.kernel.GetFileInformationByHandle.argtypes = [wintypes.HANDLE, ctypes.POINTER(FileInfo)]
+        self.native.NtCreateFile.argtypes = [ctypes.POINTER(wintypes.HANDLE), wintypes.DWORD,
+            ctypes.POINTER(ObjectAttributes), ctypes.POINTER(IOStatus), wintypes.LPVOID,
+            wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG,
+            wintypes.LPVOID, wintypes.ULONG]
+        self.native.NtCreateFile.restype = wintypes.LONG
+        self.native.NtSetInformationFile.argtypes = [wintypes.HANDLE, ctypes.POINTER(IOStatus),
+            wintypes.LPVOID, wintypes.ULONG, wintypes.ULONG]
+        self.native.NtSetInformationFile.restype = wintypes.LONG
+        self.native.RtlNtStatusToDosError.argtypes = [wintypes.LONG]
+        self.native.RtlNtStatusToDosError.restype = wintypes.ULONG
+        self.handle = self.kernel.CreateFileW(path, 0x80000000, 7, None, 3, 0x02000000, None)
+        if self.handle == ctypes.c_void_p(-1).value:
+            raise ctypes.WinError(ctypes.get_last_error())
+
+    def _check(self, status):
+        if status < 0:
+            raise self.ctypes.WinError(self.native.RtlNtStatusToDosError(status))
+
+    def _info(self, handle):
+        info = self.FileInfo()
+        if not self.kernel.GetFileInformationByHandle(handle, self.ctypes.byref(info)):
+            raise self.ctypes.WinError(self.ctypes.get_last_error())
+        return info
+
+    def identity(self):
+        info = self._info(self.handle)
+        return info.Volume, info.IndexHigh, info.IndexLow
+
+    def open_file(self, name, create=False):
+        from ctypes import wintypes
+        c = self.ctypes
+        text = c.create_unicode_buffer(name)
+        byte_length = len(name.encode('utf-16-le'))
+        value = self.UnicodeString(byte_length, byte_length + 2, c.cast(text, wintypes.LPWSTR))
+        attrs = self.ObjectAttributes(c.sizeof(self.ObjectAttributes), self.handle,
+                                     c.pointer(value), 0x40, None, None)
+        handle = wintypes.HANDLE()
+        # A staged handle has DELETE access and no sharing, so its name cannot be
+        # substituted and its contents cannot be changed before publication.
+        access = 0x12019f | 0x10000 if create else 0x120089
+        status = self.native.NtCreateFile(c.byref(handle), access, c.byref(attrs),
+            c.byref(self.IOStatus()), None, 0x80, 0 if create else 7,
+            2 if create else 1, 0x20 | 0x40 | 0x00200000, None, 0)
+        self._check(status)
+        try:
+            if self._info(handle).Attributes & (0x10 | 0x400):
+                raise ValueError("File must be regular, not a link or directory.")
+            fd = self.msvcrt.open_osfhandle(handle.value,
+                (os.O_RDWR if create else os.O_RDONLY) | os.O_BINARY)
+        except BaseException:
+            self.kernel.CloseHandle(handle)
+            raise
+        return fd
+
+    def publish(self, fd, name):
+        from ctypes import wintypes
+        c = self.ctypes
+        class RenameInfo(c.Structure):
+            _fields_ = [('Replace', wintypes.BOOLEAN), ('Root', wintypes.HANDLE),
+                        ('Length', wintypes.ULONG), ('Name', wintypes.WCHAR * (len(name.encode('utf-16-le')) // 2 + 1))]
+        info = RenameInfo()
+        info.Replace, info.Root = 1, self.handle
+        info.Length, info.Name = len(name.encode('utf-16-le')), name
+        # Native rename accepts a directory handle; SetFileInformationByHandle's
+        # Win32 form requires RootDirectory=NULL and would re-resolve the path.
+        self._check(self.native.NtSetInformationFile(self.msvcrt.get_osfhandle(fd),
+            c.byref(self.IOStatus()), c.byref(info), c.sizeof(info), 10))
+
+    def discard(self, fd):
+        c = self.ctypes
+        delete = c.c_ubyte(1)
+        self._check(self.native.NtSetInformationFile(self.msvcrt.get_osfhandle(fd),
+            c.byref(self.IOStatus()), c.byref(delete), c.sizeof(delete), 13))
+
+    def close(self):
+        self.kernel.CloseHandle(self.handle)
+
+
+class OutputDirectory:
+    """Anchor all reads and saves to one opened parent directory."""
+    def __init__(self, path):
+        self.path = os.path.dirname(os.path.abspath(os.fspath(path)))
+        self.windows = WindowsOutputDirectory(self.path) if os.name == 'nt' else None
+        self.fd = None if self.windows else os.open(self.path, os.O_RDONLY | os.O_DIRECTORY)
+
+    def identity(self):
+        if self.windows:
+            return self.windows.identity()
+        info = os.fstat(self.fd)
+        return info.st_dev, info.st_ino
+
+    def open_input(self, name):
+        if self.windows:
+            fd = self.windows.open_file(name)
+        else:
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=self.fd)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise ValueError("Input must be a regular file.")
+            return os.fdopen(fd, 'rb')
+        except BaseException:
+            os.close(fd)
+            raise
+
+    def target_info(self, name):
+        try:
+            if self.windows:
+                fd = self.windows.open_file(name)
+                try:
+                    return os.fstat(fd)
+                finally:
+                    os.close(fd)
+            info = os.stat(name, dir_fd=self.fd, follow_symlinks=False)
+        except FileNotFoundError:
+            return None
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError("Output must be a regular file, not a link or directory.")
+        return info
+
+    def close(self):
+        if self.windows:
+            self.windows.close()
+        else:
+            os.close(self.fd)
+
+
+def load_dataframe(path, **options):
+    directory = OutputDirectory(path)
+    try:
+        with directory.open_input(os.path.basename(os.fspath(path))) as source:
+            reader = pd.read_csv if os.fspath(path).lower().endswith('.csv') else pd.read_excel
+            return reader(source, **options), directory.identity()
+    finally:
+        directory.close()
+
+
+def save_dataframe(df, path, expected_directory=None):
+    """Write privately, then publish into the opened directory without following links."""
+    path = os.fspath(path)
+    directory = OutputDirectory(path)
+    private_fd = fd = None
+    private_name = temporary_name = None
+    published = False
+    try:
+        if expected_directory is not None and directory.identity() != expected_directory:
+            raise OSError("The selected directory changed. Reload the file before saving.")
+        name = os.path.basename(path)
+        target = directory.target_info(name)
+        if directory.windows:
+            import secrets
+            temporary_name = '.date-formatter-' + secrets.token_hex(16) + '.tmp'
+            fd = directory.windows.open_file(temporary_name, create=True)
+        else:
+            import secrets
+            private_name = '.date-formatter-' + secrets.token_hex(16)
+            os.mkdir(private_name, 0o700, dir_fd=directory.fd)
+            private_fd = os.open(private_name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                                 dir_fd=directory.fd)
+            info = os.fstat(private_fd)
+            if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
+                raise OSError("Temporary output directory is not private.")
+            temporary_name = 'output'
+            fd = os.open(temporary_name, os.O_RDWR | os.O_CREAT | os.O_EXCL,
+                         0o600, dir_fd=private_fd)
+            if target is not None:
+                os.fchown(fd, target.st_uid, target.st_gid)
+                os.fchmod(fd, stat.S_IMODE(target.st_mode))
+        # Keep the original descriptor open through publication. The stream owns
+        # a duplicate, avoiding any reopened pathname or released Windows handle.
+        is_csv = path.lower().endswith('.csv')
+        options = {'encoding': 'utf-8', 'newline': ''} if is_csv else {}
+        with os.fdopen(os.dup(fd), 'w' if is_csv else 'w+b', **options) as output:
+            if is_csv:
+                df.to_csv(output, index=False)
+            else:
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
+                    for worksheet in writer.sheets.values():
+                        for row in worksheet.iter_rows():
+                            for cell in row:
+                                if isinstance(cell.value, str):
+                                    cell.data_type = 's'
+                                    cell.number_format = '@'
+            output.flush()
+            os.fsync(output.fileno())
+        directory.target_info(name)  # Refuse a nonregular destination before commit.
+        if directory.windows:
+            directory.windows.publish(fd, name)
+        else:
+            os.replace(temporary_name, name, src_dir_fd=private_fd, dst_dir_fd=directory.fd)
+        published = True
+    finally:
+        try:
+            if fd is not None:
+                try:
+                    if directory.windows and not published:
+                        directory.windows.discard(fd)
+                finally:
+                    os.close(fd)
+            if private_fd is not None:
+                try:
+                    if not published and temporary_name is not None:
+                        os.unlink(temporary_name, dir_fd=private_fd)
+                except FileNotFoundError:
+                    pass
+                finally:
+                    os.close(private_fd)
+            if private_name is not None:
+                try:
+                    os.rmdir(private_name, dir_fd=directory.fd)
+                except OSError:
+                    pass  # Another process may have moved the directory; never recurse.
+        finally:
+            directory.close()
 
 # Initialize column_to_format
 column_to_format = None
@@ -39,10 +320,7 @@ def select_file():
 file_path = select_file()
 
 # Determine the file extension and load the file accordingly
-if file_path.endswith('.csv'):
-    df = pd.read_csv(file_path)
-else:
-    df = pd.read_excel(file_path)
+df, directory_info = load_dataframe(file_path)
 
 
 # Progress Window
@@ -126,7 +404,7 @@ def custom_format_date(date_str):
             return date
 
         # Apply the function to add leading zeros where necessary
-        date_str = re.sub(r'\s*\(.*?\)', '', date_str).strip()
+        date_str = strip_parenthetical_notes(date_str).strip()
         date_str = add_leading_zeros(date_str)
 
         # Check if the input is already a valid date range in MM/DD/YYYY - MM/DD/YYYY format
@@ -569,10 +847,7 @@ for col in ['SubGr', 'SG', 'SubGroup', 'Series', 'SubSeries Number']:
         df[col] = df[col].apply(lambda x: f'{int(x):03d}' if pd.notna(x) and x != '' else x)
 
 # Save the DataFrame back to the file
-if file_path.endswith('.csv'):
-    df.to_csv(file_path, index=False)
-else:
-    df.to_excel(file_path, index=False)
+save_dataframe(df, file_path, directory_info)
 
 # Update progress bar after writing back to the file
 update_progress_bar(progress_bar, 100)
