@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -39,7 +40,7 @@ func TestUpdateExecutablePath(t *testing.T) {
 		{`Z:\Apps\Date Formatter\`, `Z:\Apps\Date Formatter\date-formatter.exe`},
 		{`X:\Apps\date-formatter.exe`, `X:\Apps\date-formatter.exe`},
 		{`Z:\`, `Z:\date-formatter.exe`},
-		{`/tmp/releases`, `/tmp/releases/date-formatter.exe`},
+		{`/tmp/releases`, filepath.Join("/tmp/releases", "date-formatter.exe")},
 	}
 	for _, c := range cases {
 		t.Run(c.folder, func(t *testing.T) {

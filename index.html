@@ -417,7 +417,7 @@
           <div class="phase-body">
             <div class="ptasks">
               <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter.exe</code> on Windows with browser and SmartScreen warnings documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.15-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.16-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
               <div class="ptask"><span class="wid">T-001</span>Test Windows shared-folder update check, local staging, restart helper replacement, and app restart</div>
               <div class="ptask"><span class="wid">T-001</span>Test Linux <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code> assets with runtime dependencies documented</div>
             </div>
@@ -435,7 +435,7 @@
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-019</span>Choose Windows code-signing certificate path and release process</div>
+              <div class="ptask"><span class="wid">T-019</span>Sign the Windows EXE manually after release; plan workflow signing separately</div>
               <div class="ptask"><span class="wid">T-019</span>Choose macOS Developer ID signing and notarization process</div>
               <div class="ptask"><span class="wid">T-019</span>Keep manual warnings accurate until public signed builds exist</div>
             </div>
@@ -556,8 +556,8 @@
       <div class="pb">
         <div class="decisions">
           <div class="decision">
-            <div class="dq">Public signing owner?</div>
-            <div class="dd">Decide whether public Windows/macOS signing is handled by project release workflow or by enterprise IT distribution.</div>
+            <div class="dq">macOS signing process?</div>
+            <div class="dd">Windows signing is manual after release. Decide the macOS Developer ID and notarization process; enterprise IT distribution remains separate.</div>
           </div>
           <div class="decision">
             <div class="dq">Linux repository publishing?</div>
