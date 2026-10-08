@@ -2,9 +2,9 @@
 
 Desktop app for normalizing inconsistent date formats in Excel and CSV spreadsheets. Built for archival and records-management workflows where source date fields may be exact, fuzzy, partial, ISO/Dublin Core-shaped, or ambiguous.
 
-## Current release
+## Release candidate
 
-Latest public release: `v0.2.15`, an update-smoke release for Windows managed updates, normal Windows asset naming, and EXE version metadata.
+Release candidate: `v0.2.16`, with security fixes and refreshed build dependencies. Latest published release remains `v0.2.15` until the candidate passes all platform checks and its assets are published.
 
 Release page:
 
@@ -15,10 +15,10 @@ https://github.com/dpa-snyder/dates-formatter/releases/latest
 | Platform | Asset | Notes |
 |----------|-------|-------|
 | Windows | `date-formatter.exe` | Standalone Wails desktop app with EXE version metadata. Public downloads may trigger browser or SmartScreen trust prompts. |
-| macOS | `date-formatter-v0.2.15-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
-| Linux | `date-formatter-v0.2.15-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.15-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
-| Linux | `date-formatter-v0.2.15-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
+| macOS | `date-formatter-v0.2.16-macos-arm64.zip` | Apple silicon app bundle. Public downloads may trigger Gatekeeper trust prompts. |
+| Linux | `date-formatter-v0.2.16-linux-amd64.deb` | Debian/Ubuntu-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.16-linux-x86_64.rpm` | Fedora/RHEL-family package with GTK/WebKitGTK runtime dependencies. |
+| Linux | `date-formatter-v0.2.16-linux-amd64.tar.gz` | Portable fallback archive. Install GTK3 and WebKitGTK 4.1 runtime packages manually if needed. |
 
 Public GitHub downloads may not yet be recognized as trusted publisher builds by Windows, macOS, Linux desktop environments, or your browser. Enterprise environments may receive signed or managed builds through IT. In that case, launch behavior may differ from public GitHub downloads.
 
@@ -72,7 +72,13 @@ After running any mode, three columns appear together in the spreadsheet.
 | `Original_{chosen column}` | Original raw value preserved for review. |
 | `Check {chosen column}` | `Yes` if the output needs manual review. |
 
-The Wails app can overwrite the original file or write a sibling `-formatted` copy. Overwrite runs write a temporary file first, then replace the target only after the output is complete. If a platform cannot replace in place, the app uses a short-lived backup during the swap.
+The Wails app can overwrite the original file or write a sibling `-formatted` copy. Overwrite runs write a temporary file first, then replace the target only after the output is complete. If the operating system refuses replacement, saving fails and leaves the original in place.
+
+The current source retains secure temporary-file descriptors through CSV/XLSX writing, preserves existing Unix owner, group, and permission bits, and refuses symbolic-link or nonregular output destinations. Directory handles keep writes anchored if parent paths are moved or replaced during processing. New files use owner-only Unix permission bits; extended ACLs and Windows access rules remain platform-specific.
+
+Legacy Python exports also replace the output only after a complete temporary write. All exported XLSX strings, including headers and preserved originals, remain literal text; numeric and boolean cells retain their types. Legacy Python logging uses private per-user state and cannot block parser imports or startup when logging is unavailable.
+
+These security changes are prepared for `v0.2.16` and are not part of the published `v0.2.15` release. macOS checks pass; native Windows tests must pass before publication. Windows update publisher verification is deferred; signing release files manually does not change the updater's current verification behavior.
 
 If a spreadsheet has duplicate or blank headers, the Wails app makes them unique before display and output. For example, duplicate `Date` headers appear as `Date` and `Date (2)`.
 
@@ -227,7 +233,7 @@ Wails build examples:
 
 ```bash
 cd wails-app
-nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.15'"
+nix shell nixpkgs#wails -c wails build -clean -o date-formatter -ldflags "-X 'main.version=v0.2.16'"
 ```
 
 Linux package builds are automated in GitHub Actions with nFPM. Tagged releases publish `.deb`, `.rpm`, and `.tar.gz` assets.

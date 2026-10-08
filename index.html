@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.15 ships Wails desktop builds for Windows, macOS, and Linux.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Latest published release is v0.2.15. Security release v0.2.16 is being prepared for Windows, macOS, and Linux.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -300,7 +300,7 @@
     <article class="panel">
       <div class="ph">
         <h2>Active TODOs</h2>
-        <span class="pbadge">5 items</span>
+        <span class="pbadge">6 items</span>
       </div>
       <div class="pb">
         <div class="todo-list">
@@ -308,7 +308,7 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Validate v0.2.15 release</div>
+              <div class="t-title">Validate the next v0.2.16 release</div>
               <div class="t-note">Smoke-test public Windows <code>date-formatter.exe</code>, macOS zip, Linux deb/rpm/tarball with <code>9200-W22.xlsx</code>. Confirm warnings, runtime dependencies, YY prefix, overwrite/copy, open file/folder actions, and Windows shared-folder update/restart flow.</div>
             </div>
             <div class="imp" aria-label="Importance 4 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
@@ -318,9 +318,18 @@
             <span class="tid">T-019</span>
             <div>
               <div class="t-title">Public signing and notarization</div>
-              <div class="t-note">Windows needs publisher signing. macOS needs Developer ID signing and notarization. Enterprise signing remains separate if IT manages distribution.</div>
+              <div class="t-note">The maintainer handles Windows signing manually after release. Workflow signing and macOS Developer ID signing/notarization remain future work. Enterprise signing stays separate.</div>
             </div>
             <div class="imp" aria-label="Importance 5 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span></div>
+          </div>
+
+          <div class="todo">
+            <span class="tid">T-024</span>
+            <div>
+              <div class="t-title">Authenticate Windows update publishers</div>
+              <div class="t-note">Deferred by the maintainer on 2026-10-08. Version/hash checks still do not enforce a trusted signing identity; manually signing releases does not add updater verification.</div>
+            </div>
+            <div class="imp" aria-label="Importance 4 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
           </div>
 
           <div class="todo">
@@ -408,7 +417,7 @@
           <div class="phase-body">
             <div class="ptasks">
               <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter.exe</code> on Windows with browser and SmartScreen warnings documented</div>
-              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.15-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
+              <div class="ptask"><span class="wid">T-001</span>Test <code>date-formatter-v0.2.16-macos-arm64.zip</code> on macOS with Gatekeeper behavior documented</div>
               <div class="ptask"><span class="wid">T-001</span>Test Windows shared-folder update check, local staging, restart helper replacement, and app restart</div>
               <div class="ptask"><span class="wid">T-001</span>Test Linux <code>.deb</code>, <code>.rpm</code>, and <code>.tar.gz</code> assets with runtime dependencies documented</div>
             </div>
@@ -426,7 +435,7 @@
           </div>
           <div class="phase-body">
             <div class="ptasks">
-              <div class="ptask"><span class="wid">T-019</span>Choose Windows code-signing certificate path and release process</div>
+              <div class="ptask"><span class="wid">T-019</span>Sign the Windows EXE manually after release; plan workflow signing separately</div>
               <div class="ptask"><span class="wid">T-019</span>Choose macOS Developer ID signing and notarization process</div>
               <div class="ptask"><span class="wid">T-019</span>Keep manual warnings accurate until public signed builds exist</div>
             </div>
@@ -512,10 +521,12 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">39 total</span>
+        <span class="pbadge">41 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-041</span><span class="dtext">T-025: frontend dependency audit cleared with three lockfile updates. Zero npm audit vulnerabilities; release build checks remain required.</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-040</span><span class="dtext">Six source security patches for v0.2.16 cover anchored output saves, Unix ownership and permissions, literal XLSX strings, linear date preprocessing, and private nonfatal legacy logs. macOS checks pass; native Windows checks are required before publication. Updater verification remains deferred.</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-039</span><span class="dtext">v0.2.15 prepared as an update smoke-test release with staged update SHA-256 verification</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-038</span><span class="dtext">Windows update default path set to <code>X:\Apps\date-formatter.exe</code>, while folder paths remain supported</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-037</span><span class="dtext">Windows managed updater added shared-folder EXE metadata checks, local staging, restart replacement, and normal <code>date-formatter.exe</code> release naming</span></div>
@@ -545,8 +556,8 @@
       <div class="pb">
         <div class="decisions">
           <div class="decision">
-            <div class="dq">Public signing owner?</div>
-            <div class="dd">Decide whether public Windows/macOS signing is handled by project release workflow or by enterprise IT distribution.</div>
+            <div class="dq">macOS signing process?</div>
+            <div class="dd">Windows signing is manual after release. Decide the macOS Developer ID and notarization process; enterprise IT distribution remains separate.</div>
           </div>
           <div class="decision">
             <div class="dq">Linux repository publishing?</div>
