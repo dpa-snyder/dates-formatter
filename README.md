@@ -2,9 +2,9 @@
 
 Desktop app for normalizing inconsistent date formats in Excel and CSV spreadsheets. Built for archival and records-management workflows where source date fields may be exact, fuzzy, partial, ISO/Dublin Core-shaped, or ambiguous.
 
-## Release candidate
+## Current release
 
-Release candidate: `v0.2.16`, with security fixes and refreshed build dependencies. Latest published release remains `v0.2.15` until the candidate passes all platform checks and its assets are published.
+Latest public release: `v0.2.16`, with secure spreadsheet saves, legacy parser and logging fixes, and refreshed build dependencies.
 
 Release page:
 
@@ -78,7 +78,7 @@ The current source retains secure temporary-file descriptors through CSV/XLSX wr
 
 Legacy Python exports also replace the output only after a complete temporary write. All exported XLSX strings, including headers and preserved originals, remain literal text; numeric and boolean cells retain their types. Legacy Python logging uses private per-user state and cannot block parser imports or startup when logging is unavailable.
 
-These security changes are prepared for `v0.2.16` and are not part of the published `v0.2.15` release. macOS checks pass; native Windows tests must pass before publication. Windows update publisher verification is deferred; signing release files manually does not change the updater's current verification behavior.
+These security changes ship in `v0.2.16`. macOS checks and native Linux/Windows release tests pass. Windows update publisher verification is deferred; signing release files manually does not change the updater's current verification behavior.
 
 If a spreadsheet has duplicate or blank headers, the Wails app makes them unique before display and output. For example, duplicate `Date` headers appear as `Date` and `Date (2)`.
 

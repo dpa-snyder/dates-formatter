@@ -267,7 +267,7 @@
     <div class="hero-top">
       <div>
         <h1>Date Formatter</h1>
-        <p class="hero-desc">Archival spreadsheet date normalization. Latest published release is v0.2.15. Security release v0.2.16 is being prepared for Windows, macOS, and Linux.</p>
+        <p class="hero-desc">Archival spreadsheet date normalization. Current release v0.2.16 ships security fixes and Wails desktop builds for Windows, macOS, and Linux.</p>
         <div class="hero-actions">
           <a href="user-manual.html" class="hbtn hbtn-primary">User Manual</a>
           <a href="https://github.com/dpa-snyder/dates-formatter" class="hbtn hbtn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
@@ -308,7 +308,7 @@
           <div class="todo">
             <span class="tid">T-001</span>
             <div>
-              <div class="t-title">Validate the next v0.2.16 release</div>
+              <div class="t-title">Validate v0.2.16 release</div>
               <div class="t-note">Smoke-test public Windows <code>date-formatter.exe</code>, macOS zip, Linux deb/rpm/tarball with <code>9200-W22.xlsx</code>. Confirm warnings, runtime dependencies, YY prefix, overwrite/copy, open file/folder actions, and Windows shared-folder update/restart flow.</div>
             </div>
             <div class="imp" aria-label="Importance 4 of 5"><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span class="on" aria-hidden="true">.</span><span aria-hidden="true">.</span></div>
@@ -521,12 +521,13 @@
     <article class="panel">
       <div class="ph">
         <h2>Recently Completed</h2>
-        <span class="pbadge">41 total</span>
+        <span class="pbadge">42 total</span>
       </div>
       <div class="pb">
         <div class="done-list">
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-041</span><span class="dtext">T-025: frontend dependency audit cleared with three lockfile updates. Zero npm audit vulnerabilities; release build checks remain required.</span></div>
-          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-040</span><span class="dtext">Six source security patches for v0.2.16 cover anchored output saves, Unix ownership and permissions, literal XLSX strings, linear date preprocessing, and private nonfatal legacy logs. macOS checks pass; native Windows checks are required before publication. Updater verification remains deferred.</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-042</span><span class="dtext">v0.2.16 published five desktop assets after all platform builds, native Windows security tests, and release checks passed. Windows signing remains manual after release.</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-041</span><span class="dtext">T-025: frontend dependency audit cleared with three lockfile updates. Zero npm audit vulnerabilities; v0.2.16 release checks passed.</span></div>
+          <div class="done-item"><span class="dcheck">✓</span><span class="did">D-040</span><span class="dtext">Six source security patches for v0.2.16 cover anchored output saves, Unix ownership and permissions, literal XLSX strings, linear date preprocessing, and private nonfatal legacy logs. Released in v0.2.16 after macOS checks and native Windows/Linux release checks passed. Updater verification remains deferred.</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-039</span><span class="dtext">v0.2.15 prepared as an update smoke-test release with staged update SHA-256 verification</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-038</span><span class="dtext">Windows update default path set to <code>X:\Apps\date-formatter.exe</code>, while folder paths remain supported</span></div>
           <div class="done-item"><span class="dcheck">✓</span><span class="did">D-037</span><span class="dtext">Windows managed updater added shared-folder EXE metadata checks, local staging, restart replacement, and normal <code>date-formatter.exe</code> release naming</span></div>
@@ -847,7 +848,7 @@
     /* Live pills — all static strings, no API data injected */
     setLive([
       (repo.visibility || 'public').toUpperCase(),
-      'Release: v0.2.15',
+      'Release: v0.2.16',
       'Issues: ' + openIssues.length,
       'PRs: ' + openPRs,
       'Pushed ' + fmtDate(repo.pushed_at),
