@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+if [[ "${PROJECT_DEV_SHELL:-}" == "leading-zeros-dates" ]]; then
+  if [[ ! -x ".venv-nix/bin/python" ]]; then
+    echo "Run bash scripts/setup-dev.sh inside the Nix shell first." >&2
+    exit 1
+  fi
+  exec ./.venv-nix/bin/python -m unittest discover -s tests -q
+fi
+
 if [[ ! -x ".venv/bin/python" ]]; then
   python3 -m venv .venv
 fi

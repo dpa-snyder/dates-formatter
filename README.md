@@ -112,6 +112,91 @@ index.html                     # Project dashboard
 requirements.txt               # Legacy Python dependencies
 ```
 
+## Nix development shell (macOS)
+
+Run these commands from the repository root. Nix must be installed with flakes
+and `nix-command` enabled. `flake.lock` pins the toolchain; `requirements-dev.lock`
+pins Python dependencies and their download hashes. The shell supports Apple
+silicon and Intel Macs; only Apple silicon has been tested locally.
+
+The shell provides Python 3.12, Tkinter, and uv. Python 3.12 preserves compatibility with the pinned pandas 2.2.2 dependency. This shell covers the legacy Python app; the Wails frontend keeps its separate shell under `wails-app/frontend`.
+
+### First setup
+
+```bash
+cd ~/code/leading-zeros-dates
+nix develop
+bash scripts/setup-dev.sh
+```
+
+The first run downloads the Nix tools and Python packages. Setup creates a separate
+`.venv-nix`, leaving any existing `.venv` untouched. Run setup again after pulling
+changes to the dependency lock. Entering the shell itself does not install packages,
+load `.env`, or run the application.
+
+### Run the application
+
+Inside the shell:
+
+```bash
+python src/date-formatter-gui.py
+```
+
+### Checks
+
+```bash
+./run-tests.sh
+```
+
+For a single command without entering an interactive shell:
+
+```bash
+nix develop --command bash scripts/setup-dev.sh
+nix develop --command ./run-tests.sh
+```
+
+Exit the interactive shell with `exit` or Ctrl-D. On later visits, run
+`nix develop` from this directory; the existing `.venv-nix` is selected automatically.
+Do not activate the older `.venv` inside the Nix shell.
+
+### Optional automatic activation
+
+With direnv installed and hooked into your shell, run `direnv allow` once from
+this directory. The checked-in `.envrc` loads the same Nix shell when you enter
+the directory and unloads it when you leave. Run `bash scripts/setup-dev.sh`
+inside the activated directory for first setup and dependency changes.
+
+### Updating the development environment
+
+Change `requirements.txt` or `pyproject.toml` as appropriate, then run inside the shell:
+
+```bash
+uv pip compile requirements.txt \
+  --python "$DEV_SHELL_PYTHON" --python-platform aarch64-apple-darwin \
+  --generate-hashes --output-file requirements-dev.lock \
+  --custom-compile-command 'See README.md: Updating the development environment'
+bash scripts/setup-dev.sh
+```
+
+Add `--upgrade` to deliberately refresh already locked versions. Use
+`nix flake update nixpkgs` to update the Nix toolchain, exit, and enter the shell
+again. If setup reports that Nix Python changed, move `.venv-nix` aside to a
+backup name and rerun setup. Review lockfile changes and rerun the checks.
+
+### Rollback and platform limits
+
+To return to the old environment, exit the Nix shell (or run `direnv deny` and
+leave/re-enter the directory), then run `source .venv/bin/activate`, if that
+environment existed before migration and its original interpreter is still installed.
+Brew cleanup on the MacBook removed Python 3.13; the preserved old venv directories
+are therefore archival, not runnable fallbacks. Use this project’s Nix shell. To
+roll back a future Nix update, retain the previous lockfiles and `.venv-nix`,
+restore them together, and re-enter the pinned shell. `.venv-nix` requires the Nix
+shell's environment, including its Tkinter path where applicable.
+
+This shell is for local macOS development. Windows setup and release packaging
+remain separate workflows; Linux is not declared by this flake.
+
 ## Build and test
 
 Use Nix packages first when possible.
